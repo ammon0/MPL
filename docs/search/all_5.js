@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['hash_5fkey',['hash_key',['../gen-pexe_8cpp.html#a03e40fd2a3253b110455a78eaf523d35',1,'pexe_dx_entry']]]
+  ['off_5finstq',['off_instq',['../structpexe__h.html#a15966eb972b06a14a8e4e5a7eda934b1',1,'pexe_h']]],
+  ['off_5fsym',['off_sym',['../structpexe__h.html#aff51f994410fab0d4d5abbdf78c59dea',1,'pexe_h']]],
+  ['operand',['Operand',['../structOperand.html',1,'']]],
+  ['operands',['Operands',['../classOperands.html',1,'']]]
 ];

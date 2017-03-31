@@ -64,7 +64,8 @@ typedef enum {
 	i_NUM
 } inst_code;
 
-
+/**	This is a Quad instruction
+ */
 typedef struct{
 	op_pt     result;
 	op_pt     left;

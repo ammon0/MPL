@@ -13,15 +13,27 @@
 ################################## FILES #######################################
 
 
-workdir   :=./work
+
 srcdir    :=./src
 
 # Change these variables to point to the appropriate installation directories
+WORKDIR   :=./work
 INSTALLDIR:=$(HOME)/prg
 LIBDIR    :=$(INSTALLDIR)/lib
 INCDIR    :=$(INSTALLDIR)/include
 
-allfiles:=
+headers:=$(wildcard $(srcdir)/*.hpp)
+cpp_sources:=$(wildcard $(srcdir)/*.cpp)
+
+allfiles:= $(headers) $(cpp_sources)
+
+gen_objects :=gen-arm.o gen-x86.o
+pexe_objects:=gen-pexe.o
+opt_objects :=opt.o
+
+gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
+pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
+opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
 
 ################################## FLAGS #######################################
 
@@ -72,7 +84,7 @@ LEX:= flex
 ############################### PRODUCTIONS ####################################
 
 
-docs: Doxyfile README.md
+docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile
 
 
