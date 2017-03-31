@@ -69,6 +69,7 @@ TYPEDEF_HIDES_STRUCT   = YES
 # Build related configuration options
 #---------------------------------------------------------------------------
 
+EXTRACT_ALL = YES
 EXTRACT_STATIC = YES
 GENERATE_DEPRECATEDLIST= YES
 
