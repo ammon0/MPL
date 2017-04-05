@@ -16,6 +16,10 @@
  */
 
 
+#ifndef _PPD_HPP
+#define _PPD_HPP
+
+
 #include "instructions.hpp"
 
 /** This is a container for all the components of the portable program data.
@@ -26,5 +30,14 @@ public:
 	Operands     operands;     ///< The symbol table
 	Instructions instructions; ///< The program code
 };
+
+class Blocked_PD{
+	String_Array labels;       ///< the string space
+	Operands     operands;     ///< The symbol table
+	Block_Queue  instructions; ///< The program code in basic blocks
+};
+
+
+#endif // _PPD_HPP
 
 

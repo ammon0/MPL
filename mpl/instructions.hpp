@@ -61,8 +61,11 @@ typedef enum {
 	i_or ,
 
 	// flow control (6)
-	i_jmp ,
-	i_jz  ,
+	i_jmp,
+	i_jz ,
+	i_lbl,
+	i_call,
+	i_rtrn,
 	
 	i_NUM
 } inst_code;
@@ -73,34 +76,55 @@ typedef struct{
 	op_pt     result;
 	op_pt     left;
 	op_pt     right;
-	inst_code inst;
+	inst_code op;
 } Instruction;
 
 typedef Instruction * inst_pt;
 
+
+/**	A queue of  program instructions
+*/
 class Instructions{
 	DS q;
 	
 public:
-	Instructions(void){ q = DS_new_list(sizeof(Instruction)); }
-	~Instructions(void){ DS_delete(q); }
+	Instructions(void);
+	~Instructions(void);
 	
-	inst_pt current(void){ return (inst_pt)DS_current (q); }
-	inst_pt next   (void){ return (inst_pt)DS_next    (q); }
-	inst_pt prev   (void){ return (inst_pt)DS_previous(q); }
-	inst_pt last   (void){ return (inst_pt)DS_last    (q); }
+	uint count  (void);
+	bool isempty(void);
 	
-	inst_pt insert(inst_code inst, op_pt result, op_pt left, op_pt right){
-		Instruction i;
-		
-		i.inst   = inst;
-		i.result = result;
-		i.left   = left;
-		i.right  = right;
-		
-		return (inst_pt)DS_insert(q, &i);
-	}
+	inst_pt current(void);
+	inst_pt next   (void);
+	inst_pt prev   (void);
+	inst_pt first  (void);
+	inst_pt last   (void);
+	
+	inst_pt insert(inst_code op, op_pt result, op_pt left, op_pt right);
+	inst_pt nq(inst_pt inst);
+	inst_pt dq(void);
+	
+	void flush(void);
 };
+
+/**	A queue of basic blocks
+*/
+class Block_Queue{
+private:
+	DS bq;
+public:
+	 Block_Queue(void);
+	~Block_Queue(void);
+	
+	bool           isempty(void            ) const;
+	uint           count  (void            ) const;
+	Instructions * first  (void            ) const;
+	Instructions * last   (void            ) const;
+	Instructions * next   (void            ) const;
+	Instructions * nq     (Instructions * q)      ;
+	Instructions * dq     (void            )      ;
+};
+
 
 #endif // _INSTRUCTIONS_HPP
 

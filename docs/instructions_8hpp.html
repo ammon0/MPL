@@ -106,6 +106,10 @@ Data Structures</h2></td></tr>
 <tr class="memdesc:structInstruction"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is a Quad instruction.  <a href="instructions_8hpp.html#structInstruction">More...</a><br /></td></tr>
 <tr class="separator:structInstruction"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstructions.html">Instructions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A queue of program instructions.  <a href="classInstructions.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html">Block_Queue</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A queue of basic blocks.  <a href="classBlock__Queue.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -155,6 +159,10 @@ Enumerations</h2></td></tr>
 &#160;&#160;<b>i_or</b>, 
 <b>i_jmp</b>, 
 <b>i_jz</b>, 
+<b>i_lbl</b>, 
+<br />
+&#160;&#160;<b>i_call</b>, 
+<b>i_rtrn</b>, 
 <b>i_NUM</b>
 <br />
  }</td></tr>
@@ -176,15 +184,15 @@ Enumerations</h2></td></tr>
 </div><table class="fieldtable">
 <tr><th colspan="3">Data Fields</th></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="ad47e6831acd242348935e25310306d05"></a>inst_code</td>
-<td class="fieldname">
-inst</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
 <a class="anchor" id="a27927b7d3a8ae6c14c38640ec34c7aba"></a><a class="el" href="operands_8hpp.html#structOperand">op_pt</a></td>
 <td class="fieldname">
 left</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a2172e92096274fcd1b3098b7140e24df"></a>inst_code</td>
+<td class="fieldname">
+op</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['operand',['Operand',['../operands_8hpp.html#structOperand',1,'']]],
-  ['operands',['Operands',['../classOperands.html',1,'']]]
+  ['instruction',['Instruction',['../instructions_8hpp.html#structInstruction',1,'']]],
+  ['instructions',['Instructions',['../classInstructions.html',1,'']]]
 ];

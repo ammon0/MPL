@@ -58,13 +58,11 @@ typedef Operand * op_pt;
 /** This is the symbol table
 */
 class Operands{
-	DS             index;  // from util/data.h
-	String_Array * labels; // from util/string_array.hpp
-	
-	static inline const void * label(void * op);
-	static inline imax         cmp(const void * left, const void * right);
+	DS index;  // from util/data.h
 	
 public:
+	static String_Array * labels; // from util/string_array.hpp
+	
 	Operands(String_Array * array);
 	~Operands(void);
 	

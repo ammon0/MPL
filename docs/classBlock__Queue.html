@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>MPL: Operands Class Reference</title>
+<title>MPL: Block_Queue Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,44 +83,45 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">Operands Class Reference</div>  </div>
+<div class="title">Block_Queue Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the symbol table.  
- <a href="classOperands.html#details">More...</a></p>
+<p>A queue of basic blocks.  
+ <a href="classBlock__Queue.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="operands_8hpp_source.html">operands.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af3eb30afbc5e9265de17f6afacefadfe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af3eb30afbc5e9265de17f6afacefadfe"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Operands</b> (String_Array *array)</td></tr>
-<tr class="separator:af3eb30afbc5e9265de17f6afacefadfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa03574f889fc4c4af2232db15576ec53"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa03574f889fc4c4af2232db15576ec53"></a>
-<a class="el" href="operands_8hpp.html#structOperand">op_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (char *label)</td></tr>
-<tr class="separator:aa03574f889fc4c4af2232db15576ec53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa30db78921e7101f485b1ed2b11b39ad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa30db78921e7101f485b1ed2b11b39ad"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>remove</b> (char *label)</td></tr>
-<tr class="separator:aa30db78921e7101f485b1ed2b11b39ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf9e52112c0392e62af105041cb4a2b6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf9e52112c0392e62af105041cb4a2b6"></a>
-<a class="el" href="operands_8hpp.html#structOperand">op_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>add</b> (str_dx label, width_t size, <a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174">segment_t</a> where, bool sign)</td></tr>
-<tr class="separator:aaf9e52112c0392e62af105041cb4a2b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a23a07a11194d1e70add57c65201f391c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a23a07a11194d1e70add57c65201f391c"></a>
-static String_Array *&#160;</td><td class="memItemRight" valign="bottom"><b>labels</b></td></tr>
-<tr class="separator:a23a07a11194d1e70add57c65201f391c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38e1eeba88b03c27b87865ce9a9d8d6c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a38e1eeba88b03c27b87865ce9a9d8d6c"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isempty</b> (void) const </td></tr>
+<tr class="separator:a38e1eeba88b03c27b87865ce9a9d8d6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0e9a867f5a033e4c3d4a3d94733dd74"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae0e9a867f5a033e4c3d4a3d94733dd74"></a>
+uint&#160;</td><td class="memItemRight" valign="bottom"><b>count</b> (void) const </td></tr>
+<tr class="separator:ae0e9a867f5a033e4c3d4a3d94733dd74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaee37b08e4599cf4793f41ad63c3fcdf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaee37b08e4599cf4793f41ad63c3fcdf"></a>
+<a class="el" href="classInstructions.html">Instructions</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>first</b> (void) const </td></tr>
+<tr class="separator:aaee37b08e4599cf4793f41ad63c3fcdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e9c3cdf57044bba3b39648adda7095c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0e9c3cdf57044bba3b39648adda7095c"></a>
+<a class="el" href="classInstructions.html">Instructions</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>last</b> (void) const </td></tr>
+<tr class="separator:a0e9c3cdf57044bba3b39648adda7095c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9199a70b1d67dbe9c2d5b8ebc66e589"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae9199a70b1d67dbe9c2d5b8ebc66e589"></a>
+<a class="el" href="classInstructions.html">Instructions</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>next</b> (void) const </td></tr>
+<tr class="separator:ae9199a70b1d67dbe9c2d5b8ebc66e589"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb7ea7a9e4f769c607144e38203e4835"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abb7ea7a9e4f769c607144e38203e4835"></a>
+<a class="el" href="classInstructions.html">Instructions</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>nq</b> (<a class="el" href="classInstructions.html">Instructions</a> *q)</td></tr>
+<tr class="separator:abb7ea7a9e4f769c607144e38203e4835"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d52dc7790fa96a86f13cc62c0c3e4b8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5d52dc7790fa96a86f13cc62c0c3e4b8"></a>
+<a class="el" href="classInstructions.html">Instructions</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>dq</b> (void)</td></tr>
+<tr class="separator:a5d52dc7790fa96a86f13cc62c0c3e4b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This is the symbol table. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
-<li>mpl/<a class="el" href="operands_8hpp_source.html">operands.hpp</a></li>
-<li>src/operands.cpp</li>
+<div class="textblock"><p>A queue of basic blocks. </p>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
+<li>mpl/<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

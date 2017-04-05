@@ -88,9 +88,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Instructions Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A queue of program instructions.  
+ <a href="classInstructions.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a2bb04153a013a1e01786d26ee0763086"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2bb04153a013a1e01786d26ee0763086"></a>
+uint&#160;</td><td class="memItemRight" valign="bottom"><b>count</b> (void)</td></tr>
+<tr class="separator:a2bb04153a013a1e01786d26ee0763086"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ad4b0c7496fa0de0cc8fb8553cf93bb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ad4b0c7496fa0de0cc8fb8553cf93bb"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isempty</b> (void)</td></tr>
+<tr class="separator:a9ad4b0c7496fa0de0cc8fb8553cf93bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad05339798f088863be1e0185b1ec79c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aad05339798f088863be1e0185b1ec79c"></a>
 <a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current</b> (void)</td></tr>
 <tr class="separator:aad05339798f088863be1e0185b1ec79c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -100,15 +111,30 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a33624741687c787f6cf2799fbf478fa8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33624741687c787f6cf2799fbf478fa8"></a>
 <a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>prev</b> (void)</td></tr>
 <tr class="separator:a33624741687c787f6cf2799fbf478fa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0471b18a0804756a7ea1866a64d4a183"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0471b18a0804756a7ea1866a64d4a183"></a>
+<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>first</b> (void)</td></tr>
+<tr class="separator:a0471b18a0804756a7ea1866a64d4a183"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e241d6ba0e2f97ba7efac37c1bd42ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2e241d6ba0e2f97ba7efac37c1bd42ba"></a>
 <a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>last</b> (void)</td></tr>
 <tr class="separator:a2e241d6ba0e2f97ba7efac37c1bd42ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c6a3659ccc877b9c426ea626dc296e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5c6a3659ccc877b9c426ea626dc296e4"></a>
-<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (inst_code inst, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> result, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> left, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> right)</td></tr>
-<tr class="separator:a5c6a3659ccc877b9c426ea626dc296e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90bd09d405f7110cab32e07a2dcaf712"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90bd09d405f7110cab32e07a2dcaf712"></a>
+<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (inst_code op, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> result, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> left, <a class="el" href="operands_8hpp.html#structOperand">op_pt</a> right)</td></tr>
+<tr class="separator:a90bd09d405f7110cab32e07a2dcaf712"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4098a86b2415b305b0437d606f4206ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4098a86b2415b305b0437d606f4206ee"></a>
+<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>nq</b> (<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a> inst)</td></tr>
+<tr class="separator:a4098a86b2415b305b0437d606f4206ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c862aa9734e9f174ca863a746ced0ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2c862aa9734e9f174ca863a746ced0ab"></a>
+<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>dq</b> (void)</td></tr>
+<tr class="separator:a2c862aa9734e9f174ca863a746ced0ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1778c29fa928b4bb2178952b854ab6c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1778c29fa928b4bb2178952b854ab6c4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>flush</b> (void)</td></tr>
+<tr class="separator:a1778c29fa928b4bb2178952b854ab6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A queue of program instructions. </p>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>mpl/<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a></li>
+<li>src/<a class="el" href="instructions_8cpp.html">instructions.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

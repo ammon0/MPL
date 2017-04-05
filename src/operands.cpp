@@ -12,15 +12,11 @@
 
 #include <mpl/operands.hpp>
 
-/**	A function to extract the label from the operand for indexing purposes
- */
-static inline const void * Operands::label(void * op){
-	return labels->get( ((op_pt)op)->label );
+static const void * op_label(const void * op){
+	return Operands::labels->get( ((op_pt)op)->label );
 }
 
-/**	A function to compare labels
- */
-static inline imax     Operands::cmp(const void * left, const void * right){
+static imax lbl_cmp(const void * left, const void * right){
 	return strcmp((char*) left, (char*) right);
 }
 
@@ -28,8 +24,8 @@ Operands::Operands(String_Array * array){
 	index = DS_new_bst(
 		sizeof(Operand),
 		false,
-		&Operands::label,
-		&Operands::cmp
+		&op_label,
+		&lbl_cmp
 	);
 	labels = array;
 }

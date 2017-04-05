@@ -15,7 +15,7 @@
  */
 
 
-#include <mpl/ppd.hpp>
+
 
 #include <util/types.h>
 #include <util/msg.h>
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <mpl/ppd.hpp>
 #include <mpl/gen.hpp>
 
 
@@ -184,7 +185,7 @@ static const char * str_instruction(x86_inst instruction){
 }
 
 static void put_op(inst_pt inst){
-	switch (inst -> inst){
+	switch (inst->op){
 	
 	case i_nop : break;
 	case i_ass : break;
@@ -231,7 +232,7 @@ static void put_op(inst_pt inst){
 
 /**	Produces a NASM file from the Portable Program Data
 */
-void x86 (FILE * out_fd, PPD prog, x86_mode_t mode){
+void x86 (FILE * out_fd, Blocked_PD prog, x86_mode_t mode){
 	msg_print(NULL, V_INFO, "x86(): start");
 	
 	if(mode == xm_real){

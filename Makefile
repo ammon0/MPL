@@ -28,16 +28,18 @@ cpp_sources:=$(wildcard $(srcdir)/*.cpp)
 allfiles:= $(headers) $(cpp_sources)
 
 # Object files
+ppd_objects :=operands.o instructions.o
 gen_objects :=gen-arm.o gen-x86.o
 pexe_objects:=gen-pexe.o read-pexe.o
-opt_objects :=opt.o
+opt_objects :=opt-liveblock.o
 
 # Prefix the object files
+ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
 gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
 pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
 opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
 
-CPP_OBJECTS:= $(gen_objects) $(pexe_objects) $(opt_objects)
+CPP_OBJECTS:=$(ppd_objects) $(gen_objects) $(pexe_objects) $(opt_objects)
 
 
 #################################### FLAGS #####################################
@@ -89,10 +91,12 @@ LEX:= flex
 ################################# PRODUCTIONS ##################################
 
 
-libgen.a: $(gen_objects)
-	ar rcs $@ $(gen_objects)
+libgen.a: $(gen_objects) $(ppd_objects)
+	ar rcs $@ $(gen_objects) $(ppd_objects)
+libopt.a: $(opt_objects) $(ppd_objects)
+	ar rcs $@ $(opt_objects) $(ppd_objects)
 libpexe.a: $(pexe_objects)
-libopt.a: $(opt_objects)
+
 
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile

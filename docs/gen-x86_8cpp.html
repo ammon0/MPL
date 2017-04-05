@@ -96,11 +96,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>generates x86 assembler code from the portable program data.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;mpl/ppd.hpp&gt;</code><br />
-<code>#include &lt;util/types.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;util/types.h&gt;</code><br />
 <code>#include &lt;util/msg.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
+<code>#include &lt;mpl/ppd.hpp&gt;</code><br />
 <code>#include &lt;<a class="el" href="gen_8hpp_source.html">mpl/gen.hpp</a>&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
@@ -206,9 +206,10 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>str_in
 <tr class="memitem:aefac2c3a7fd834db6499398e934cc33f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aefac2c3a7fd834db6499398e934cc33f"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>put_op</b> (<a class="el" href="instructions_8hpp.html#structInstruction">inst_pt</a> inst)</td></tr>
 <tr class="separator:aefac2c3a7fd834db6499398e934cc33f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e45aea55b828db47b3dcc58d911fbfe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a1e45aea55b828db47b3dcc58d911fbfe">x86</a> (FILE *out_fd, <a class="el" href="classPPD.html">PPD</a> prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> mode)</td></tr>
-<tr class="memdesc:a1e45aea55b828db47b3dcc58d911fbfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Produces a NASM file from the Portable Program Data.  <a href="#a1e45aea55b828db47b3dcc58d911fbfe">More...</a><br /></td></tr>
-<tr class="separator:a1e45aea55b828db47b3dcc58d911fbfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9730f8dd4a3fff28323f9d62809985bf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9730f8dd4a3fff28323f9d62809985bf"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a9730f8dd4a3fff28323f9d62809985bf">x86</a> (FILE *out_fd, <a class="el" href="classBlocked__PD.html">Blocked_PD</a> prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> mode)</td></tr>
+<tr class="memdesc:a9730f8dd4a3fff28323f9d62809985bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Produces a NASM file from the Portable Program Data. <br /></td></tr>
+<tr class="separator:a9730f8dd4a3fff28323f9d62809985bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -357,42 +358,6 @@ Variables</h2></td></tr>
 <p>check an index is within array bounds </p>
 </td></tr>
 </table>
-
-</div>
-</div>
-<h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="a1e45aea55b828db47b3dcc58d911fbfe"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void x86 </td>
-          <td>(</td>
-          <td class="paramtype">FILE *&#160;</td>
-          <td class="paramname"><em>out_fd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classPPD.html">PPD</a>&#160;</td>
-          <td class="paramname"><em>prog</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a>&#160;</td>
-          <td class="paramname"><em>mode</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Produces a NASM file from the Portable Program Data. </p>
-<p>Generate an x86 assembler file for the program data provided. </p>
 
 </div>
 </div>
