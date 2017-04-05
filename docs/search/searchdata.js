@@ -1,10 +1,13 @@
 var indexSectionsWithContent =
 {
-  0: "cdimnopv",
+  0: "abcdgilmnoprstvx",
   1: "iop",
-  2: "ip",
-  3: "cdnov",
-  4: "m"
+  2: "giop",
+  3: "tx",
+  4: "cdilnorv",
+  5: "rsx",
+  6: "abcdrsx",
+  7: "m"
 };
 
 var indexSectionNames =
@@ -12,8 +15,11 @@ var indexSectionNames =
   0: "all",
   1: "classes",
   2: "files",
-  3: "variables",
-  4: "pages"
+  3: "functions",
+  4: "variables",
+  5: "enums",
+  6: "enumvalues",
+  7: "pages"
 };
 
 var indexSectionLabels =
@@ -21,7 +27,10 @@ var indexSectionLabels =
   0: "All",
   1: "Data Structures",
   2: "Files",
-  3: "Variables",
-  4: "Pages"
+  3: "Functions",
+  4: "Variables",
+  5: "Enumerations",
+  6: "Enumerator",
+  7: "Pages"
 };
 

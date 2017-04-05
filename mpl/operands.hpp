@@ -3,10 +3,13 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
+ *	You should have received a copy of the licence terms with this software. If
+ *	not, please visit the project homepage at:
+ *	https://github.com/ammon0/MPL
  *
  ******************************************************************************/
 
-/**	@file operand.hpp 
+/**	@file operands.hpp
  *	
  *	Definitions for machine operands
  */
@@ -20,7 +23,7 @@
 #include <util/types.h>
 #include <util/data.h>
 
-#include <strings.h>
+#include <string.h>
 
 typedef enum{
 	w_none,
@@ -36,33 +39,38 @@ typedef enum{
 
 typedef enum{
 	st_none,
-	st_mem,  ///< A location in memory
+	st_data,  ///< A storage location
 	st_code, ///< A jump location in the code
-	st_temp, ///< A temporary variable created by the compiler
 	st_NUM
-} storage_t;
+} segment_t;
 
-
+/// A single MPL operand
 typedef struct{
 	str_dx    label;
 	width_t   width;
-	storage_t type;
+	segment_t type;
+	bool      sign;
 } Operand;
 
 typedef Operand * op_pt;
 
+
+/** This is the symbol table
+*/
 class Operands{
-	DS           index;  // from util/data.h
-	String_Array labels; // from util/string_array.hpp
+	DS             index;  // from util/data.h
+	String_Array * labels; // from util/string_array.hpp
 	
-	inline const void * label(void * op){ return labels.get( (op_pt)op->label ); }
-	inline imax          cmp(const void * left, const void * right){
-		return strcmp((char*) left, (char*) right);
-	}
+	static inline const void * label(void * op);
+	static inline imax         cmp(const void * left, const void * right);
 	
 public:
-	Labels(void) { index = DS_new_bst(sizeof(Operand), false, &label, &cmp); }
-	~Labels(void){ DS_delete(index); }
+	Operands(String_Array * array);
+	~Operands(void);
+	
+	op_pt find(char * label);
+	void  remove(char * label);
+	op_pt add(str_dx label, width_t size, segment_t where, bool sign);
 };
 
 #endif // _LABEL_HPP

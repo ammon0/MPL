@@ -10,11 +10,11 @@
 ################################################################################
 
 
-################################## FILES #######################################
-
+#################################### FILES #####################################
 
 
 srcdir    :=./src
+headerdir :=./mpl
 
 # Change these variables to point to the appropriate installation directories
 WORKDIR   :=./work
@@ -22,20 +22,25 @@ INSTALLDIR:=$(HOME)/prg
 LIBDIR    :=$(INSTALLDIR)/lib
 INCDIR    :=$(INSTALLDIR)/include
 
-headers:=$(wildcard $(srcdir)/*.hpp)
+headers:=$(wildcard $(headerdir)/*.hpp)
 cpp_sources:=$(wildcard $(srcdir)/*.cpp)
 
 allfiles:= $(headers) $(cpp_sources)
 
+# Object files
 gen_objects :=gen-arm.o gen-x86.o
-pexe_objects:=gen-pexe.o
+pexe_objects:=gen-pexe.o read-pexe.o
 opt_objects :=opt.o
 
+# Prefix the object files
 gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
 pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
 opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
 
-################################## FLAGS #######################################
+CPP_OBJECTS:= $(gen_objects) $(pexe_objects) $(opt_objects)
+
+
+#################################### FLAGS #####################################
 
 
 # My code builds without warnings--ALWAYS
@@ -69,34 +74,47 @@ CXXWARNINGS:=-Wall -Wextra -pedantic \
 
 DEBUG_OPT:=
 
-CFLAGS:=  --std=c11   -g $(CWARNINGS) -I$(INCDIR) -L$(LIBDIR)
-CXXFLAGS:=--std=c++14 -g $(CXXWARNINGS) -I$(INCDIR) -L$(LIBDIR)
+CFLAGS:=  --std=c11   -g $(CWARNINGS)   -I./ -I$(INCDIR) -L$(LIBDIR)
+CXXFLAGS:=--std=c++14 -g $(CXXWARNINGS) -I./ -I$(INCDIR) -L$(LIBDIR)
 LFLAGS:=#-d
 LEX:= flex
 
 
-################################# TARGETS ######################################
+################################### TARGETS ####################################
 
 
 .PHONEY: docs
 
 
-############################### PRODUCTIONS ####################################
+################################# PRODUCTIONS ##################################
 
+
+libgen.a: $(gen_objects)
+	ar rcs $@ $(gen_objects)
+libpexe.a: $(pexe_objects)
+libopt.a: $(opt_objects)
 
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile
 
+$(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) | $(WORKDIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# working directory
+$(WORKDIR):
+	mkdir -p $@
+
 
 ################################## UTILITIES ###################################
 
-cleanfiles:=
+
+cleanfiles:=*.a *.o
 
 .PHONEY: clean todolist
 
 clean:
 	rm -f $(cleanfiles)
-	rm -fr $(workdir)
+	rm -fr $(WORKDIR)
 
 todolist:
 	-@for file in $(allfiles:Makefile=); do fgrep -H -e TODO -e FIXME $$file; done; true

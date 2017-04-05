@@ -91,7 +91,7 @@ FILE_VERSION_FILTER    =
 # messages are off.
 # The default value is: NO.
 
-QUIET                  =
+QUIET                  =YES
 
 # This WARN_NO_PARAMDOC option can be enabled to get warnings for functions that
 # are documented, but have no documentation for their parameters or return
@@ -111,7 +111,7 @@ WARN_NO_PARAMDOC       = YES
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = README.md ./src/
+INPUT                  = README.md ./src/ ./mpl/
 EXCLUDE                =
 USE_MDFILE_AS_MAINPAGE = README.md
 

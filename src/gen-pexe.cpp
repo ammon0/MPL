@@ -16,7 +16,8 @@
 //                            TYPE DEFINITIONS
 /******************************************************************************/
 
-
+/** This is the header of a pexe file
+ */
 typedef struct pexe_header{
 	uint8_t  magic0;
 	uint8_t  magic1;
@@ -38,7 +39,7 @@ typedef struct pexe_header{
 	uint64_t checksum; ///< checksum of everything after the header
 } pexe_h;
 
-// a sorted index of declarations
+/// a sorted index of declarations
 typedef struct {
 	uint32_t hash_key;
 	uint32_t offset;

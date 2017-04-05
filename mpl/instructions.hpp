@@ -3,6 +3,9 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
+ *	You should have received a copy of the licence terms with this software. If
+ *	not, please visit the project homepage at:
+ *	https://github.com/ammon0/MPL
  *
  ******************************************************************************/
 
@@ -82,7 +85,22 @@ public:
 	Instructions(void){ q = DS_new_list(sizeof(Instruction)); }
 	~Instructions(void){ DS_delete(q); }
 	
-}
+	inst_pt current(void){ return (inst_pt)DS_current (q); }
+	inst_pt next   (void){ return (inst_pt)DS_next    (q); }
+	inst_pt prev   (void){ return (inst_pt)DS_previous(q); }
+	inst_pt last   (void){ return (inst_pt)DS_last    (q); }
+	
+	inst_pt insert(inst_code inst, op_pt result, op_pt left, op_pt right){
+		Instruction i;
+		
+		i.inst   = inst;
+		i.result = result;
+		i.left   = left;
+		i.right  = right;
+		
+		return (inst_pt)DS_insert(q, &i);
+	}
+};
 
 #endif // _INSTRUCTIONS_HPP
 
