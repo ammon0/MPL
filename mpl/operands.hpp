@@ -39,8 +39,10 @@ typedef enum{
 
 typedef enum{
 	st_none,
+	st_temp,  ///< A compiler generated temporary
+	st_const, ///< A compile-time constant
 	st_data,  ///< A storage location
-	st_code, ///< A jump location in the code
+	st_code,  ///< A jump location in the code
 	st_NUM
 } segment_t;
 
@@ -49,7 +51,9 @@ typedef struct{
 	str_dx    label;
 	width_t   width;
 	segment_t type;
+	umax      const_value;
 	bool      sign;
+	bool      live;
 } Operand;
 
 typedef Operand * op_pt;

@@ -15,16 +15,15 @@
  */
 
 
-
-
 #include <util/types.h>
 #include <util/msg.h>
 
-#include <stdio.h>
-#include <string.h>
-
 #include <mpl/ppd.hpp>
 #include <mpl/gen.hpp>
+
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 
 /******************************************************************************/
@@ -46,6 +45,7 @@ typedef enum{
 } reg_t;
 
 typedef enum {
+	bad_width,
 	byte,
 	word,
 	dword,
@@ -107,7 +107,7 @@ typedef enum {
 /******************************************************************************/
 
 
-const char * inst_array[NUM_X86_INST] = {
+static const char * inst_array[NUM_X86_INST] = {
 	"mov", "movsx", "movzx",
 	"push", "pop", "pushad", "popad",
 	"inc", "dec", "add", "sub", "mul", "imul", "div", "idiv", "cmp", "neg",
@@ -126,7 +126,11 @@ const char * inst_array[NUM_X86_INST] = {
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  */
-static op_pt reg_d[NUM_X86_REG];
+static op_pt          reg_d[NUM_X86_REG];
+static Operands     * ops               ;
+static String_Array * lbls              ;
+static FILE         * fd                ;
+static x86_mode_t     mode              ;
 
 
 /******************************************************************************/
@@ -138,6 +142,15 @@ static op_pt reg_d[NUM_X86_REG];
 void test_x86(void);
 
 
+/****************************** HELPER FUNCTIONS ******************************/
+
+static const char * str_instruction(x86_inst instruction){
+	return inst_array[instruction];
+}
+static const char * str_lbl(Operand * operand){
+	return lbls->get(operand->label);
+}
+
 static const char * str_num(umax num){
 	static char array[20];
 	sprintf(array, "0x%llu", num);
@@ -148,12 +161,18 @@ static const char * str_num(umax num){
 static const char * str_reg(reg_width width, reg_t reg){
 	static char array[4] = "   ";
 	
+	//TODO: check mode
+	
 	switch (width){
 	case byte : array[0] = ' '; array[2] = ' '; break;
 	case word : array[0] = ' '; array[2] = 'x'; break;
 	case dword: array[0] = 'e'; array[2] = 'x'; break;
 	case qword: array[0] = 'r'; array[2] = 'x'; break;
-	default   : msg_print(NULL, V_ERROR, "something done broke in put_reg()");
+	
+	case bad_width:
+	default:
+		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_width");
+		return NULL;
 	}
 	
 	switch (reg){
@@ -173,36 +192,139 @@ static const char * str_reg(reg_width width, reg_t reg){
 	case R13: array[1] = '1'; array[2] = '3'; break;
 	case R14: array[1] = '1'; array[2] = '4'; break;
 	case R15: array[1] = '1'; array[2] = '5'; break;
+	
 	case NUM_X86_REG:
-	default: msg_print(NULL, V_ERROR, "something done broke in put_reg()");
+	default:
+		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_t");
+		return NULL;
 	}
 	
 	return array;
 }
 
-static const char * str_instruction(x86_inst instruction){
-	return inst_array[instruction];
+static void __attribute__((format(printf, 1, 2)))
+put_cmd(const char * format, ...){
+	va_list ap;
+	
+	va_start(ap, format);
+	vfprintf(fd, format, ap);
+	va_end(ap);
 }
 
-static void put_op(inst_pt inst){
-	switch (inst->op){
+static reg_width set_width(width_t in){
+	switch(in){
+	case w_byte : return byte;
+	case w_byte2: return word;
+	case w_byte4: return dword;
+	case w_byte8: return qword;
+	case w_word :
+	case w_max  :
+	case w_ptr  :
+		if(mode == xm_long) return qword;
+		else return dword;
 	
-	case i_nop : break;
-	case i_ass : break;
+	case w_none :
+	case w_NUM  :
+	default     :
+		msg_print(NULL, V_ERROR, "set_width(): got a bad width");
+		return bad_width;
+	}
+}
+
+static reg_t check_reg(op_pt operand){
+	uint i;
+	
+	for(i=A; i!=NUM_X86_REG; i++){
+		reg_t j = static_cast<reg_t>(i);
+		if(reg_d[j] == operand) break;
+	}
+	return (reg_t)i;
+}
+
+static return_t
+load(reg_t reg, op_pt mem){
+	if(reg_d[reg] != NULL){
+		msg_print(NULL, V_ERROR, "load(): that register is already in use");
+		return failure;
+	}
+	
+	reg_d[reg] = mem;
+	put_cmd("\t%s\t%s\t[%s]\n",
+		str_instruction(X_MOV),
+		str_reg(set_width(mem->width), reg),
+		str_lbl(mem)
+	);
+	
+	return success;
+}
+
+static return_t
+store(reg_t reg){
+	if(reg_d[reg] == NULL){
+		msg_print(
+			NULL,
+			V_ERROR,
+			"store(): there is no memory location associated with register %u",
+			reg
+		);
+		return failure;
+	}
+	
+	put_cmd("\t%s\t%s\t%s",
+		str_instruction(X_MOV),
+		str_lbl(reg_d[reg]),
+		str_reg(set_width(reg_d[reg]->width), reg)
+	);
+	
+	reg_d[reg] = NULL;
+	return success;
+}
+
+/*************************** INSTRUCTION FUNCTIONS ****************************/
+// Alfabetical
+
+static return_t
+ass(op_pt result, op_pt arg){
+	
+	check_reg(result);
+	check_reg(arg);
+	
+	return success;
+}
+
+static return_t
+neg(op_pt result, op_pt arg){
+	
+	check_reg(result);
+	check_reg(arg);
+	
+	return success;
+}
+
+/***************************** ITERATOR FUNCTIONS *****************************/
+
+static return_t Gen_inst(inst_pt inst){
+	switch (inst->op){
+	case i_nop : return success;
+	
+	case i_ass : return ass(inst->result, inst->left);
 	case i_ref : break;
 	case i_dref: break;
-	case i_neg : break;
+	case i_neg : return neg(inst->result, inst->left);
 	case i_not : break;
 	case i_inv : break;
 	case i_inc : break;
 	case i_dec : break;
 	case i_sz  : break;
+	
 	case i_mul : break;
 	case i_div : break;
 	case i_mod : break;
 	case i_exp : break;
 	case i_lsh : break;
 	case i_rsh : break;
+	case i_rol : break;
+	case i_ror : break;
 	case i_add : break;
 	case i_sub : break;
 	case i_band: break;
@@ -216,12 +338,43 @@ static void put_op(inst_pt inst){
 	case i_gte : break;
 	case i_and : break;
 	case i_or  : break;
+	
+	case i_lbl : break;
 	case i_jmp : break;
 	case i_jz  : break;
+	case i_loop: break;
+	case i_call: break;
+	case i_rtrn: break;
 	
 	case i_NUM:
-	default: msg_print(NULL, V_ERROR, "something done broke in put_operation()");
+	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
 	}
+	
+	return success;
+}
+
+
+static return_t Gen_blk(Instructions * blk){
+	inst_pt inst;
+	
+	if(!( inst=blk->first() )){
+		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
+		return failure;
+	}
+	
+	do{
+		if( Gen_inst(inst) == failure ){
+			msg_print(NULL, V_ERROR, "Gen_blk(): Gen_inst() failed");
+			return failure;
+		}
+	}while(( inst=blk->next() ));
+	
+	// flush the registers at the end of the block
+	for(uint i=0; i<NUM_X86_REG; i++){
+		if(reg_d[i] != NULL) store((reg_t)i);
+	}
+	
+	return success;
 }
 
 
@@ -232,7 +385,9 @@ static void put_op(inst_pt inst){
 
 /**	Produces a NASM file from the Portable Program Data
 */
-void x86 (FILE * out_fd, Blocked_PD prog, x86_mode_t mode){
+void x86 (FILE * out_fd, PPD * prog, x86_mode_t set_mode){
+	Instructions * blk = NULL;
+	
 	msg_print(NULL, V_INFO, "x86(): start");
 	
 	if(mode == xm_real){
@@ -246,21 +401,27 @@ void x86 (FILE * out_fd, Blocked_PD prog, x86_mode_t mode){
 	
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(op_pt)*NUM_X86_REG);
+	ops  = &(prog->operands);
+	lbls = &(prog->labels);
+	fd   = out_fd;
+	mode = set_mode;
+	
+	if(!( blk=prog->bq.first() )){
+		msg_print(NULL, V_ERROR, "x86(): Empty block queue");
+		return;
+	}
+	
+	fprintf(out_fd,"\nsection .text\t; Program code\n");
+	
+	do{
+		Gen_blk(blk);
+	} while(( blk=prog->bq.next() ));
 	
 	
-//	if(!blk_pt) crit_error("x86(): Empty block queue");
-//	
-//	fprintf(out_fd,"\nsection .text\t; Program code\n");
-//	
-//	do{
-//		Gen_blk(out_fd, *blk_pt);
-//	} while(( blk_pt = (DS_pt) DS_next(prog->block_q) ));
-//	
-//	
-//	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
-//	fprintf(out_fd,"\nsection .bss\t; Declare static variables\n");
-//	if (B64) fprintf(out_fd,"align 8\n");
-//	else fprintf(out_fd,"align 4\n");
+	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
+	fprintf(out_fd,"\nsection .bss\t; Declare static variables\n");
+	if (mode == xm_long) fprintf(out_fd,"align 8\n");
+	else fprintf(out_fd,"align 4\n");
 	
 	//TODO: static variables
 	

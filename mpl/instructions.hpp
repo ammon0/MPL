@@ -43,6 +43,8 @@ typedef enum {
 	i_exp,
 	i_lsh,
 	i_rsh,
+	i_rol,
+	i_ror,
 
 	i_add ,
 	i_sub ,
@@ -64,6 +66,7 @@ typedef enum {
 	i_jmp,
 	i_jz ,
 	i_lbl,
+	i_loop,
 	i_call,
 	i_rtrn,
 	

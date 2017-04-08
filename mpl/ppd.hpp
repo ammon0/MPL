@@ -3,7 +3,6 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
- *	Copyright (c) 2017 Ammon Dodson
  *	You should have received a copy of the licence terms with this software. If
  *	not, please visit the project homepage at:
  *	https://github.com/ammon0/MPL
@@ -26,15 +25,9 @@
 */
 class PPD{
 public:
-	String_Array labels;       ///< the string space
-	Operands     operands;     ///< The symbol table
-	Instructions instructions; ///< The program code
-};
-
-class Blocked_PD{
-	String_Array labels;       ///< the string space
-	Operands     operands;     ///< The symbol table
-	Block_Queue  instructions; ///< The program code in basic blocks
+	String_Array labels;     ///< the string space
+	Operands     operands;  ///< The symbol table
+	Block_Queue  bq;       ///< The program code in basic blocks
 };
 
 

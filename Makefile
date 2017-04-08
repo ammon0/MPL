@@ -67,7 +67,7 @@ CXXWARNINGS:=-Wall -Wextra -pedantic \
 	-Wpointer-arith -Wcast-align \
 	-Wuninitialized -Wmaybe-uninitialized -Werror=uninitialized \
 	-Winline -Wno-long-long \
-	-Wswitch \
+	-Wswitch -Wswitch-default -Wswitch-enum \
 	-Wsuggest-attribute=pure -Wsuggest-attribute=const \
 	-Wsuggest-attribute=noreturn -Wsuggest-attribute=format \
 	-Wtrampolines -Wstack-protector \

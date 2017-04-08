@@ -18,6 +18,7 @@
 #ifndef _GEN_HPP
 #define _GEN_HPP
 
+#include <stdio.h>
 
 /// x86 processor modes
 typedef enum{
@@ -34,7 +35,8 @@ typedef enum{
  *	@param prog The program data for which assembler code will be generated.
  *	@param mode The x86 proccessor mode the code will be generated for.
  */
-void gen_x86(FILE * out_fd, PPD prog, x86_mode_t mode);
+void x86 (FILE * out_fd, PPD * prog, x86_mode_t mode);
+
 //void arm(FILE * out_fd, PPD prog, mode_t mode);
 
 
