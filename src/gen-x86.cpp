@@ -241,8 +241,7 @@ static reg_t check_reg(op_pt operand){
 	return (reg_t)i;
 }
 
-static return_t
-load(reg_t reg, op_pt mem){
+static RETURN load(reg_t reg, op_pt mem){
 	if(reg_d[reg] != NULL){
 		msg_print(NULL, V_ERROR, "load(): that register is already in use");
 		return failure;
@@ -258,8 +257,7 @@ load(reg_t reg, op_pt mem){
 	return success;
 }
 
-static return_t
-store(reg_t reg){
+static RETURN store(reg_t reg){
 	if(reg_d[reg] == NULL){
 		msg_print(
 			NULL,
@@ -270,21 +268,53 @@ store(reg_t reg){
 		return failure;
 	}
 	
+	if(reg_d[reg]->type != st_data) return success;
+	
 	put_cmd("\t%s\t%s\t%s",
 		str_instruction(X_MOV),
 		str_lbl(reg_d[reg]),
 		str_reg(set_width(reg_d[reg]->width), reg)
 	);
-	
-	reg_d[reg] = NULL;
 	return success;
+}
+
+static reg_t get_reg(op_pt arg){
+	reg_t reg;
+	
+	if( (reg=check_reg(arg)) != NUM_X86_REG ) return reg;
+	
+	// find empty space
+	if(!reg_d[A]) return A; // general purpose
+	if(!reg_d[B]) return B;
+	if(!reg_d[BP]) return BP;
+	if(mode == xm_long){
+		if(!reg_d[R8]) return R8;
+		if(!reg_d[R9]) return R9;
+		if(!reg_d[R10]) return R10;
+		if(!reg_d[R11]) return R11;
+		if(!reg_d[R12]) return R12;
+		if(!reg_d[R13]) return R13;
+		if(!reg_d[R14]) return R14;
+		if(!reg_d[R15]) return R15;
+	}
+	if(!reg_d[C]) return C; // special purpose, last priority
+	if(!reg_d[D]) return D;
+	if(!reg_d[SI]) return SI;
+	if(!reg_d[DI]) return DI;
+	
+	// make space
+	if(store(A) == failure){
+		msg_print(NULL, V_ERROR, "Internal get_reg(): store() failed");
+		return NUM_X86_REG;
+	}
+	reg_d[A] = NULL;
+	return A;
 }
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alfabetical
 
-static return_t
-ass(op_pt result, op_pt arg){
+static RETURN ass(op_pt result, op_pt arg){
 	
 	check_reg(result);
 	check_reg(arg);
@@ -292,44 +322,76 @@ ass(op_pt result, op_pt arg){
 	return success;
 }
 
-static return_t
-neg(op_pt result, op_pt arg){
+static RETURN binary(op_pt result, op_pt left, op_pt right, x86_inst op){
+	reg_t result_reg, left_reg, right_reg;
 	
-	check_reg(result);
-	check_reg(arg);
+	result_reg = get_reg(left);
+	left_reg = check_reg(left);
+	right_reg = check_reg(right);
 	
+	reg_d[result_reg] = result;
+	return success;
+}
+
+static RETURN unary(op_pt result, op_pt arg, x86_inst op){
+	reg_t result_reg, arg_reg;
+	
+	result_reg = get_reg(arg);
+	arg_reg = check_reg(arg);
+	
+	if(arg_reg == NUM_X86_REG){
+		if(load(result_reg, arg) == failure){
+			msg_print(NULL, V_ERROR, "Internal neg(): load() failed");
+			return failure;
+		}
+	}else if(arg_reg != result_reg){
+		msg_print(NULL, V_ERROR, "Internal neg(): regs do not match");
+		return failure;
+	}
+	
+	put_cmd("\t%s\t%s\n",
+		str_instruction(op),
+		str_reg(set_width(arg->width), result_reg)
+	);
+	
+	reg_d[result_reg] = result;
 	return success;
 }
 
 /***************************** ITERATOR FUNCTIONS *****************************/
 
-static return_t Gen_inst(inst_pt inst){
+static RETURN Gen_inst(inst_pt inst){
 	switch (inst->op){
 	case i_nop : return success;
+	
+	// easy unaries
+	case i_neg : return unary(inst->result, inst->left, X_NEG);
+	case i_not : return unary(inst->result, inst->left, X_NOT);
+	case i_inc : return unary(inst->result, inst->left, X_INC);
+	case i_dec : return unary(inst->result, inst->left, X_DEC);
 	
 	case i_ass : return ass(inst->result, inst->left);
 	case i_ref : break;
 	case i_dref: break;
-	case i_neg : return neg(inst->result, inst->left);
-	case i_not : break;
 	case i_inv : break;
-	case i_inc : break;
-	case i_dec : break;
 	case i_sz  : break;
+	
+	// easy binaries
+	case i_lsh : return binary(inst->result, inst->left, inst->right, X_SHL);
+	case i_rsh : return binary(inst->result, inst->left, inst->right, X_SHR);
+	case i_rol : return binary(inst->result, inst->left, inst->right, X_ROL);
+	case i_ror : return binary(inst->result, inst->left, inst->right, X_ROR);
+	case i_add : return binary(inst->result, inst->left, inst->right, X_ADD);
+	case i_sub : return binary(inst->result, inst->left, inst->right, X_SUB);
+	case i_band: return binary(inst->result, inst->left, inst->right, X_AND);
+	case i_bor : return binary(inst->result, inst->left, inst->right, X_OR);
+	case i_xor : return binary(inst->result, inst->left, inst->right, X_XOR);
 	
 	case i_mul : break;
 	case i_div : break;
 	case i_mod : break;
 	case i_exp : break;
-	case i_lsh : break;
-	case i_rsh : break;
-	case i_rol : break;
-	case i_ror : break;
-	case i_add : break;
-	case i_sub : break;
-	case i_band: break;
-	case i_bor : break;
-	case i_xor : break;
+	
 	case i_eq  : break;
 	case i_neq : break;
 	case i_lt  : break;
@@ -354,8 +416,11 @@ static return_t Gen_inst(inst_pt inst){
 }
 
 
-static return_t Gen_blk(Instructions * blk){
+static RETURN Gen_blk(Instructions * blk){
 	inst_pt inst;
+	
+	// Initialize the register descriptor
+	memset(reg_d, 0, sizeof(op_pt)*NUM_X86_REG);
 	
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
@@ -371,7 +436,11 @@ static return_t Gen_blk(Instructions * blk){
 	
 	// flush the registers at the end of the block
 	for(uint i=0; i<NUM_X86_REG; i++){
-		if(reg_d[i] != NULL) store((reg_t)i);
+		if(reg_d[i] != NULL)
+			if( store((reg_t)i) == failure){
+				msg_print(NULL, V_ERROR, "Internal Gen_blk(): store() failed");
+				return failure;
+			}
 	}
 	
 	return success;
@@ -399,8 +468,6 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t set_mode){
 		return;
 	}
 	
-	// Initialize the register descriptor
-	memset(reg_d, 0, sizeof(op_pt)*NUM_X86_REG);
 	ops  = &(prog->operands);
 	lbls = &(prog->labels);
 	fd   = out_fd;
@@ -414,11 +481,19 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t set_mode){
 	fprintf(out_fd,"\nsection .text\t; Program code\n");
 	
 	do{
-		Gen_blk(blk);
+		if(Gen_blk(blk) == failure){
+			msg_print(NULL, V_ERROR,
+				"Internal x86(): Gen_blk() returned failure"
+			);
+			return;
+		}
 	} while(( blk=prog->bq.next() ));
 	
 	
 	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
+	
+	//TODO: constant strings
+	
 	fprintf(out_fd,"\nsection .bss\t; Declare static variables\n");
 	if (mode == xm_long) fprintf(out_fd,"align 8\n");
 	else fprintf(out_fd,"align 4\n");

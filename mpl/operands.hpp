@@ -53,7 +53,6 @@ typedef struct{
 	segment_t type;
 	umax      const_value;
 	bool      sign;
-	bool      live;
 } Operand;
 
 typedef Operand * op_pt;
