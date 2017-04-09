@@ -21,7 +21,7 @@
 
 #include "operands.hpp"
 
-
+/// intermediate op codes
 typedef enum {
 	i_nop,
 
@@ -67,6 +67,7 @@ typedef enum {
 	i_jz ,
 	i_lbl,
 	i_loop,
+	i_parm,
 	i_call,
 	i_rtrn,
 	
@@ -82,6 +83,7 @@ typedef struct{
 	inst_code op;
 } Instruction;
 
+/// a pointer to Instruction
 typedef Instruction * inst_pt;
 
 

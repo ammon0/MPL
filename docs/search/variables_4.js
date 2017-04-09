@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['name_5farray_5fsz',['name_array_sz',['../structpexe__h.html#a76f4f674853be71d18a0831614de9fc0',1,'pexe_h']]]
+  ['inst_5farray',['inst_array',['../gen-x86_8cpp.html#a39f99212109b4886a9501d85672011c2',1,'gen-x86.cpp']]]
 ];

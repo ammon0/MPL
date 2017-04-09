@@ -12,6 +12,40 @@
 /**	@file gen-x86.cpp
  *	
  *	generates x86 assembler code from the portable program data.
+ *
+ *	## Parameters
+ *	Parameters and return values are passed in registers reducing the stack
+ *	overhead. This also means that many of the registers need not be stored in
+ *	the stack before the call.
+ *
+ *	Since some of the registers may be needed during the execution of a routine,
+ *	the routine should allocate automaic variable space for each. If the routine
+ *	makes a CALL it will need to store them all in their stack locations.
+ *
+ *	Parameters are stored in B, BP, SI, DI, C, D, A in that order
+ *
+ *	## Activation Record
+ *	   Activation Record    Instructions
+ *	|_____________________|
+ *	|          SP         | PUSH / POP
+ *	|_____________________|               caller's responsability
+ *	|          IP         | CALL / RET
+ *	|_____________________| ____________________________
+ *	|  parameter storage  | <- SP        callee's responsability
+ *	|_____________________|
+ *	| automatic variables |
+ *	|_____________________|
+ *
+ *	When each routine is called it must setup its own automaic variables as
+ *	offsets of SP. But SP does not change. This way all the auto variables do
+ *	not need to be recalculated each time another is added, and their size can
+ *	be determined at runtime. The caller must push SP and then set SP past its
+ *	own auto variables. On return it must pop SP. The callee need only call RET
+ *	which works on the current SP automaically.
+ *
+ *	If we don't acutually use push and pop to setup the automaic variables then
+ *	SP stays where it is, all of our offsets are calculated according to SP and
+ *	BP becomes a general purpose register.
  */
 
 
@@ -31,6 +65,7 @@
 /******************************************************************************/
 
 
+/// These are all the x86 "general purpose" registers
 typedef enum{
 	A,  ///< Accumulator
 	B,  ///< General Purpose
@@ -44,6 +79,7 @@ typedef enum{
 	NUM_X86_REG
 } reg_t;
 
+/// These are the x86 register sizes
 typedef enum {
 	bad_width,
 	byte,
@@ -52,8 +88,8 @@ typedef enum {
 	qword
 } reg_width;
 
-/* If within a function the stack is only used for storing automaic variables the the value of SP does not change until the function returns. in which case if parameters are passed in the registers then the BP can be general purpose. */
 
+/// These are the x86 instructions that we are working with
 typedef enum {
 	X_MOV,   ///< copy data to a new location
 	X_MOVSX, ///< copy data to a larger location and sign extend
@@ -107,6 +143,7 @@ typedef enum {
 /******************************************************************************/
 
 
+/// the assembler strings for each x86 instruction
 static const char * inst_array[NUM_X86_INST] = {
 	"mov", "movsx", "movzx",
 	"push", "pop", "pushad", "popad",
@@ -127,10 +164,11 @@ static const char * inst_array[NUM_X86_INST] = {
  *	keeps track of what value is in each register at any time
  */
 static op_pt          reg_d[NUM_X86_REG];
-static Operands     * ops               ;
-static String_Array * lbls              ;
-static FILE         * fd                ;
-static x86_mode_t     mode              ;
+
+static Operands     * ops ; ///< the operand index for the PPD
+static String_Array * lbls; ///< the string space for the PPD
+static FILE         * fd  ; ///< the output file descriptor
+static x86_mode_t     mode; ///< the processor mode we are building for
 
 
 /******************************************************************************/
@@ -144,20 +182,28 @@ void test_x86(void);
 
 /****************************** HELPER FUNCTIONS ******************************/
 
+/** Return the correct assembler string for the given x86 instruction.
+ */
 static const char * str_instruction(x86_inst instruction){
 	return inst_array[instruction];
 }
+
+/** Return the label string for the given operand.
+ */
 static const char * str_lbl(Operand * operand){
 	return lbls->get(operand->label);
 }
 
+/** Return a string representation of a number.
+ */
 static const char * str_num(umax num){
 	static char array[20];
 	sprintf(array, "0x%llu", num);
 	return array;
 }
 
-// assumes width is possible in current mode
+/** Return the appropriate string to use the given x86 register.
+ */
 static const char * str_reg(reg_width width, reg_t reg){
 	static char array[4] = "   ";
 	
@@ -202,6 +248,8 @@ static const char * str_reg(reg_width width, reg_t reg){
 	return array;
 }
 
+/** Add a command string to the output file.
+ */
 static void __attribute__((format(printf, 1, 2)))
 put_cmd(const char * format, ...){
 	va_list ap;
@@ -211,6 +259,8 @@ put_cmd(const char * format, ...){
 	va_end(ap);
 }
 
+/** Return the appropriate x86 register width for the given data size.
+ */
 static reg_width set_width(width_t in){
 	switch(in){
 	case w_byte : return byte;
@@ -231,6 +281,8 @@ static reg_width set_width(width_t in){
 	}
 }
 
+/** Determine whether an operand is already present in a register.
+ */
 static reg_t check_reg(op_pt operand){
 	uint i;
 	
@@ -241,6 +293,8 @@ static reg_t check_reg(op_pt operand){
 	return (reg_t)i;
 }
 
+/** Load data from memory to a register.
+ */
 static RETURN load(reg_t reg, op_pt mem){
 	if(reg_d[reg] != NULL){
 		msg_print(NULL, V_ERROR, "load(): that register is already in use");
@@ -257,6 +311,8 @@ static RETURN load(reg_t reg, op_pt mem){
 	return success;
 }
 
+/** Store data in register to its appropriate memory location.
+ */
 static RETURN store(reg_t reg){
 	if(reg_d[reg] == NULL){
 		msg_print(
@@ -278,10 +334,12 @@ static RETURN store(reg_t reg){
 	return success;
 }
 
+/** Return an appropriate register to store a result in.
+ */
 static reg_t get_reg(op_pt arg){
 	reg_t reg;
 	
-	if( (reg=check_reg(arg)) != NUM_X86_REG ) return reg;
+	if( arg && (reg=check_reg(arg)) != NUM_X86_REG ) return reg;
 	
 	// find empty space
 	if(!reg_d[A]) return A; // general purpose
@@ -333,6 +391,39 @@ static RETURN binary(op_pt result, op_pt left, op_pt right, x86_inst op){
 	return success;
 }
 
+static RETURN dref(op_pt result, op_pt pointer){
+	reg_t result_reg;
+	
+	
+	
+	return success;
+}
+
+static RETURN ref(op_pt result, op_pt arg){
+	reg_t result_reg;
+	
+	if(arg->type != st_data){
+		msg_print(NULL, V_ERROR,
+			"Internal dref(): arg is not a memory location");
+		return failure;
+	}
+	
+	if(result->width != w_ptr){
+		msg_print(NULL, V_ERROR, "Internal dref(): result is not w_ptr");
+		return failure;
+	}
+	
+	result_reg = get_reg(NULL);
+	
+	put_cmd("\t%s\t%s\n%s\n",
+		str_instruction(X_MOVZX),
+		str_reg(set_width(w_ptr), result_reg),
+		str_lbl(arg)
+	);
+	
+	return success;
+}
+
 static RETURN unary(op_pt result, op_pt arg, x86_inst op){
 	reg_t result_reg, arg_reg;
 	
@@ -360,6 +451,8 @@ static RETURN unary(op_pt result, op_pt arg, x86_inst op){
 
 /***************************** ITERATOR FUNCTIONS *****************************/
 
+/** Generate code for a single intermediate instruction
+ */
 static RETURN Gen_inst(inst_pt inst){
 	switch (inst->op){
 	case i_nop : return success;
@@ -371,9 +464,8 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_dec : return unary(inst->result, inst->left, X_DEC);
 	
 	case i_ass : return ass(inst->result, inst->left);
-	case i_ref : break;
-	case i_dref: break;
-	case i_inv : break;
+	case i_ref : return ref(inst->result, inst->left);
+	case i_dref: return dref(inst->result, inst->left);
 	case i_sz  : break;
 	
 	// easy binaries
@@ -381,6 +473,7 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_rsh : return binary(inst->result, inst->left, inst->right, X_SHR);
 	case i_rol : return binary(inst->result, inst->left, inst->right, X_ROL);
 	case i_ror : return binary(inst->result, inst->left, inst->right, X_ROR);
+	
 	case i_add : return binary(inst->result, inst->left, inst->right, X_ADD);
 	case i_sub : return binary(inst->result, inst->left, inst->right, X_SUB);
 	case i_band: return binary(inst->result, inst->left, inst->right, X_AND);
@@ -398,6 +491,8 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_gt  : break;
 	case i_lte : break;
 	case i_gte : break;
+	
+	case i_inv : break;
 	case i_and : break;
 	case i_or  : break;
 	
@@ -405,6 +500,7 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_jmp : break;
 	case i_jz  : break;
 	case i_loop: break;
+	case i_parm: break;
 	case i_call: break;
 	case i_rtrn: break;
 	
@@ -415,7 +511,8 @@ static RETURN Gen_inst(inst_pt inst){
 	return success;
 }
 
-
+/** Generate code for a single basic block
+ */
 static RETURN Gen_blk(Instructions * blk){
 	inst_pt inst;
 	
@@ -452,9 +549,7 @@ static RETURN Gen_blk(Instructions * blk){
 /******************************************************************************/
 
 
-/**	Produces a NASM file from the Portable Program Data
-*/
-void x86 (FILE * out_fd, PPD * prog, x86_mode_t set_mode){
+void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	Instructions * blk = NULL;
 	
 	msg_print(NULL, V_INFO, "x86(): start");
@@ -471,7 +566,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t set_mode){
 	ops  = &(prog->operands);
 	lbls = &(prog->labels);
 	fd   = out_fd;
-	mode = set_mode;
+	mode = proccessor_mode;
 	
 	if(!( blk=prog->bq.first() )){
 		msg_print(NULL, V_ERROR, "x86(): Empty block queue");

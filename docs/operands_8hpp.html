@@ -115,12 +115,13 @@ Data Structures</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a42c6f1407a105aa4a368793c8b539dc5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42c6f1407a105aa4a368793c8b539dc5"></a>
-typedef <a class="el" href="operands_8hpp.html#structOperand">Operand</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>op_pt</b></td></tr>
+typedef <a class="el" href="operands_8hpp.html#structOperand">Operand</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="operands_8hpp.html#a42c6f1407a105aa4a368793c8b539dc5">op_pt</a></td></tr>
+<tr class="memdesc:a42c6f1407a105aa4a368793c8b539dc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">pointer to an <a class="el" href="operands_8hpp.html#structOperand" title="A single MPL operand. ">Operand</a> <br /></td></tr>
 <tr class="separator:a42c6f1407a105aa4a368793c8b539dc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a244ff7d8ea62c19e66797a121531bf58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a244ff7d8ea62c19e66797a121531bf58"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>width_t</b> { <br />
+<tr class="memitem:a244ff7d8ea62c19e66797a121531bf58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a244ff7d8ea62c19e66797a121531bf58"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="operands_8hpp.html#a244ff7d8ea62c19e66797a121531bf58">width_t</a> { <br />
 &#160;&#160;<b>w_none</b>, 
 <b>w_byte</b>, 
 <b>w_byte2</b>, 
@@ -133,13 +134,22 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<b>w_NUM</b>
 <br />
- }</td></tr>
+ }<tr class="memdesc:a244ff7d8ea62c19e66797a121531bf58"><td class="mdescLeft">&#160;</td><td class="mdescRight">data sizes for numerical operands <br /></td></tr>
+</td></tr>
 <tr class="separator:a244ff7d8ea62c19e66797a121531bf58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76e2fd1ce68abb4a98106a7970d5b174"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174">segment_t</a> { <b>st_none</b>, 
-<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a7c0c07850778298f3bc75ff4d2116da6">st_data</a>, 
+<tr class="memitem:a76e2fd1ce68abb4a98106a7970d5b174"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174">segment_t</a> { <br />
+&#160;&#160;<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174ae617607e2035ffda4de2cfea81987ce0">st_none</a>, 
+<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a2fee7bc9bb3d3973d7f2ae4ba74bd6ea">st_temp</a>, 
+<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174ae91de4e8716d3253cc811dfbc1e68a51">st_static</a>, 
+<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a66fd3f2d073323aaa6fa7e0aa8501a12">st_auto</a>, 
+<br />
+&#160;&#160;<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a260b4f4d0f846f455cede0959a755057">st_const</a>, 
+<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a7d2caee3eaa37e0293967188e32f9bb8">st_string</a>, 
 <a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174aba271581b8dfaf606d8c453c30b5f008">st_code</a>, 
-<b>st_NUM</b>
- }</td></tr>
+<a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174a2b1807955e7fb2fdfbbd632a46e9177c">st_NUM</a>
+<br />
+ }<tr class="memdesc:a76e2fd1ce68abb4a98106a7970d5b174"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage classes for operands.  <a href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174">More...</a><br /></td></tr>
+</td></tr>
 <tr class="separator:a76e2fd1ce68abb4a98106a7970d5b174"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -158,6 +168,12 @@ Enumerations</h2></td></tr>
 </div><table class="fieldtable">
 <tr><th colspan="3">Data Fields</th></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="a99ae67c466f844f9c5fd0def7950aa91"></a>umax</td>
+<td class="fieldname">
+const_value</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="ad9346e1dd394f6f4a29f60711c38404c"></a>str_dx</td>
 <td class="fieldname">
 label</td>
@@ -170,13 +186,25 @@ sign</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="adf889e02e319cc553b8ad0a1c88f99db"></a>umax</td>
+<td class="fieldname">
+SP_offset</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a78b98ad988926402b0f8b6ddd4a66d9e"></a>str_dx</td>
+<td class="fieldname">
+string_content</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="a69f4c8701e5655460d3979107f011ce0"></a><a class="el" href="operands_8hpp.html#a76e2fd1ce68abb4a98106a7970d5b174">segment_t</a></td>
 <td class="fieldname">
 type</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="acdd94b2e4d1950c9cd072b7985dc19fe"></a>width_t</td>
+<a class="anchor" id="acdd94b2e4d1950c9cd072b7985dc19fe"></a><a class="el" href="operands_8hpp.html#a244ff7d8ea62c19e66797a121531bf58">width_t</a></td>
 <td class="fieldname">
 width</td>
 <td class="fielddoc">
@@ -195,12 +223,32 @@ width</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Storage classes for operands. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a7c0c07850778298f3bc75ff4d2116da6"></a>st_data&#160;</td><td class="fielddoc">
-<p>A storage location. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174ae617607e2035ffda4de2cfea81987ce0"></a>st_none&#160;</td><td class="fielddoc">
+<p>This is just to catch errors; it is not used. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a2fee7bc9bb3d3973d7f2ae4ba74bd6ea"></a>st_temp&#160;</td><td class="fielddoc">
+<p>A compiler generated temporary. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174ae91de4e8716d3253cc811dfbc1e68a51"></a>st_static&#160;</td><td class="fielddoc">
+<p>A static storage location. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a66fd3f2d073323aaa6fa7e0aa8501a12"></a>st_auto&#160;</td><td class="fielddoc">
+<p>A stack variable. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a260b4f4d0f846f455cede0959a755057"></a>st_const&#160;</td><td class="fielddoc">
+<p>A compile-time constant. An immediate. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a7d2caee3eaa37e0293967188e32f9bb8"></a>st_string&#160;</td><td class="fielddoc">
+<p>A string constant. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174aba271581b8dfaf606d8c453c30b5f008"></a>st_code&#160;</td><td class="fielddoc">
 <p>A jump location in the code. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a76e2fd1ce68abb4a98106a7970d5b174a2b1807955e7fb2fdfbbd632a46e9177c"></a>st_NUM&#160;</td><td class="fielddoc">
+<p>This is the count of storage classes. </p>
 </td></tr>
 </table>
 

@@ -115,12 +115,13 @@ Data Structures</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a896753d46b1664588ef2b2241dc713e3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a896753d46b1664588ef2b2241dc713e3"></a>
-typedef <a class="el" href="instructions_8hpp.html#structInstruction">Instruction</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>inst_pt</b></td></tr>
+typedef <a class="el" href="instructions_8hpp.html#structInstruction">Instruction</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a></td></tr>
+<tr class="memdesc:a896753d46b1664588ef2b2241dc713e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">a pointer to <a class="el" href="instructions_8hpp.html#structInstruction" title="This is a Quad instruction. ">Instruction</a> <br /></td></tr>
 <tr class="separator:a896753d46b1664588ef2b2241dc713e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>inst_code</b> { <br />
+<tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> { <br />
 &#160;&#160;<b>i_nop</b>, 
 <b>i_ass</b>, 
 <b>i_ref</b>, 
@@ -141,31 +142,37 @@ Enumerations</h2></td></tr>
 <b>i_lsh</b>, 
 <b>i_rsh</b>, 
 <br />
-&#160;&#160;<b>i_add</b>, 
+&#160;&#160;<b>i_rol</b>, 
+<b>i_ror</b>, 
+<b>i_add</b>, 
 <b>i_sub</b>, 
-<b>i_band</b>, 
+<br />
+&#160;&#160;<b>i_band</b>, 
 <b>i_bor</b>, 
-<br />
-&#160;&#160;<b>i_xor</b>, 
+<b>i_xor</b>, 
 <b>i_eq</b>, 
-<b>i_neq</b>, 
+<br />
+&#160;&#160;<b>i_neq</b>, 
 <b>i_lt</b>, 
-<br />
-&#160;&#160;<b>i_gt</b>, 
+<b>i_gt</b>, 
 <b>i_lte</b>, 
-<b>i_gte</b>, 
-<b>i_and</b>, 
 <br />
-&#160;&#160;<b>i_or</b>, 
+&#160;&#160;<b>i_gte</b>, 
+<b>i_and</b>, 
+<b>i_or</b>, 
 <b>i_jmp</b>, 
-<b>i_jz</b>, 
+<br />
+&#160;&#160;<b>i_jz</b>, 
 <b>i_lbl</b>, 
+<b>i_loop</b>, 
+<b>i_parm</b>, 
 <br />
 &#160;&#160;<b>i_call</b>, 
 <b>i_rtrn</b>, 
 <b>i_NUM</b>
 <br />
- }</td></tr>
+ }<tr class="memdesc:a8e1f49c4010316f81ceff7f77e03b597"><td class="mdescLeft">&#160;</td><td class="mdescRight">intermediate op codes <br /></td></tr>
+</td></tr>
 <tr class="separator:a8e1f49c4010316f81ceff7f77e03b597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -184,25 +191,25 @@ Enumerations</h2></td></tr>
 </div><table class="fieldtable">
 <tr><th colspan="3">Data Fields</th></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="a27927b7d3a8ae6c14c38640ec34c7aba"></a><a class="el" href="operands_8hpp.html#structOperand">op_pt</a></td>
+<a class="anchor" id="a27927b7d3a8ae6c14c38640ec34c7aba"></a><a class="el" href="operands_8hpp.html#a42c6f1407a105aa4a368793c8b539dc5">op_pt</a></td>
 <td class="fieldname">
 left</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="a2172e92096274fcd1b3098b7140e24df"></a>inst_code</td>
+<a class="anchor" id="a2172e92096274fcd1b3098b7140e24df"></a><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a></td>
 <td class="fieldname">
 op</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="a75cebca16c6af2b35705bc10a685794e"></a><a class="el" href="operands_8hpp.html#structOperand">op_pt</a></td>
+<a class="anchor" id="a75cebca16c6af2b35705bc10a685794e"></a><a class="el" href="operands_8hpp.html#a42c6f1407a105aa4a368793c8b539dc5">op_pt</a></td>
 <td class="fieldname">
 result</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="a22bd9d2f219cb00a9b52713209424804"></a><a class="el" href="operands_8hpp.html#structOperand">op_pt</a></td>
+<a class="anchor" id="a22bd9d2f219cb00a9b52713209424804"></a><a class="el" href="operands_8hpp.html#a42c6f1407a105aa4a368793c8b539dc5">op_pt</a></td>
 <td class="fieldname">
 right</td>
 <td class="fielddoc">

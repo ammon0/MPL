@@ -33,9 +33,9 @@ typedef enum{
  *
  *	@param out_fd The file descriptor where the assembler commands will be written.
  *	@param prog The program data for which assembler code will be generated.
- *	@param mode The x86 proccessor mode the code will be generated for.
+ *	@param proccessor_mode The x86 proccessor mode the code will be generated for.
  */
-void x86 (FILE * out_fd, PPD * prog, x86_mode_t mode);
+void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode);
 
 //void arm(FILE * out_fd, PPD prog, mode_t mode);
 

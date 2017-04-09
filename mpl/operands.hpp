@@ -25,6 +25,7 @@
 
 #include <string.h>
 
+/// data sizes for numerical operands
 typedef enum{
 	w_none,
 	w_byte,
@@ -37,24 +38,39 @@ typedef enum{
 	w_NUM
 } width_t;
 
+/// Storage classes for operands
 typedef enum{
-	st_none,
-	st_temp,  ///< A compiler generated temporary
-	st_const, ///< A compile-time constant
-	st_data,  ///< A storage location
-	st_code,  ///< A jump location in the code
-	st_NUM
+	st_none,   ///< This is just to catch errors; it is not used.
+	st_temp,   ///< A compiler generated temporary
+	st_static, ///< A static storage location
+	st_auto,   ///< A stack variable
+	
+	st_const,  ///< A compile-time constant. An immediate.
+	st_string, ///< A string constant
+	
+	st_code,   ///< A jump location in the code
+	st_NUM     ///< This is the count of storage classes
 } segment_t;
 
 /// A single MPL operand
 typedef struct{
 	str_dx    label;
-	width_t   width;
+	
 	segment_t type;
-	umax      const_value;
+	
+	//auto
+	umax SP_offset;
+	
+	// temp, const, static, auto
+	width_t   width;
 	bool      sign;
+	
+	// constants
+	umax      const_value;
+	str_dx    string_content;
 } Operand;
 
+/// pointer to an Operand
 typedef Operand * op_pt;
 
 

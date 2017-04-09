@@ -95,7 +95,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>Code generators for the Minimum Portable Language.  
 <a href="#details">More...</a></p>
-
+<div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
+</div>
 <p><a href="gen_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
@@ -110,9 +111,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab35de138dab8cf738a9828261182a624"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen_8hpp.html#ab35de138dab8cf738a9828261182a624">gen_x86</a> (FILE *out_fd, <a class="el" href="classPPD.html">PPD</a> prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> mode)</td></tr>
-<tr class="memdesc:ab35de138dab8cf738a9828261182a624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate an x86 assembler file for the program data provided.  <a href="#ab35de138dab8cf738a9828261182a624">More...</a><br /></td></tr>
-<tr class="separator:ab35de138dab8cf738a9828261182a624"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen_8hpp.html#a53ff4c8ab223cf593c0d17d5935b88a2">x86</a> (FILE *out_fd, <a class="el" href="classPPD.html">PPD</a> *prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> proccessor_mode)</td></tr>
+<tr class="memdesc:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate an x86 assembler file for the program data provided.  <a href="#a53ff4c8ab223cf593c0d17d5935b88a2">More...</a><br /></td></tr>
+<tr class="separator:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Code generators for the Minimum Portable Language. </p>
@@ -146,12 +147,12 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="ab35de138dab8cf738a9828261182a624"></a>
+<a class="anchor" id="a53ff4c8ab223cf593c0d17d5935b88a2"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void gen_x86 </td>
+          <td class="memname">void x86 </td>
           <td>(</td>
           <td class="paramtype">FILE *&#160;</td>
           <td class="paramname"><em>out_fd</em>, </td>
@@ -159,14 +160,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classPPD.html">PPD</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="classPPD.html">PPD</a> *&#160;</td>
           <td class="paramname"><em>prog</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a>&#160;</td>
-          <td class="paramname"><em>mode</em>&#160;</td>
+          <td class="paramname"><em>proccessor_mode</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -181,7 +182,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">out_fd</td><td>The file descriptor where the assembler commands will be written. </td></tr>
     <tr><td class="paramname">prog</td><td>The program data for which assembler code will be generated. </td></tr>
-    <tr><td class="paramname">mode</td><td>The x86 proccessor mode the code will be generated for. </td></tr>
+    <tr><td class="paramname">proccessor_mode</td><td>The x86 proccessor mode the code will be generated for. </td></tr>
   </table>
   </dd>
 </dl>
