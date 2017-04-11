@@ -263,7 +263,7 @@ static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 <tr class="memdesc:a73772ce57ffaa8856c28b69cb29b2a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single intermediate instruction. <br /></td></tr>
 <tr class="separator:a73772ce57ffaa8856c28b69cb29b2a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa45d6fe4b17808b3ba444570a46a0290"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa45d6fe4b17808b3ba444570a46a0290"></a>
-static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#aa45d6fe4b17808b3ba444570a46a0290">Gen_blk</a> (<a class="el" href="classBlock.html">blk_pt</a> blk)</td></tr>
+static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#aa45d6fe4b17808b3ba444570a46a0290">Gen_blk</a> (<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a> blk)</td></tr>
 <tr class="memdesc:aa45d6fe4b17808b3ba444570a46a0290"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single basic block. <br /></td></tr>
 <tr class="separator:aa45d6fe4b17808b3ba444570a46a0290"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a53ff4c8ab223cf593c0d17d5935b88a2">x86</a> (FILE *out_fd, <a class="el" href="classPPD.html">PPD</a> *prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> proccessor_mode)</td></tr>
@@ -300,13 +300,15 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 <h2>Parameters</h2>
 <p>Parameters and return values are passed in registers reducing the stack overhead. This also means that many of the registers need not be stored in the stack before the call.</p>
 <p>Since some of the registers may be needed during the execution of a routine, the routine should allocate automaic variable space for each. If the routine makes a CALL it will need to store them all in their stack locations.</p>
-<p>Parameters are stored in B, BP, SI, DI, C, D, A in that order</p>
+<p>Parameters are stored in B, BP, R8-15, SI, DI, C, D in that order. If there are more parameters than this they will be placed on the stack</p>
 <h2>Activation Record</h2>
 <pre>
    Activation Record    Instructions
 |_____________________|
-|          SP         | PUSH / POP
+|          SP         |
 |_____________________|               caller's responsability
+|additional parameters|
+|_____________________|
 |          IP         | CALL / RET
 |_____________________| ____________________________
 |  parameter storage  | &lt;- SP        callee's responsability
@@ -314,7 +316,8 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 | automatic variables |
 |_____________________|
 </pre><p>When each routine is called it must setup its own automaic variables as offsets of SP. But SP does not change. This way all the auto variables do not need to be recalculated each time another is added, and their size can be determined at runtime. The caller must push SP and then set SP past its own auto variables. On return it must pop SP. The callee need only call RET which works on the current SP automaically.</p>
-<p>If we don't acutually use push and pop to setup the automaic variables then SP stays where it is, all of our offsets are calculated according to SP and BP becomes a general purpose register. </p>
+<p>If we don't acutually use push and pop to setup the automaic variables then SP stays where it is, all of our offsets are calculated according to SP and BP becomes a general purpose register.</p>
+<p>If we do ever implement closures this scheme will become obsolete since we'll have to manage activation records in the heap. We will then have no use for the built-in stack functions and SP will become general purpose. </p>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
 <a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7"></a>
 <div class="memitem">

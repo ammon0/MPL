@@ -84,11 +84,15 @@ class Operands{
 public:
 	static String_Array * labels; // from util/string_array.hpp
 	
+	/// The constructor needs a pointer to the string space
 	Operands(String_Array * array);
 	~Operands(void);
 	
+	/// Find an operand given its name
 	op_pt find(char * label);
+	/// Remove an operand by its name
 	void  remove(const char * label);
+	/// Add a new operand
 	op_pt add(str_dx label, width_t size, segment_t where, bool sign);
 };
 

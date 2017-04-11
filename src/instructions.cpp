@@ -30,13 +30,11 @@ Block::~Block(void){ DS_delete(q); }
 uint Block::count(void)const{ return DS_count  (q); }
 void Block::flush(void){ DS_flush(q); }
 
-inst_pt Block::current(void)const{ return (inst_pt)DS_current (q); }
 inst_pt Block::next   (void)const{ return (inst_pt)DS_next    (q); }
 inst_pt Block::prev   (void)const{ return (inst_pt)DS_previous(q); }
 inst_pt Block::first  (void)const{ return (inst_pt)DS_first   (q); }
 inst_pt Block::last   (void)const{ return (inst_pt)DS_last    (q); }
 
-inst_pt Block::insert (inst_pt inst){ return (inst_pt)DS_insert(q, inst); }
 inst_pt Block::enqueue(inst_pt inst){ return (inst_pt)DS_nq    (q, inst); }
 inst_pt Block::remove (void        ){ return (inst_pt)DS_remove(q      ); }
 

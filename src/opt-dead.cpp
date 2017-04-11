@@ -25,8 +25,8 @@
 /******************************************************************************/
 
 
-String_Array * strings;
-Operands     * operands;
+String_Array * strings;  ///< A pointer to the PPD string space
+Operands     * operands; ///< A pointer to the PPD operands
 
 
 /******************************************************************************/
@@ -34,7 +34,7 @@ Operands     * operands;
 /******************************************************************************/
 
 
-// Determine whether each symbol is live in each instruction
+/// Determine whether each symbol is live in each instruction
 static void Liveness(blk_pt blk){
 	inst_pt inst;
 	

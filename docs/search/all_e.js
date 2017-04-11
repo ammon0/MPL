@@ -17,5 +17,5 @@ var searchData=
   ['str_5flbl',['str_lbl',['../gen-x86_8cpp.html#a07fbd2a7774a2be17eeb63c7f3dd4bc3',1,'gen-x86.cpp']]],
   ['str_5fnum',['str_num',['../gen-x86_8cpp.html#a25cf5e545c724bd4471fec9670c39ad2',1,'gen-x86.cpp']]],
   ['str_5freg',['str_reg',['../gen-x86_8cpp.html#aae5b4aa927cd7c891a276e23d361e972',1,'gen-x86.cpp']]],
-  ['strings',['strings',['../classPPD.html#abb3deae5ef1b37700b0dd9a2fc31ceff',1,'PPD::strings()'],['../gen-x86_8cpp.html#a47a832bfd3851f46f74478f276ae8876',1,'strings():&#160;gen-x86.cpp']]]
+  ['strings',['strings',['../classPPD.html#abb3deae5ef1b37700b0dd9a2fc31ceff',1,'PPD::strings()'],['../gen-x86_8cpp.html#a47a832bfd3851f46f74478f276ae8876',1,'strings():&#160;gen-x86.cpp'],['../opt-dead_8cpp.html#a47a832bfd3851f46f74478f276ae8876',1,'strings():&#160;opt-dead.cpp']]]
 ];

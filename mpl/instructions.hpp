@@ -120,6 +120,7 @@ public:
 	inst_pt remove (void        );
 };
 
+/// A pointer to Block.
 typedef Block * blk_pt;
 
 /**	A queue of basic blocks

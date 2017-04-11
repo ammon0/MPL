@@ -9,7 +9,7 @@
  *
  ******************************************************************************/
 
-/**	@file ppd.cpp
+/**	@file ppd.hpp
  *	
  *	Bring all the Portable Program Data together.
  */
