@@ -22,19 +22,24 @@
  *	the routine should allocate automaic variable space for each. If the routine
  *	makes a CALL it will need to store them all in their stack locations.
  *
- *	Parameters are stored in B, BP, SI, DI, C, D, A in that order
+ *	Parameters are stored in B, BP, R8-15, SI, DI, C, D in that order. If there are more parameters than this they will be placed on the stack
  *
  *	## Activation Record
+ *
+ *	<PRE>
  *	   Activation Record    Instructions
  *	|_____________________|
- *	|          SP         | PUSH / POP
+ *	|          SP         |
  *	|_____________________|               caller's responsability
+ *	|additional parameters|
+ *	|_____________________|
  *	|          IP         | CALL / RET
  *	|_____________________| ____________________________
  *	|  parameter storage  | <- SP        callee's responsability
  *	|_____________________|
  *	| automatic variables |
  *	|_____________________|
+ *	</PRE>
  *
  *	When each routine is called it must setup its own automaic variables as
  *	offsets of SP. But SP does not change. This way all the auto variables do
@@ -46,6 +51,10 @@
  *	If we don't acutually use push and pop to setup the automaic variables then
  *	SP stays where it is, all of our offsets are calculated according to SP and
  *	BP becomes a general purpose register.
+ *
+ *	If we do ever implement closures this scheme will become obsolete since we'll
+ *	have to manage activation records in the heap. We will then have no use for
+ *	the built-in stack functions and SP will become general purpose.
  */
 
 
@@ -117,7 +126,8 @@ typedef enum {
 	X_NOT,
 	X_TEST, ///< sets the status flags as if AND had occured
 	
-	X_SHR, ///< bit shift right
+	X_SHR, ///< bit shift right unsigned
+	X_SAR, ///< bit shift right signed (behavior is not the same as idiv)
 	X_SHL, ///< bit shift left
 	X_ROR, ///< bit rotate right
 	X_ROL, ///< bit rotate left
@@ -165,8 +175,8 @@ static const char * inst_array[NUM_X86_INST] = {
  */
 static op_pt          reg_d[NUM_X86_REG];
 
-static Operands     * ops ; ///< the operand index for the PPD
-static String_Array * lbls; ///< the string space for the PPD
+static Operands     * operands; ///< the operand index for the PPD
+static String_Array * strings ; ///< the string space for the PPD
 static FILE         * fd  ; ///< the output file descriptor
 static x86_mode_t     mode; ///< the processor mode we are building for
 
@@ -191,7 +201,7 @@ static const char * str_instruction(x86_inst instruction){
 /** Return the label string for the given operand.
  */
 static const char * str_lbl(Operand * operand){
-	return lbls->get(operand->label);
+	return strings->get(operand->label);
 }
 
 /** Return a string representation of a number.
@@ -324,7 +334,8 @@ static RETURN store(reg_t reg){
 		return failure;
 	}
 	
-	if(reg_d[reg]->type != st_data) return success;
+	if(reg_d[reg]->type != st_static || reg_d[reg]->type != st_auto)
+		return success;
 	
 	put_cmd("\t%s\t%s\t%s",
 		str_instruction(X_MOV),
@@ -342,7 +353,7 @@ static reg_t get_reg(op_pt arg){
 	if( arg && (reg=check_reg(arg)) != NUM_X86_REG ) return reg;
 	
 	// find empty space
-	if(!reg_d[A]) return A; // general purpose
+	if(!reg_d[A]) return A;
 	if(!reg_d[B]) return B;
 	if(!reg_d[BP]) return BP;
 	if(mode == xm_long){
@@ -355,10 +366,6 @@ static reg_t get_reg(op_pt arg){
 		if(!reg_d[R14]) return R14;
 		if(!reg_d[R15]) return R15;
 	}
-	if(!reg_d[C]) return C; // special purpose, last priority
-	if(!reg_d[D]) return D;
-	if(!reg_d[SI]) return SI;
-	if(!reg_d[DI]) return DI;
 	
 	// make space
 	if(store(A) == failure){
@@ -402,7 +409,7 @@ static RETURN dref(op_pt result, op_pt pointer){
 static RETURN ref(op_pt result, op_pt arg){
 	reg_t result_reg;
 	
-	if(arg->type != st_data){
+	if(arg->type != st_static || arg->type != st_auto){
 		msg_print(NULL, V_ERROR,
 			"Internal dref(): arg is not a memory location");
 		return failure;
@@ -513,7 +520,7 @@ static RETURN Gen_inst(inst_pt inst){
 
 /** Generate code for a single basic block
  */
-static RETURN Gen_blk(Instructions * blk){
+static RETURN Gen_blk(blk_pt blk){
 	inst_pt inst;
 	
 	// Initialize the register descriptor
@@ -550,7 +557,7 @@ static RETURN Gen_blk(Instructions * blk){
 
 
 void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
-	Instructions * blk = NULL;
+	blk_pt blk = NULL;
 	
 	msg_print(NULL, V_INFO, "x86(): start");
 	
@@ -563,12 +570,12 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
-	ops  = &(prog->operands);
-	lbls = &(prog->labels);
+	operands = &(prog->operands);
+	strings  = &(prog->strings);
 	fd   = out_fd;
 	mode = proccessor_mode;
 	
-	if(!( blk=prog->bq.first() )){
+	if(!( blk=prog->instructions.first() )){
 		msg_print(NULL, V_ERROR, "x86(): Empty block queue");
 		return;
 	}
@@ -582,7 +589,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 			);
 			return;
 		}
-	} while(( blk=prog->bq.next() ));
+	} while(( blk=prog->instructions.next() ));
 	
 	
 	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");

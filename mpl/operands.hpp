@@ -11,7 +11,7 @@
 
 /**	@file operands.hpp
  *	
- *	Definitions for machine operands
+ *	Definitions for portable operands
  */
 
 
@@ -68,6 +68,8 @@ typedef struct{
 	// constants
 	umax      const_value;
 	str_dx    string_content;
+	
+	bool live;
 } Operand;
 
 /// pointer to an Operand
@@ -86,7 +88,7 @@ public:
 	~Operands(void);
 	
 	op_pt find(char * label);
-	void  remove(char * label);
+	void  remove(const char * label);
 	op_pt add(str_dx label, width_t size, segment_t where, bool sign);
 };
 

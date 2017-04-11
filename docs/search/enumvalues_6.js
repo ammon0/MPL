@@ -25,6 +25,7 @@ var searchData=
   ['x_5fret',['X_RET',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ae00f124a0ac842100ff1c7553d7ab5c6',1,'gen-x86.cpp']]],
   ['x_5frol',['X_ROL',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a90bde1317e8653242bdfb5b606ddfafb',1,'gen-x86.cpp']]],
   ['x_5fror',['X_ROR',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a206d7e54cc22550c9ee397f2b0ec711c',1,'gen-x86.cpp']]],
+  ['x_5fsar',['X_SAR',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a2b727058b3e2a570893fc264f49ddd96',1,'gen-x86.cpp']]],
   ['x_5fshl',['X_SHL',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a792b8b6f128d81f770a699e7a7aecfe2',1,'gen-x86.cpp']]],
   ['x_5fshr',['X_SHR',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a950f2fc4b49db7131dd7987f74de741a',1,'gen-x86.cpp']]],
   ['x_5ftest',['X_TEST',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504af208b177b827f30e3f866168d130396f',1,'gen-x86.cpp']]],

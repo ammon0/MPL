@@ -19,6 +19,16 @@
 #define _OPT_HPP
 
 
+#include <mpl/ppd.hpp>
+
+/** Removes dead instructions and operands.
+ */
+void opt_dead(PPD * prog_data);
+
+/** Propagates constants.
+ */
+void opt_const(PPD * prog_data);
+
 
 #endif // _OPT_HPP
 

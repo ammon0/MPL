@@ -172,24 +172,25 @@ Enumerations</h2></td></tr>
 &#160;&#160;<b>X_NOT</b>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504af208b177b827f30e3f866168d130396f">X_TEST</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a950f2fc4b49db7131dd7987f74de741a">X_SHR</a>, 
-<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a792b8b6f128d81f770a699e7a7aecfe2">X_SHL</a>, 
+<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a2b727058b3e2a570893fc264f49ddd96">X_SAR</a>, 
 <br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a206d7e54cc22550c9ee397f2b0ec711c">X_ROR</a>, 
+&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a792b8b6f128d81f770a699e7a7aecfe2">X_SHL</a>, 
+<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a206d7e54cc22550c9ee397f2b0ec711c">X_ROR</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a90bde1317e8653242bdfb5b606ddfafb">X_ROL</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a79ab03cb76a7d795dc4811d65038ea30">X_JMP</a>, 
-<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504af7311c94344f8e1b57dea50b66698336">X_JZ</a>, 
 <br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a3f7815bd5129ce6ca4fd66f7be59fd4a">X_JNZ</a>, 
+&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504af7311c94344f8e1b57dea50b66698336">X_JZ</a>, 
+<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a3f7815bd5129ce6ca4fd66f7be59fd4a">X_JNZ</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a28d349557b7150d3271cadd32233ee87">X_LOOP</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ab7bdcd27bbaabc47224c267bb5f76354">X_CALL</a>, 
-<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ae00f124a0ac842100ff1c7553d7ab5c6">X_RET</a>, 
 <br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a19bee27224fc98d8f0d2f40c5d1b0140">X_IRET</a>, 
+&#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ae00f124a0ac842100ff1c7553d7ab5c6">X_RET</a>, 
+<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a19bee27224fc98d8f0d2f40c5d1b0140">X_IRET</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ab2374c402ebea50ec4b8837ba1440859">X_INT</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504aac210c0e05521c602682900638c2a5fa">X_BOUND</a>, 
-<b>X_ENTER</b>, 
 <br />
-&#160;&#160;<b>X_LEAVE</b>, 
+&#160;&#160;<b>X_ENTER</b>, 
+<b>X_LEAVE</b>, 
 <b>NUM_X86_INST</b>
 <br />
  }<tr class="memdesc:a1551b9e10500fdb7875a3aadde9a4504"><td class="mdescLeft">&#160;</td><td class="mdescRight">These are the x86 instructions that we are working with.  <a href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504">More...</a><br /></td></tr>
@@ -261,10 +262,10 @@ static RETURN&#160;</td><td class="memItemRight" valign="bottom"><b>unary</b> (<
 static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a73772ce57ffaa8856c28b69cb29b2a7f">Gen_inst</a> (<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> inst)</td></tr>
 <tr class="memdesc:a73772ce57ffaa8856c28b69cb29b2a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single intermediate instruction. <br /></td></tr>
 <tr class="separator:a73772ce57ffaa8856c28b69cb29b2a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe0fa5a5ccfb27c9bbd67501f0c8f16e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afe0fa5a5ccfb27c9bbd67501f0c8f16e"></a>
-static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#afe0fa5a5ccfb27c9bbd67501f0c8f16e">Gen_blk</a> (<a class="el" href="classInstructions.html">Instructions</a> *blk)</td></tr>
-<tr class="memdesc:afe0fa5a5ccfb27c9bbd67501f0c8f16e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single basic block. <br /></td></tr>
-<tr class="separator:afe0fa5a5ccfb27c9bbd67501f0c8f16e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa45d6fe4b17808b3ba444570a46a0290"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa45d6fe4b17808b3ba444570a46a0290"></a>
+static RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#aa45d6fe4b17808b3ba444570a46a0290">Gen_blk</a> (<a class="el" href="classBlock.html">blk_pt</a> blk)</td></tr>
+<tr class="memdesc:aa45d6fe4b17808b3ba444570a46a0290"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single basic block. <br /></td></tr>
+<tr class="separator:aa45d6fe4b17808b3ba444570a46a0290"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a53ff4c8ab223cf593c0d17d5935b88a2">x86</a> (FILE *out_fd, <a class="el" href="classPPD.html">PPD</a> *prog, <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a> proccessor_mode)</td></tr>
 <tr class="memdesc:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate an x86 assembler file for the program data provided.  <a href="#a53ff4c8ab223cf593c0d17d5935b88a2">More...</a><br /></td></tr>
 <tr class="separator:a53ff4c8ab223cf593c0d17d5935b88a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -277,14 +278,14 @@ Variables</h2></td></tr>
 <tr class="memitem:ad330fbcd57be0f0dd2d967a325b7a54b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="operands_8hpp.html#a42c6f1407a105aa4a368793c8b539dc5">op_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#ad330fbcd57be0f0dd2d967a325b7a54b">reg_d</a> [NUM_X86_REG]</td></tr>
 <tr class="memdesc:ad330fbcd57be0f0dd2d967a325b7a54b"><td class="mdescLeft">&#160;</td><td class="mdescRight">the register descriptor.  <a href="#ad330fbcd57be0f0dd2d967a325b7a54b">More...</a><br /></td></tr>
 <tr class="separator:ad330fbcd57be0f0dd2d967a325b7a54b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22d3aec0f44980934b030e79948cd28a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a22d3aec0f44980934b030e79948cd28a"></a>
-static <a class="el" href="classOperands.html">Operands</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a22d3aec0f44980934b030e79948cd28a">ops</a></td></tr>
-<tr class="memdesc:a22d3aec0f44980934b030e79948cd28a"><td class="mdescLeft">&#160;</td><td class="mdescRight">the operand index for the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> <br /></td></tr>
-<tr class="separator:a22d3aec0f44980934b030e79948cd28a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27e3844523067fac169afead9a80260e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a27e3844523067fac169afead9a80260e"></a>
-static String_Array *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a27e3844523067fac169afead9a80260e">lbls</a></td></tr>
-<tr class="memdesc:a27e3844523067fac169afead9a80260e"><td class="mdescLeft">&#160;</td><td class="mdescRight">the string space for the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> <br /></td></tr>
-<tr class="separator:a27e3844523067fac169afead9a80260e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbc91ecdb45cc7fbc4e663c69c762824"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbc91ecdb45cc7fbc4e663c69c762824"></a>
+static <a class="el" href="classOperands.html">Operands</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#acbc91ecdb45cc7fbc4e663c69c762824">operands</a></td></tr>
+<tr class="memdesc:acbc91ecdb45cc7fbc4e663c69c762824"><td class="mdescLeft">&#160;</td><td class="mdescRight">the operand index for the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> <br /></td></tr>
+<tr class="separator:acbc91ecdb45cc7fbc4e663c69c762824"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47a832bfd3851f46f74478f276ae8876"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47a832bfd3851f46f74478f276ae8876"></a>
+static String_Array *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a47a832bfd3851f46f74478f276ae8876">strings</a></td></tr>
+<tr class="memdesc:a47a832bfd3851f46f74478f276ae8876"><td class="mdescLeft">&#160;</td><td class="mdescRight">the string space for the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> <br /></td></tr>
+<tr class="separator:a47a832bfd3851f46f74478f276ae8876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a600b792d6d2ff2e71096dfa60d97a3b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a600b792d6d2ff2e71096dfa60d97a3b0"></a>
 static FILE *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a600b792d6d2ff2e71096dfa60d97a3b0">fd</a></td></tr>
 <tr class="memdesc:a600b792d6d2ff2e71096dfa60d97a3b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">the output file descriptor <br /></td></tr>
@@ -301,8 +302,18 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 <p>Since some of the registers may be needed during the execution of a routine, the routine should allocate automaic variable space for each. If the routine makes a CALL it will need to store them all in their stack locations.</p>
 <p>Parameters are stored in B, BP, SI, DI, C, D, A in that order</p>
 <h2>Activation Record</h2>
-<p>Activation Record <a class="el" href="classInstructions.html" title="A queue of program instructions. ">Instructions</a> |_____________________| | SP | PUSH / POP |_____________________| caller's responsability | IP | CALL / RET |_____________________| ____________________________ | parameter storage | &lt;- SP callee's responsability |_____________________| | automatic variables | |_____________________|</p>
-<p>When each routine is called it must setup its own automaic variables as offsets of SP. But SP does not change. This way all the auto variables do not need to be recalculated each time another is added, and their size can be determined at runtime. The caller must push SP and then set SP past its own auto variables. On return it must pop SP. The callee need only call RET which works on the current SP automaically.</p>
+<pre>
+   Activation Record    Instructions
+|_____________________|
+|          SP         | PUSH / POP
+|_____________________|               caller's responsability
+|          IP         | CALL / RET
+|_____________________| ____________________________
+|  parameter storage  | &lt;- SP        callee's responsability
+|_____________________|
+| automatic variables |
+|_____________________|
+</pre><p>When each routine is called it must setup its own automaic variables as offsets of SP. But SP does not change. This way all the auto variables do not need to be recalculated each time another is added, and their size can be determined at runtime. The caller must push SP and then set SP past its own auto variables. On return it must pop SP. The callee need only call RET which works on the current SP automaically.</p>
 <p>If we don't acutually use push and pop to setup the automaic variables then SP stays where it is, all of our offsets are calculated according to SP and BP becomes a general purpose register. </p>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
 <a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7"></a>
@@ -406,7 +417,10 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 <p>sets the status flags as if AND had occured </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a1551b9e10500fdb7875a3aadde9a4504a950f2fc4b49db7131dd7987f74de741a"></a>X_SHR&#160;</td><td class="fielddoc">
-<p>bit shift right </p>
+<p>bit shift right unsigned </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a1551b9e10500fdb7875a3aadde9a4504a2b727058b3e2a570893fc264f49ddd96"></a>X_SAR&#160;</td><td class="fielddoc">
+<p>bit shift right signed (behavior is not the same as idiv) </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a1551b9e10500fdb7875a3aadde9a4504a792b8b6f128d81f770a699e7a7aecfe2"></a>X_SHL&#160;</td><td class="fielddoc">
 <p>bit shift left </p>

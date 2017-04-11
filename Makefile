@@ -31,7 +31,7 @@ allfiles:= $(headers) $(cpp_sources)
 ppd_objects :=operands.o instructions.o
 gen_objects :=gen-arm.o gen-x86.o
 pexe_objects:=gen-pexe.o read-pexe.o
-opt_objects :=opt-liveblock.o
+opt_objects :=opt-dead.o
 
 # Prefix the object files
 ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
@@ -91,7 +91,7 @@ LEX:= flex
 ################################# PRODUCTIONS ##################################
 
 
-libgen.a: $(gen_objects) $(ppd_objects)
+libgen.a: $(ppd_objects) $(gen_objects)
 	ar rcs $@ $(gen_objects) $(ppd_objects)
 libopt.a: $(opt_objects) $(ppd_objects)
 	ar rcs $@ $(opt_objects) $(ppd_objects)

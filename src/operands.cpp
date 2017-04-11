@@ -34,7 +34,7 @@ Operands::~Operands(void){ DS_delete(index); }
 op_pt Operands::find(char * label){
 	return (op_pt)DS_find(index, label);
 }
-void  Operands::remove(char * label){
+void  Operands::remove(const char * label){
 	if (DS_find(index, label)) DS_remove(index);
 }
 op_pt Operands::add(str_dx label, width_t size, segment_t where, bool sign){

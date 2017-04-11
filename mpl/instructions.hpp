@@ -11,7 +11,7 @@
 
 /**	@file instructions.hpp
  *	
- *	Definitions for machine instructions
+ *	Definitions for portable instructions
  */
 
 
@@ -81,6 +81,10 @@ typedef struct{
 	op_pt     left;
 	op_pt     right;
 	inst_code op;
+	
+	// indicates that these operands are used again in the same block
+	bool      left_live;
+	bool      right_live;
 } Instruction;
 
 /// a pointer to Instruction
@@ -89,45 +93,54 @@ typedef Instruction * inst_pt;
 
 /**	A queue of  program instructions
 */
-class Instructions{
+class Block{
 	DS q;
-	
 public:
-	Instructions(void);
-	~Instructions(void);
+	Block(void);
+	~Block(void);
 	
-	uint count  (void);
-	bool isempty(void);
+	/// The number of instructions in this block
+	uint count(void)const;
 	
-	inst_pt current(void);
-	inst_pt next   (void);
-	inst_pt prev   (void);
-	inst_pt first  (void);
-	inst_pt last   (void);
-	
-	inst_pt insert(inst_code op, op_pt result, op_pt left, op_pt right);
-	inst_pt nq(inst_pt inst);
-	inst_pt dq(void);
-	
+	/// the block releases any unused memory
 	void flush(void);
+	
+	/// returns a inst_pt to the next instruction
+	inst_pt next   (void)const;
+	/// returns a inst_pt to the previous instruction
+	inst_pt prev   (void)const;
+	/// returns a inst_pt to the first instruction
+	inst_pt first  (void)const;
+	/// returns a inst_pt to the last instruction
+	inst_pt last   (void)const;
+	
+	/// enqueues an instruction
+	inst_pt enqueue(inst_pt inst);
+	/// removes the current instruction
+	inst_pt remove (void        );
 };
+
+typedef Block * blk_pt;
 
 /**	A queue of basic blocks
 */
 class Block_Queue{
 private:
-	DS bq;
+	DS q;
 public:
 	 Block_Queue(void);
 	~Block_Queue(void);
 	
-	bool           isempty(void            ) const;
-	uint           count  (void            ) const;
-	Instructions * first  (void            ) const;
-	Instructions * last   (void            ) const;
-	Instructions * next   (void            ) const;
-	Instructions * nq     (Instructions * q)      ;
-	Instructions * dq     (void            )      ;
+	/// is this empty?
+	bool isempty(void) const;
+	
+	/// returns the first block
+	blk_pt first(void) const;
+	/// returns the next block
+	blk_pt next (void) const;
+	
+	/// add an instruction to the last block
+	inst_pt add (inst_pt instruction);
 };
 
 
