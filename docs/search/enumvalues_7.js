@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['x86',['x86',['../gen-x86_8cpp.html#a53ff4c8ab223cf593c0d17d5935b88a2',1,'x86(FILE *out_fd, PPD *prog, x86_mode_t proccessor_mode):&#160;gen-x86.cpp'],['../gen_8hpp.html#a53ff4c8ab223cf593c0d17d5935b88a2',1,'x86(FILE *out_fd, PPD *prog, x86_mode_t proccessor_mode):&#160;gen-x86.cpp']]],
-  ['x86_5finst',['x86_inst',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504',1,'gen-x86.cpp']]],
-  ['x86_5fmode_5ft',['x86_mode_t',['../gen_8hpp.html#af5e435900db288a59f4d59d307d88a92',1,'gen.hpp']]],
   ['x_5fandn',['X_ANDN',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ae4a2e745a17af8b14457df70ef3c084d',1,'gen-x86.cpp']]],
   ['x_5fbound',['X_BOUND',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504aac210c0e05521c602682900638c2a5fa',1,'gen-x86.cpp']]],
   ['x_5fcall',['X_CALL',['../gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504ab7bdcd27bbaabc47224c267bb5f76354',1,'gen-x86.cpp']]],

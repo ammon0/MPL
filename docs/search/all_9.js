@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['mpl_20_3a_20minimum_20portable_20language',['MPL : Minimum Portable Language',['../index.html',1,'']]],
-  ['mode',['mode',['../gen-x86_8cpp.html#af49375726c781e09cb1467f34ad7cccb',1,'gen-x86.cpp']]]
+  ['last',['last',['../classBlock.html#a63dc90f2c7c9bd7681deccb11a0bc610',1,'Block']]],
+  ['liveness',['Liveness',['../opt-dead_8cpp.html#ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4',1,'opt-dead.cpp']]],
+  ['load',['load',['../gen-x86_8cpp.html#a0b70338de57515011d704861254acce2',1,'gen-x86.cpp']]]
 ];

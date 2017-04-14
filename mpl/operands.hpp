@@ -94,6 +94,11 @@ public:
 	void  remove(const char * label);
 	/// Add a new operand
 	op_pt add(str_dx label, width_t size, segment_t where, bool sign);
+	
+	/// Returns the first operand
+	op_pt first(void)const;
+	/// Returns the next operand
+	op_pt next (void)const;
 };
 
 #endif // _LABEL_HPP

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['r15',['R15',['../gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a17eeff2eb97b3d4877126bc24f4adf5b',1,'gen-x86.cpp']]]
+  ['i_5fauto',['i_auto',['../instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a14acf2e0d74353fefb89dfd64e764ea5',1,'instructions.hpp']]],
+  ['i_5fproc',['i_proc',['../instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9',1,'instructions.hpp']]]
 ];

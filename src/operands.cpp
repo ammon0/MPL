@@ -48,4 +48,7 @@ op_pt Operands::add(str_dx label, width_t size, segment_t where, bool sign){
 	return (op_pt)DS_insert(index, &op);
 }
 
+op_pt Operands::first(void)const{ return (op_pt)DS_first(index); }
+op_pt Operands::next (void)const{ return (op_pt)DS_next (index); }
+
 

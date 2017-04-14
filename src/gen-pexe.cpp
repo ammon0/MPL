@@ -19,14 +19,19 @@
 /** This is the header of a pexe file
  */
 typedef struct pexe_header{
+	/** @defgroup magic Header magic numbers
+	 *  This is the file signature in the header. There are 8 bytes total in
+	 *  file signature
+	 * @{
+	 */
 	uint8_t  magic0;
 	uint8_t  magic1;
 	uint8_t  magic2;
 	uint8_t  magic3;
 	uint8_t  magic4;
 	uint8_t  magic5;
-	uint16_t version; ///< File version
-	// 8 bytes total in file signature
+	uint16_t version; // File version
+	/// @}
 	
 	// locations and sizes of components
 	uint32_t dx_entries;    ///< just to keep the fields alligned

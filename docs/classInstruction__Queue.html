@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>MPL: Block_Queue Class Reference</title>
+<title>MPL: Instruction_Queue Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -86,56 +86,41 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">Block_Queue Class Reference</div>  </div>
+<div class="title">Instruction_Queue Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>A queue of basic blocks.  
- <a href="classBlock__Queue.html#details">More...</a></p>
+ <a href="classInstruction__Queue.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a38e1eeba88b03c27b87865ce9a9d8d6c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a38e1eeba88b03c27b87865ce9a9d8d6c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html#a38e1eeba88b03c27b87865ce9a9d8d6c">isempty</a> (void) const </td></tr>
-<tr class="memdesc:a38e1eeba88b03c27b87865ce9a9d8d6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">is this empty? <br /></td></tr>
-<tr class="separator:a38e1eeba88b03c27b87865ce9a9d8d6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a132fe3cb6d2fe2f880b03eac4262de48"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a132fe3cb6d2fe2f880b03eac4262de48"></a>
-<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html#a132fe3cb6d2fe2f880b03eac4262de48">first</a> (void) const </td></tr>
-<tr class="memdesc:a132fe3cb6d2fe2f880b03eac4262de48"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the first block <br /></td></tr>
-<tr class="separator:a132fe3cb6d2fe2f880b03eac4262de48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a991256fddf0550350bf43b0405359dcd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a991256fddf0550350bf43b0405359dcd"></a>
-<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html#a991256fddf0550350bf43b0405359dcd">next</a> (void) const </td></tr>
-<tr class="memdesc:a991256fddf0550350bf43b0405359dcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the next block <br /></td></tr>
-<tr class="separator:a991256fddf0550350bf43b0405359dcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6ee68a322fcd3ad3b6abb13f176d097"><td class="memItemLeft" align="right" valign="top"><a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html#ae6ee68a322fcd3ad3b6abb13f176d097">add</a> (<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> instruction)</td></tr>
-<tr class="memdesc:ae6ee68a322fcd3ad3b6abb13f176d097"><td class="mdescLeft">&#160;</td><td class="mdescRight">add an instruction to the last block  <a href="#ae6ee68a322fcd3ad3b6abb13f176d097">More...</a><br /></td></tr>
-<tr class="separator:ae6ee68a322fcd3ad3b6abb13f176d097"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aeb600009c1bd24c988252d2228972b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3aeb600009c1bd24c988252d2228972b"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html#a3aeb600009c1bd24c988252d2228972b">isempty</a> (void) const </td></tr>
+<tr class="memdesc:a3aeb600009c1bd24c988252d2228972b"><td class="mdescLeft">&#160;</td><td class="mdescRight">is this empty? <br /></td></tr>
+<tr class="separator:a3aeb600009c1bd24c988252d2228972b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1da331330846815fe817a8f65338c87"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab1da331330846815fe817a8f65338c87"></a>
+<a class="el" href="instructions_8hpp.html#a94e07a2d0265f0f19a3f012eb38ad312">proc_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html#ab1da331330846815fe817a8f65338c87">proc</a> (void) const </td></tr>
+<tr class="memdesc:ab1da331330846815fe817a8f65338c87"><td class="mdescLeft">&#160;</td><td class="mdescRight">get a pointer to the current procedure <br /></td></tr>
+<tr class="separator:ab1da331330846815fe817a8f65338c87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3dc2a32f68e02cd5f63cab9906e4196d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3dc2a32f68e02cd5f63cab9906e4196d"></a>
+<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html#a3dc2a32f68e02cd5f63cab9906e4196d">first</a> (void) const </td></tr>
+<tr class="memdesc:a3dc2a32f68e02cd5f63cab9906e4196d"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the first block <br /></td></tr>
+<tr class="separator:a3dc2a32f68e02cd5f63cab9906e4196d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ba50d38ed602e73a64cdbbfaaf563a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5ba50d38ed602e73a64cdbbfaaf563a4"></a>
+<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html#a5ba50d38ed602e73a64cdbbfaaf563a4">next</a> (void) const </td></tr>
+<tr class="memdesc:a5ba50d38ed602e73a64cdbbfaaf563a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the next block <br /></td></tr>
+<tr class="separator:a5ba50d38ed602e73a64cdbbfaaf563a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4f764a0d6004e818a1f33d8d489c197"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4f764a0d6004e818a1f33d8d489c197"></a>
+<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html#ac4f764a0d6004e818a1f33d8d489c197">add</a> (<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> instruction)</td></tr>
+<tr class="memdesc:ac4f764a0d6004e818a1f33d8d489c197"><td class="mdescLeft">&#160;</td><td class="mdescRight">add an instruction to the last block <br /></td></tr>
+<tr class="separator:ac4f764a0d6004e818a1f33d8d489c197"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A queue of basic blocks. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="ae6ee68a322fcd3ad3b6abb13f176d097"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> Block_Queue::add </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a>&#160;</td>
-          <td class="paramname"><em>instruction</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>add an instruction to the last block </p>
-<p>This function adds one instruction to the instruction queue and forms basic blocks as it goes. </p>
-
-</div>
-</div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>mpl/<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a></li>
 <li>src/<a class="el" href="instructions_8cpp.html">instructions.cpp</a></li>
 </ul>

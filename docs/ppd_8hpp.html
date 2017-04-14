@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>MPL: src/opt.cpp File Reference</title>
+<title>MPL: mpl/ppd.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -39,6 +39,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -81,43 +82,79 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_eb33f6710b5cd34ac8f41e1b51ea9fbe.html">mpl</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#nested-classes">Data Structures</a>  </div>
   <div class="headertitle">
-<div class="title">opt.cpp File Reference</div>  </div>
+<div class="title">ppd.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Optomize the intermediate representation.  
+<p>Bring all the Portable Program Data together.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;string.h&gt;</code><br />
-</div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a0b51e1d7edfc639dae18c378f494cc1c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0b51e1d7edfc639dae18c378f494cc1c"></a>
-static Instruction_Queue *&#160;</td><td class="memItemRight" valign="bottom"><b>Mk_blk</b> (Instruction_Queue *q)</td></tr>
-<tr class="separator:a0b51e1d7edfc639dae18c378f494cc1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1f39ffe0976c2c871576bfb9a7fde4e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad1f39ffe0976c2c871576bfb9a7fde4e"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Dead_blks</b> (DS block_q)</td></tr>
-<tr class="separator:ad1f39ffe0976c2c871576bfb9a7fde4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a319c38b2a50a3d9f61fb7ec074d75136"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a319c38b2a50a3d9f61fb7ec074d75136"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Inner_loop</b> (Instruction_Queue *blk)</td></tr>
-<tr class="separator:a319c38b2a50a3d9f61fb7ec074d75136"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab10f52867523553380fcb3e4ffcb859e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab10f52867523553380fcb3e4ffcb859e"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Liveness</b> (Instruction_Queue *blk)</td></tr>
-<tr class="separator:ab10f52867523553380fcb3e4ffcb859e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6ed296eac7c0c0c829fa8dbffc13cb8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad6ed296eac7c0c0c829fa8dbffc13cb8"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Optomize</b> (Instruction_Queue *inst_q)</td></tr>
-<tr class="separator:ad6ed296eac7c0c0c829fa8dbffc13cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<div class="textblock"><code>#include &quot;<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a>&quot;</code><br />
+</div>
+<p><a href="ppd_8hpp_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:classPPD"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppd_8hpp.html#classPPD">PPD</a></td></tr>
+<tr class="memdesc:classPPD"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is a container for all the components of the portable program data.  <a href="ppd_8hpp.html#classPPD">More...</a><br /></td></tr>
+<tr class="separator:classPPD"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Optomize the intermediate representation. </p>
-<p>This function converts the two intermediate instruction queues into a single, optomized, basic-block queue. </p>
-</div></div><!-- contents -->
+<div class="textblock"><p>Bring all the Portable Program Data together. </p>
+</div><hr/><h2 class="groupheader">Data Structure Documentation</h2>
+<a name="classPPD" id="classPPD"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">class PPD</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"><p>This is a container for all the components of the portable program data. </p>
+</div><table class="fieldtable">
+<tr><th colspan="3">Data Fields</th></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="acf2f3f80db45619a036a92db04042214"></a>bool</td>
+<td class="fieldname">
+constants</td>
+<td class="fielddoc">
+indicates whether this <a class="el" href="ppd_8hpp.html#classPPD" title="This is a container for all the components of the portable program data. ">PPD</a> has passed opt_const </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="aa0ee1687cc4bc2dcb0117a62f532f7a2"></a>bool</td>
+<td class="fieldname">
+dead</td>
+<td class="fielddoc">
+indicates whether this <a class="el" href="ppd_8hpp.html#classPPD" title="This is a container for all the components of the portable program data. ">PPD</a> has passed opt_dead </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a377336e33f588b62af687f9a331897df"></a><a class="el" href="classInstruction__Queue.html">Instruction_Queue</a></td>
+<td class="fieldname">
+instructions</td>
+<td class="fielddoc">
+The program code in basic blocks. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a9ccc0dd3d90162431da8aa560800a1ed"></a><a class="el" href="classOperands.html">Operands</a></td>
+<td class="fieldname">
+operands</td>
+<td class="fielddoc">
+The symbol table. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="abb3deae5ef1b37700b0dd9a2fc31ceff"></a>String_Array</td>
+<td class="fieldname">
+strings</td>
+<td class="fielddoc">
+the string space </td></tr>
+</table>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

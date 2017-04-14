@@ -71,6 +71,9 @@ typedef enum {
 	i_call,
 	i_rtrn,
 	
+	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
+	i_auto, ///< declare an automatic operand
+	
 	i_NUM
 } inst_code;
 
@@ -123,17 +126,42 @@ public:
 /// A pointer to Block.
 typedef Block * blk_pt;
 
-/**	A queue of basic blocks
-*/
-class Block_Queue{
-private:
-	DS q;
+/// A queue of basic blocks containing procedure information
+class Procedure{
+	DS blocks;
 public:
-	 Block_Queue(void);
-	~Block_Queue(void);
+	Procedure(void);
+	~Procedure(void);
 	
 	/// is this empty?
 	bool isempty(void) const;
+	
+	/// returns the first block
+	blk_pt first(void) const;
+	/// returns the next block
+	blk_pt next (void) const;
+	
+	/// add an instruction to the last block
+	inst_pt add (inst_pt instruction);
+};
+
+/// A Procedure pointer
+typedef Procedure * proc_pt;
+
+/**	A queue of basic blocks
+*/
+class Instruction_Queue{
+private:
+	DS q;
+public:
+	 Instruction_Queue(void);
+	~Instruction_Queue(void);
+	
+	/// is this empty?
+	bool isempty(void) const;
+	
+	/// get a pointer to the current procedure
+	proc_pt proc(void) const;
 	
 	/// returns the first block
 	blk_pt first(void) const;

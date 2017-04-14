@@ -25,11 +25,11 @@
 */
 class PPD{
 public:
-	String_Array strings;      ///< the string space
-	Operands     operands;     ///< The symbol table
-	Block_Queue  instructions; ///< The program code in basic blocks
+	String_Array       strings;      ///< the string space
+	Operands           operands;     ///< The symbol table
+	Instruction_Queue  instructions; ///< The program code in basic blocks
 	
-	// Optimizations
+	// Optimizations applied
 	bool dead;      ///< indicates whether this PPD has passed opt_dead
 	bool constants; ///< indicates whether this PPD has passed opt_const
 };

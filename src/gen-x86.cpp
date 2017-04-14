@@ -22,39 +22,62 @@
  *	the routine should allocate automaic variable space for each. If the routine
  *	makes a CALL it will need to store them all in their stack locations.
  *
- *	Parameters are stored in B, BP, R8-15, SI, DI, C, D in that order. If there are more parameters than this they will be placed on the stack
+ *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
+ *	there are more parameters than this they will be placed on the stack.
  *
  *	## Activation Record
  *
  *	<PRE>
  *	   Activation Record    Instructions
- *	|_____________________|
- *	|          SP         |
- *	|_____________________|               caller's responsability
- *	|additional parameters|
+ *	|_____________________| <- SP before
+ *	|additional parameters|        caller's responsability
  *	|_____________________|
  *	|          IP         | CALL / RET
  *	|_____________________| ____________________________
- *	|  parameter storage  | <- SP        callee's responsability
+ *	|  parameter storage  |
  *	|_____________________|
- *	| automatic variables |
+ *	| automatic variables |        callee's responsability
  *	|_____________________|
+ *	|     temporaries     |
+ *	|_____________________| <- SP after
  *	</PRE>
  *
- *	When each routine is called it must setup its own automaic variables as
- *	offsets of SP. But SP does not change. This way all the auto variables do
- *	not need to be recalculated each time another is added, and their size can
- *	be determined at runtime. The caller must push SP and then set SP past its
- *	own auto variables. On return it must pop SP. The callee need only call RET
- *	which works on the current SP automaically.
+ *	### Calling convention
  *
- *	If we don't acutually use push and pop to setup the automaic variables then
- *	SP stays where it is, all of our offsets are calculated according to SP and
- *	BP becomes a general purpose register.
+ *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
+ *	* MOV caller loads parameters into registers
+ *	* SUB SP, param_offset; caller advances SP to next open location this offset
+ *	is calculated at compile time.
+ *	* CALL caller calls callee IP is pushed onto stack
+ *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
+ *	this offset is known at compile time.
+ *
+ *	auto variables are accessed as [SP+offset]. additional parameters are
+ *	accessed as [SP+auto_offset+8+offset]
+ *
+ *	It may be possible to add dynamically sized variables after SP with pointers
+ *	before it.
  *
  *	If we do ever implement closures this scheme will become obsolete since we'll
  *	have to manage activation records in the heap. We will then have no use for
  *	the built-in stack functions and SP will become general purpose.
+ *
+ *	## Code Generation
+ *	x86 instructions typically replace the left operand with the result. Since
+ *	results will always be temporaries, and temporaries are only ever used once.
+ *	In this generator will will try to make the left operand and the result
+ *	always be the accumulator. This creates an opportunity for an optimizer that
+ *	algebraically rearranges things.
+ *
+ *	## Register Allocation
+ *	There is a problem if a temp variable is not immediatly used. All temps are
+ *	produced in the accumulator. If at any point in code generation we find that
+ *	the contents of the accumulator is temp and not being used in the current
+ *	instruction then it will have to be stored somewhere. A register would be
+ *	ideal. However, all the registers are potentially filled with parameters. We
+ *	have no way of knowing whether it would be better to switch out a parameter.
+ *	We do know that the temp will only ever be used once so I feel less bad
+ *	about putting it on the stack if there are no registers availible.
  */
 
 
@@ -84,8 +107,15 @@ typedef enum{
 	DI, ///< Destination Index
 	BP, ///< Base Pointer (General Purpose)
 	SP, ///< Stack Pointer
-	R8, R9, R10, R11, R12, R13, R14, R15, ///< General Purpose
-	NUM_X86_REG
+	R8,  ///< General Purpose
+	R9,  ///< General Purpose
+	R10, ///< General Purpose
+	R11, ///< General Purpose
+	R12, ///< General Purpose
+	R13, ///< General Purpose
+	R14, ///< General Purpose
+	R15, ///< General Purpose
+	NUM_reg
 } reg_t;
 
 /// These are the x86 register sizes
@@ -100,27 +130,41 @@ typedef enum {
 
 /// These are the x86 instructions that we are working with
 typedef enum {
-	X_MOV,   ///< copy data to a new location
-	X_MOVSX, ///< copy data to a larger location and sign extend
-	X_MOVZX, ///< copy data to a larger location and zero extend
+	X_MOV,      ///< copy data to a new location
+	X_MOVSX,   ///< copy 8, or 16-bit data to a larger location and sign extend
+	X_MOVSXD, ///< copy 32-bit data to a 64-bit register and sign extend
+	X_MOVZX, ///< copy 8, or 16-bit data to a larger location and zero extend
+	X_MOVBE, ///< copy and swap byte order
+	
+	X_CLD, ///< clear DF
+	X_STD, ///< set DF
+	X_STOS, ///< store string. uses A, DI, ES, and DF flag
+	X_LODS, ///< load string. uses A, SI, DS, and DF flag
+	X_MOVS, ///< copy from memory to memory. uses DI, SI, DS, and DF flag
+	X_OUTS, ///< write a string to IO. uses DS, SI, D, and DF flag
+	X_INS,  ///< read a string from IO. 
+	
+	X_IN,  ///< read from an IO port
+	X_OUT, ///< write to an IO port
 	
 	X_PUSH,   ///< push data onto the stack
 	X_POP,    ///< pop data from the stack
-	X_PUSHAD, ///< push all registers onto the stack (invalid in 64)
-	X_POPAD,  ///< pop all registers from the stack (invalid in 64)
 	
 	X_INC, ///< Increment
 	X_DEC, ///< decrement
 	X_ADD,
+	X_XADD, ///< exchange then add
 	X_SUB,
+	X_NEG,
+	X_CMP,  ///< sets the status flags as if subtraction had occured
+	
 	X_MUL,  ///< unsigned multiplication
 	X_IMUL, ///< signed multiplication
 	X_DIV,  ///< unsigned division
 	X_IDIV, ///< Signed division
-	X_CMP,  ///< sets the status flags as if subtraction had occured
-	X_NEG,
 	
 	X_AND,
+	X_ANDN, ///< AND NOT
 	X_OR,
 	X_XOR,
 	X_NOT,
@@ -138,13 +182,12 @@ typedef enum {
 	X_LOOP,  ///< loop with RCX counter
 	X_CALL,  ///< call a procedure
 	X_RET,   ///< return from a procedure
-	X_IRET,  ///< return from interrupt
 	X_INT,   ///< software interrupt
 	X_BOUND, ///< check an index is within array bounds
 	X_ENTER,
 	X_LEAVE,
 	
-	NUM_X86_INST
+	NUM_inst
 } x86_inst;
 
 
@@ -154,14 +197,16 @@ typedef enum {
 
 
 /// the assembler strings for each x86 instruction
-static const char * inst_array[NUM_X86_INST] = {
-	"mov", "movsx", "movzx",
-	"push", "pop", "pushad", "popad",
-	"inc", "dec", "add", "sub", "mul", "imul", "div", "idiv", "cmp", "neg",
-	"and", "or", "xor", "not", "test",
-	"shr", "shl", "ror", "rol",
-	"jump", "jz", "jnz", "loop", "call", "ret", "iret", "int", "bound", "enter",
-	"leave"
+static const char * inst_array[NUM_inst] = {
+	"mov", "movsx", "movsxd", "movzx", "movbe",
+	"cld", "std", "stos", "lods", "movs", "outs", "ins",
+	"in", "out",
+	"push", "pop",
+	"inc", "dec", "add", "xadd", "sub", "neg", "cmp",
+	"mul", "imul", "div", "idiv",
+	"and", "andn", "or", "xor", "not", "test",
+	"shr", "sar", "shl", "ror", "rol",
+	"jmp", "jz", "jnz", "loop", "call", "ret", "int", "bound", "enter", "leave"
 };
 
 
@@ -173,7 +218,7 @@ static const char * inst_array[NUM_X86_INST] = {
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  */
-static op_pt          reg_d[NUM_X86_REG];
+static op_pt          reg_d[NUM_reg];
 
 static Operands     * operands; ///< the operand index for the PPD
 static String_Array * strings ; ///< the string space for the PPD
@@ -194,19 +239,13 @@ void test_x86(void);
 
 /** Return the correct assembler string for the given x86 instruction.
  */
-static const char * str_instruction(x86_inst instruction){
+static inline const char * str_instruction(x86_inst instruction){
 	return inst_array[instruction];
-}
-
-/** Return the label string for the given operand.
- */
-static const char * str_lbl(Operand * operand){
-	return strings->get(operand->label);
 }
 
 /** Return a string representation of a number.
  */
-static const char * str_num(umax num){
+static inline const char * str_num(umax num){
 	static char array[20];
 	sprintf(array, "0x%llu", num);
 	return array;
@@ -249,13 +288,47 @@ static const char * str_reg(reg_width width, reg_t reg){
 	case R14: array[1] = '1'; array[2] = '4'; break;
 	case R15: array[1] = '1'; array[2] = '5'; break;
 	
-	case NUM_X86_REG:
+	case NUM_reg:
 	default:
 		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_t");
 		return NULL;
 	}
 	
 	return array;
+}
+
+/** Return a string to access an operand
+*/
+static inline const char * str_oprand(op_pt op){
+	static char arr[3][24];
+	static uint i;
+
+	switch(op->type){
+	// we include these as immediate values
+	case st_const: return str_num(op->const_value);
+	
+	// these are read from memory
+	case st_static:
+	case st_string:
+	case st_code  : return strings->get(op->label);
+	
+	// these are read from the stack
+	case st_auto: // SP-offset
+		i = i+1 %3; // increment i
+		sprintf(arr[i], "SP-%s", str_num(op->SP_offset));
+		return arr[i];
+	
+	// these are in registers
+	case st_temp:
+		msg_print(NULL, V_ERROR, "Internal str_oprand(): got a temp");
+		return "!!bad!!";
+	
+	case st_none:
+	case st_NUM:
+	default:
+		msg_print(NULL, V_ERROR, "Internal str_oprand(): bad type");
+		return "!!bad!!";
+	}
 }
 
 /** Add a command string to the output file.
@@ -296,7 +369,7 @@ static reg_width set_width(width_t in){
 static reg_t check_reg(op_pt operand){
 	uint i;
 	
-	for(i=A; i!=NUM_X86_REG; i++){
+	for(i=A; i!=NUM_reg; i++){
 		reg_t j = static_cast<reg_t>(i);
 		if(reg_d[j] == operand) break;
 	}
@@ -315,7 +388,7 @@ static RETURN load(reg_t reg, op_pt mem){
 	put_cmd("\t%s\t%s\t[%s]\n",
 		str_instruction(X_MOV),
 		str_reg(set_width(mem->width), reg),
-		str_lbl(mem)
+		str_oprand(mem)
 	);
 	
 	return success;
@@ -337,9 +410,9 @@ static RETURN store(reg_t reg){
 	if(reg_d[reg]->type != st_static || reg_d[reg]->type != st_auto)
 		return success;
 	
-	put_cmd("\t%s\t%s\t%s",
+	put_cmd("\t%s\t[%s]\t%s",
 		str_instruction(X_MOV),
-		str_lbl(reg_d[reg]),
+		str_oprand(reg_d[reg]),
 		str_reg(set_width(reg_d[reg]->width), reg)
 	);
 	return success;
@@ -350,10 +423,8 @@ static RETURN store(reg_t reg){
 static reg_t get_reg(op_pt arg){
 	reg_t reg;
 	
-	if( arg && (reg=check_reg(arg)) != NUM_X86_REG ) return reg;
 	
 	// find empty space
-	if(!reg_d[A]) return A;
 	if(!reg_d[B]) return B;
 	if(!reg_d[BP]) return BP;
 	if(mode == xm_long){
@@ -370,10 +441,16 @@ static reg_t get_reg(op_pt arg){
 	// make space
 	if(store(A) == failure){
 		msg_print(NULL, V_ERROR, "Internal get_reg(): store() failed");
-		return NUM_X86_REG;
+		return NUM_reg;
 	}
 	reg_d[A] = NULL;
 	return A;
+}
+
+/** Ensures that the accumulator contains the given operand.
+*/
+static void prep_accum(op_pt){
+	
 }
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
@@ -406,6 +483,11 @@ static RETURN dref(op_pt result, op_pt pointer){
 	return success;
 }
 
+static void lbl(op_pt op){
+	put_cmd("%s:\n", strings->get(op->label));
+}
+
+/// gets the address of a variable
 static RETURN ref(op_pt result, op_pt arg){
 	reg_t result_reg;
 	
@@ -425,7 +507,7 @@ static RETURN ref(op_pt result, op_pt arg){
 	put_cmd("\t%s\t%s\n%s\n",
 		str_instruction(X_MOVZX),
 		str_reg(set_width(w_ptr), result_reg),
-		str_lbl(arg)
+		str_oprand(arg)
 	);
 	
 	return success;
@@ -437,7 +519,7 @@ static RETURN unary(op_pt result, op_pt arg, x86_inst op){
 	result_reg = get_reg(arg);
 	arg_reg = check_reg(arg);
 	
-	if(arg_reg == NUM_X86_REG){
+	if(arg_reg == NUM_reg){
 		if(load(result_reg, arg) == failure){
 			msg_print(NULL, V_ERROR, "Internal neg(): load() failed");
 			return failure;
@@ -461,26 +543,34 @@ static RETURN unary(op_pt result, op_pt arg, x86_inst op){
 /** Generate code for a single intermediate instruction
  */
 static RETURN Gen_inst(inst_pt inst){
+	/* How to Process an Instruction
+	 *
+	 *
+	 * Since temporaries are single use they can be completely covered by the
+	 * accumulator. 
+	 */
+	
+	
 	switch (inst->op){
 	case i_nop : return success;
 	
-	// easy unaries
-	case i_neg : return unary(inst->result, inst->left, X_NEG);
-	case i_not : return unary(inst->result, inst->left, X_NOT);
+	
 	case i_inc : return unary(inst->result, inst->left, X_INC);
 	case i_dec : return unary(inst->result, inst->left, X_DEC);
-	
 	case i_ass : return ass(inst->result, inst->left);
+	
 	case i_ref : return ref(inst->result, inst->left);
 	case i_dref: return dref(inst->result, inst->left);
 	case i_sz  : break;
 	
-	// easy binaries
+	/* Each of these instructions is destructive to the left operand. In other words the result is stored in the same register as the left operand.
+	*/
+	case i_neg : return unary(inst->result, inst->left, X_NEG);
+	case i_not : return unary(inst->result, inst->left, X_NOT);
 	case i_lsh : return binary(inst->result, inst->left, inst->right, X_SHL);
 	case i_rsh : return binary(inst->result, inst->left, inst->right, X_SHR);
 	case i_rol : return binary(inst->result, inst->left, inst->right, X_ROL);
 	case i_ror : return binary(inst->result, inst->left, inst->right, X_ROR);
-	
 	case i_add : return binary(inst->result, inst->left, inst->right, X_ADD);
 	case i_sub : return binary(inst->result, inst->left, inst->right, X_SUB);
 	case i_band: return binary(inst->result, inst->left, inst->right, X_AND);
@@ -492,6 +582,7 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_mod : break;
 	case i_exp : break;
 	
+	// these are probably all implemented with X_CMP
 	case i_eq  : break;
 	case i_neq : break;
 	case i_lt  : break;
@@ -503,7 +594,7 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_and : break;
 	case i_or  : break;
 	
-	case i_lbl : break;
+	case i_lbl : lbl(inst->left); break;
 	case i_jmp : break;
 	case i_jz  : break;
 	case i_loop: break;
@@ -524,7 +615,7 @@ static RETURN Gen_blk(blk_pt blk){
 	inst_pt inst;
 	
 	// Initialize the register descriptor
-	memset(reg_d, 0, sizeof(op_pt)*NUM_X86_REG);
+	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
 	
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
@@ -539,7 +630,7 @@ static RETURN Gen_blk(blk_pt blk){
 	}while(( inst=blk->next() ));
 	
 	// flush the registers at the end of the block
-	for(uint i=0; i<NUM_X86_REG; i++){
+	for(uint i=0; i<NUM_reg; i++){
 		if(reg_d[i] != NULL)
 			if( store((reg_t)i) == failure){
 				msg_print(NULL, V_ERROR, "Internal Gen_blk(): store() failed");
@@ -558,6 +649,7 @@ static RETURN Gen_blk(blk_pt blk){
 
 void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	blk_pt blk = NULL;
+	op_pt op = NULL;
 	
 	msg_print(NULL, V_INFO, "x86(): start");
 	
@@ -591,14 +683,44 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		}
 	} while(( blk=prog->instructions.next() ));
 	
-	
+	// string constants
 	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
+	op = operands->first();
+	do{
+		if(op->type == st_string)
+			fprintf(out_fd, "%s:\t\"%s\"\n",
+				strings->get(op->label),
+				strings->get(op->string_content)
+			);
+	}while(( op = operands->next() ));
 	
-	//TODO: constant strings
-	
+	// static variables
 	fprintf(out_fd,"\nsection .bss\t; Declare static variables\n");
 	if (mode == xm_long) fprintf(out_fd,"align 8\n");
 	else fprintf(out_fd,"align 4\n");
+	op = operands->first();
+	do{
+		if(op->type == st_static)
+			switch(set_width(op->width)){
+			case byte:
+				fprintf(out_fd, "%s:\tdb 0x0\n", strings->get(op->label));
+				break;
+			case word:
+				fprintf(out_fd, "%s:\tdw 0x0\n", strings->get(op->label));
+				break;
+			case dword:
+				fprintf(out_fd, "%s:\tdd 0x0\n", strings->get(op->label));
+				break;
+			case qword:
+				fprintf(out_fd, "%s:\tdq 0x0\n", strings->get(op->label));
+				break;
+			case bad_width:
+			default:
+				msg_print(NULL, V_ERROR,
+					"Internal x86(): set_width() returned invalid");
+				fprintf(out_fd, "%s:\t!!bad!! 0x0\n", strings->get(op->label));
+			}
+	}while(( op = operands->next() ));
 	
 	//TODO: static variables
 	

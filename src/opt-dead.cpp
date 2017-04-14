@@ -11,7 +11,12 @@
 
 /**	@file opt-dead.cpp
  *
- *	Removes dead operands and instructions
+ *	Removes dead operands and instructions. After running, all dead temp
+ *	variables, and the instructions that produced them will be deleted.
+ *	Additionally, all instructions operands will be marked if they continue to
+ *	be live in the block after being used by the instruction. Since temps are
+ *	only ever used once, this can only apply to programmer variables used again
+ *	in the same block.
  */
 
 

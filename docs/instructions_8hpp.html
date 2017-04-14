@@ -39,6 +39,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -108,8 +109,10 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock.html">Block</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A queue of program instructions.  <a href="classBlock.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBlock__Queue.html">Block_Queue</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A queue of basic blocks.  <a href="classBlock__Queue.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classProcedure.html">Procedure</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classInstruction__Queue.html">Instruction_Queue</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A queue of basic blocks.  <a href="classInstruction__Queue.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -122,10 +125,14 @@ typedef <a class="el" href="instructions_8hpp.html#structInstruction">Instructio
 typedef <a class="el" href="classBlock.html">Block</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a></td></tr>
 <tr class="memdesc:a864ef92861b06cfa55866cacebb75bb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to <a class="el" href="classBlock.html" title="A queue of program instructions. ">Block</a>. <br /></td></tr>
 <tr class="separator:a864ef92861b06cfa55866cacebb75bb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94e07a2d0265f0f19a3f012eb38ad312"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a94e07a2d0265f0f19a3f012eb38ad312"></a>
+typedef <a class="el" href="classProcedure.html">Procedure</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a94e07a2d0265f0f19a3f012eb38ad312">proc_pt</a></td></tr>
+<tr class="memdesc:a94e07a2d0265f0f19a3f012eb38ad312"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="classProcedure.html">Procedure</a> pointer. <br /></td></tr>
+<tr class="separator:a94e07a2d0265f0f19a3f012eb38ad312"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> { <br />
+<tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> { <br />
 &#160;&#160;<b>i_nop</b>, 
 <b>i_ass</b>, 
 <b>i_ref</b>, 
@@ -173,9 +180,12 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<b>i_call</b>, 
 <b>i_rtrn</b>, 
-<b>i_NUM</b>
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9">i_proc</a>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a14acf2e0d74353fefb89dfd64e764ea5">i_auto</a>, 
 <br />
- }<tr class="memdesc:a8e1f49c4010316f81ceff7f77e03b597"><td class="mdescLeft">&#160;</td><td class="mdescRight">intermediate op codes <br /></td></tr>
+&#160;&#160;<b>i_NUM</b>
+<br />
+ }<tr class="memdesc:a8e1f49c4010316f81ceff7f77e03b597"><td class="mdescLeft">&#160;</td><td class="mdescRight">intermediate op codes  <a href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a8e1f49c4010316f81ceff7f77e03b597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -229,6 +239,29 @@ right</td>
 <td class="fieldname">
 right_live</td>
 <td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>intermediate op codes </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9"></a>i_proc&#160;</td><td class="fielddoc">
+<p>declare the begining of a procedure takes a lbl and count of operands as arguments </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a14acf2e0d74353fefb89dfd64e764ea5"></a>i_auto&#160;</td><td class="fielddoc">
+<p>declare an automatic operand </p>
 </td></tr>
 </table>
 
