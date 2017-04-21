@@ -72,7 +72,6 @@ typedef enum {
 	i_rtrn,
 	
 	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
-	i_auto, ///< declare an automatic operand
 	
 	i_NUM
 } inst_code;
@@ -84,10 +83,7 @@ typedef struct{
 	op_pt     left;
 	op_pt     right;
 	inst_code op;
-	
-	// indicates that these operands are used again in the same block
-	bool      left_live;
-	bool      right_live;
+	bool      used_next;
 } Instruction;
 
 /// a pointer to Instruction
@@ -128,13 +124,18 @@ typedef Block * blk_pt;
 
 /// A queue of basic blocks containing procedure information
 class Procedure{
-	DS blocks;
+	DS blocks, autos;
+	
+	uint parameters; ///< count of parameters
+	uint auto_offset;
 public:
 	Procedure(void);
 	~Procedure(void);
 	
 	/// is this empty?
 	bool isempty(void) const;
+	
+	uint offset(void) const{ return auto_offset; }
 	
 	/// returns the first block
 	blk_pt first(void) const;
@@ -164,9 +165,9 @@ public:
 	proc_pt proc(void) const;
 	
 	/// returns the first block
-	blk_pt first(void) const;
+	proc_pt first(void) const;
 	/// returns the next block
-	blk_pt next (void) const;
+	proc_pt next (void) const;
 	
 	/// add an instruction to the last block
 	inst_pt add (inst_pt instruction);

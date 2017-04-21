@@ -59,7 +59,7 @@ typedef struct{
 	segment_t type;
 	
 	//auto
-	umax SP_offset;
+	umax BP_offset;
 	
 	// temp, const, static, auto
 	width_t   width;

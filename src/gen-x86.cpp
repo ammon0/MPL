@@ -13,55 +13,6 @@
  *	
  *	generates x86 assembler code from the portable program data.
  *
- *	## Parameters
- *	Parameters and return values are passed in registers reducing the stack
- *	overhead. This also means that many of the registers need not be stored in
- *	the stack before the call.
- *
- *	Since some of the registers may be needed during the execution of a routine,
- *	the routine should allocate automaic variable space for each. If the routine
- *	makes a CALL it will need to store them all in their stack locations.
- *
- *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
- *	there are more parameters than this they will be placed on the stack.
- *
- *	## Activation Record
- *
- *	<PRE>
- *	   Activation Record    Instructions
- *	|_____________________| <- SP before
- *	|additional parameters|        caller's responsability
- *	|_____________________|
- *	|          IP         | CALL / RET
- *	|_____________________| ____________________________
- *	|  parameter storage  |
- *	|_____________________|
- *	| automatic variables |        callee's responsability
- *	|_____________________|
- *	|     temporaries     |
- *	|_____________________| <- SP after
- *	</PRE>
- *
- *	### Calling convention
- *
- *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
- *	* MOV caller loads parameters into registers
- *	* SUB SP, param_offset; caller advances SP to next open location this offset
- *	is calculated at compile time.
- *	* CALL caller calls callee IP is pushed onto stack
- *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
- *	this offset is known at compile time.
- *
- *	auto variables are accessed as [SP+offset]. additional parameters are
- *	accessed as [SP+auto_offset+8+offset]
- *
- *	It may be possible to add dynamically sized variables after SP with pointers
- *	before it.
- *
- *	If we do ever implement closures this scheme will become obsolete since we'll
- *	have to manage activation records in the heap. We will then have no use for
- *	the built-in stack functions and SP will become general purpose.
- *
  *	## Code Generation
  *	x86 instructions typically replace the left operand with the result. Since
  *	results will always be temporaries, and temporaries are only ever used once.
@@ -142,7 +93,8 @@ typedef enum {
 	X_LODS, ///< load string. uses A, SI, DS, and DF flag
 	X_MOVS, ///< copy from memory to memory. uses DI, SI, DS, and DF flag
 	X_OUTS, ///< write a string to IO. uses DS, SI, D, and DF flag
-	X_INS,  ///< read a string from IO. 
+	X_INS,  ///< read a string from IO.
+	X_CMPS, ///< compare string
 	
 	X_IN,  ///< read from an IO port
 	X_OUT, ///< write to an IO port
@@ -218,12 +170,14 @@ static const char * inst_array[NUM_inst] = {
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  */
-static op_pt          reg_d[NUM_reg];
+static op_pt reg_d[NUM_reg];
+static umax  SP_offset; ///< the offset of SP from BP at any time
 
-static Operands     * operands; ///< the operand index for the PPD
-static String_Array * strings ; ///< the string space for the PPD
-static FILE         * fd  ; ///< the output file descriptor
-static x86_mode_t     mode; ///< the processor mode we are building for
+static Instruction_Queue * instructions; ///< the instructions for the PPD
+static Operands          * operands; ///< the operand index for the PPD
+static String_Array      * strings ; ///< the string space for the PPD
+static FILE              * fd  ; ///< the output file descriptor
+static x86_mode_t          mode; ///< the processor mode we are building for
 
 
 /******************************************************************************/
@@ -315,7 +269,7 @@ static inline const char * str_oprand(op_pt op){
 	// these are read from the stack
 	case st_auto: // SP-offset
 		i = i+1 %3; // increment i
-		sprintf(arr[i], "SP-%s", str_num(op->SP_offset));
+		sprintf(arr[i], "BP-%s", str_num(op->BP_offset));
 		return arr[i];
 	
 	// these are in registers
@@ -376,24 +330,6 @@ static reg_t check_reg(op_pt operand){
 	return (reg_t)i;
 }
 
-/** Load data from memory to a register.
- */
-static RETURN load(reg_t reg, op_pt mem){
-	if(reg_d[reg] != NULL){
-		msg_print(NULL, V_ERROR, "load(): that register is already in use");
-		return failure;
-	}
-	
-	reg_d[reg] = mem;
-	put_cmd("\t%s\t%s\t[%s]\n",
-		str_instruction(X_MOV),
-		str_reg(set_width(mem->width), reg),
-		str_oprand(mem)
-	);
-	
-	return success;
-}
-
 /** Store data in register to its appropriate memory location.
  */
 static RETURN store(reg_t reg){
@@ -418,79 +354,147 @@ static RETURN store(reg_t reg){
 	return success;
 }
 
-/** Return an appropriate register to store a result in.
+/** Load data from memory to a register.
  */
-static reg_t get_reg(op_pt arg){
-	reg_t reg;
+static inline void load(reg_t reg, op_pt mem){
+	reg_t test_reg;
 	
+	// check if it's already in a register
+	test_reg = check_reg(mem);
 	
-	// find empty space
-	if(!reg_d[B]) return B;
-	if(!reg_d[BP]) return BP;
-	if(mode == xm_long){
-		if(!reg_d[R8]) return R8;
-		if(!reg_d[R9]) return R9;
-		if(!reg_d[R10]) return R10;
-		if(!reg_d[R11]) return R11;
-		if(!reg_d[R12]) return R12;
-		if(!reg_d[R13]) return R13;
-		if(!reg_d[R14]) return R14;
-		if(!reg_d[R15]) return R15;
+	if(test_reg == reg) // if it's already where it needs to be
+		;
+	else if(test_reg != NUM_reg){ // if it's in another register
+		put_cmd("%s\t%s,\t%s\n",
+			str_instruction(X_MOV),
+			str_reg(set_width(mem->width), reg),
+			str_reg(set_width(mem->width), test_reg)
+		);
+		reg_d[test_reg] = NULL;
 	}
+	else // if it's in memory
+		put_cmd("\t%s\t%s,\t[%s]\n",
+			str_instruction(X_MOV),
+			str_reg(set_width(mem->width), reg),
+			str_oprand(mem)
+		);
 	
-	// make space
-	if(store(A) == failure){
-		msg_print(NULL, V_ERROR, "Internal get_reg(): store() failed");
-		return NUM_reg;
-	}
-	reg_d[A] = NULL;
-	return A;
+	reg_d[reg] = mem;
 }
 
-/** Ensures that the accumulator contains the given operand.
-*/
-static void prep_accum(op_pt){
+/*	store the temporary that is in the accumulator since it is not to be used
+ *	immediately.
+ */
+static inline void temp_store(void){
+	// we turn it into an automatic variable and add it to the stack
+	
+	reg_d[A]->type = st_auto;
+	
 	
 }
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alfabetical
 
-static RETURN ass(op_pt result, op_pt arg){
-	
-	check_reg(result);
-	check_reg(arg);
-	
-	return success;
+static inline void ass(op_pt result, op_pt arg){
+	load(A, arg);
+	reg_d[A] = result;
 }
 
-static RETURN binary(op_pt result, op_pt left, op_pt right, x86_inst op){
-	reg_t result_reg, left_reg, right_reg;
+static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
+	load(A, left);
+	load(C, right);
 	
-	result_reg = get_reg(left);
-	left_reg = check_reg(left);
-	right_reg = check_reg(right);
+	put_cmd("\t%s\t%s,\t%s\n",
+		str_instruction(op),
+		str_reg(set_width(left->width), A),
+		str_reg(set_width(right->width), C)
+	);
 	
-	reg_d[result_reg] = result;
-	return success;
+	reg_d[A] = result;
 }
 
-static RETURN dref(op_pt result, op_pt pointer){
-	reg_t result_reg;
-	
-	
-	
-	return success;
+static inline void call(op_pt op){
+	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(op->label));
 }
 
-static void lbl(op_pt op){
+static void div(op_pt result, op_pt left, op_pt right){
+	load(A, left);
+	load(C, right);
+	
+	if(left->sign || right->sign){
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_IDIV),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	else{
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_DIV),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	
+	reg_d[A] = result;
+}
+
+static inline void dref(op_pt result, op_pt pointer){
+	load(A, pointer);
+	put_cmd("%s\t%s,\t[%s]\n",
+		str_instruction(X_MOV),
+		str_reg(set_width(result->width), A),
+		str_reg(set_width(w_ptr),A)
+	);
+	
+	reg_d[A] = result;
+}
+
+static inline void lbl(op_pt op){
 	put_cmd("%s:\n", strings->get(op->label));
+}
+
+static void mod(op_pt result, op_pt left, op_pt right){
+	load(A, left);
+	load(C, right);
+	
+	if(left->sign || right->sign){
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_IDIV),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	else{
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_DIV),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	
+	reg_d[D] = result;
+}
+
+static void mul(op_pt result, op_pt left, op_pt right){
+	load(A, left);
+	load(C, right);
+	
+	if(left->sign || right->sign){
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_IMUL),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	else{
+		put_cmd("\t%s\t%s\n",
+			str_instruction(X_MUL),
+			str_reg(set_width(right->width), C)
+		);
+	}
+	
+	reg_d[A] = result;
 }
 
 /// gets the address of a variable
 static RETURN ref(op_pt result, op_pt arg){
-	reg_t result_reg;
-	
 	if(arg->type != st_static || arg->type != st_auto){
 		msg_print(NULL, V_ERROR,
 			"Internal dref(): arg is not a memory location");
@@ -502,40 +506,82 @@ static RETURN ref(op_pt result, op_pt arg){
 		return failure;
 	}
 	
-	result_reg = get_reg(NULL);
-	
 	put_cmd("\t%s\t%s\n%s\n",
 		str_instruction(X_MOVZX),
-		str_reg(set_width(w_ptr), result_reg),
+		str_reg(set_width(w_ptr), A),
 		str_oprand(arg)
 	);
+	
+	reg_d[A] = result;
 	
 	return success;
 }
 
-static RETURN unary(op_pt result, op_pt arg, x86_inst op){
-	reg_t result_reg, arg_reg;
+static inline void ret(op_pt value){
+	// load the return value if present
+	if(value) load(A, value);
+	put_cmd(
+		"\t%s\t%s,\t%s\n",
+		inst_array[X_MOV],
+		str_reg(mode == xm_long? qword:dword, SP),
+		str_reg(mode == xm_long? qword:dword, BP)
+	);
 	
-	result_reg = get_reg(arg);
-	arg_reg = check_reg(arg);
-	
-	if(arg_reg == NUM_reg){
-		if(load(result_reg, arg) == failure){
-			msg_print(NULL, V_ERROR, "Internal neg(): load() failed");
-			return failure;
-		}
-	}else if(arg_reg != result_reg){
-		msg_print(NULL, V_ERROR, "Internal neg(): regs do not match");
-		return failure;
+	put_cmd("\t%s\n", inst_array[X_RET]);
+}
+
+static inline void sz(op_pt result, op_pt arg){
+	switch(set_width(arg->width)){
+	case byte:
+		put_cmd(
+			"%s\t%s,\t%s\n",
+			str_instruction(X_MOVZX),
+			str_reg(set_width(w_word), A),
+			str_num(1)
+		);
+		break;
+	case word:
+		put_cmd(
+			"%s\t%s,\t%s\n",
+			str_instruction(X_MOVZX),
+			str_reg(set_width(w_word), A),
+			str_num(2)
+		);
+		break;
+	case dword:
+		put_cmd(
+			"%s\t%s,\t%s\n",
+			str_instruction(X_MOVZX),
+			str_reg(set_width(w_word), A),
+			str_num(4)
+		);
+		break;
+	case qword:
+		put_cmd(
+			"%s\t%s,\t%s\n",
+			str_instruction(X_MOVZX),
+			str_reg(set_width(w_word), A),
+			str_num(8)
+		);
+		break;
+	case bad_width:
+	default:
+		msg_print(NULL, V_ERROR, "sz(): broken");
 	}
+	
+	reg_d[A] = result;
+}
+
+static inline void unary(op_pt result, op_pt arg, x86_inst op){
+	// load the accumulator
+	load(A, arg);
 	
 	put_cmd("\t%s\t%s\n",
 		str_instruction(op),
-		str_reg(set_width(arg->width), result_reg)
+		str_reg(set_width(arg->width), A)
 	);
 	
-	reg_d[result_reg] = result;
-	return success;
+	reg_d[A] = result;
 }
 
 /***************************** ITERATOR FUNCTIONS *****************************/
@@ -543,43 +589,35 @@ static RETURN unary(op_pt result, op_pt arg, x86_inst op){
 /** Generate code for a single intermediate instruction
  */
 static RETURN Gen_inst(inst_pt inst){
-	/* How to Process an Instruction
-	 *
-	 *
-	 * Since temporaries are single use they can be completely covered by the
-	 * accumulator. 
-	 */
-	
+	return_t ret_val=success;
 	
 	switch (inst->op){
 	case i_nop : return success;
 	
+	case i_inc : unary(inst->result, inst->left, X_INC); break;
+	case i_dec : unary(inst->result, inst->left, X_DEC); break;
+	case i_neg : unary(inst->result, inst->left, X_NEG); break;
+	case i_not : unary(inst->result, inst->left, X_NOT); break;
 	
-	case i_inc : return unary(inst->result, inst->left, X_INC);
-	case i_dec : return unary(inst->result, inst->left, X_DEC);
-	case i_ass : return ass(inst->result, inst->left);
+	case i_ass : ass (inst->result, inst->left); break;
+	case i_sz  : sz  (inst->result, inst->left); break;
+	case i_dref: dref(inst->result, inst->left); break;
 	
-	case i_ref : return ref(inst->result, inst->left);
-	case i_dref: return dref(inst->result, inst->left);
-	case i_sz  : break;
+	case i_ref : ret_val = ref(inst->result, inst->left); break;
 	
-	/* Each of these instructions is destructive to the left operand. In other words the result is stored in the same register as the left operand.
-	*/
-	case i_neg : return unary(inst->result, inst->left, X_NEG);
-	case i_not : return unary(inst->result, inst->left, X_NOT);
-	case i_lsh : return binary(inst->result, inst->left, inst->right, X_SHL);
-	case i_rsh : return binary(inst->result, inst->left, inst->right, X_SHR);
-	case i_rol : return binary(inst->result, inst->left, inst->right, X_ROL);
-	case i_ror : return binary(inst->result, inst->left, inst->right, X_ROR);
-	case i_add : return binary(inst->result, inst->left, inst->right, X_ADD);
-	case i_sub : return binary(inst->result, inst->left, inst->right, X_SUB);
-	case i_band: return binary(inst->result, inst->left, inst->right, X_AND);
-	case i_bor : return binary(inst->result, inst->left, inst->right, X_OR);
-	case i_xor : return binary(inst->result, inst->left, inst->right, X_XOR);
+	case i_lsh : binary(inst->result, inst->left, inst->right, X_SHL);
+	case i_rsh : binary(inst->result, inst->left, inst->right, X_SHR);
+	case i_rol : binary(inst->result, inst->left, inst->right, X_ROL);
+	case i_ror : binary(inst->result, inst->left, inst->right, X_ROR);
+	case i_add : binary(inst->result, inst->left, inst->right, X_ADD);
+	case i_sub : binary(inst->result, inst->left, inst->right, X_SUB);
+	case i_band: binary(inst->result, inst->left, inst->right, X_AND);
+	case i_bor : binary(inst->result, inst->left, inst->right, X_OR);
+	case i_xor : binary(inst->result, inst->left, inst->right, X_XOR);
 	
-	case i_mul : break;
-	case i_div : break;
-	case i_mod : break;
+	case i_mul : mul(inst->result, inst->left, inst->right); break;
+	case i_div : div(inst->result, inst->left, inst->right); break;
+	case i_mod : mod(inst->result, inst->left, inst->right); break;
 	case i_exp : break;
 	
 	// these are probably all implemented with X_CMP
@@ -598,13 +636,23 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_jmp : break;
 	case i_jz  : break;
 	case i_loop: break;
+	
 	case i_parm: break;
-	case i_call: break;
-	case i_rtrn: break;
+	case i_call: call(inst->left); break;
+	case i_proc: break;
+	case i_rtrn: ret(inst->left); break;
 	
 	case i_NUM:
 	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
 	}
+	
+	if(ret_val == failure) return failure;
+	
+	/* Since temporaries are single use they can be completely covered by the
+	 * accumulator unless they are not immediately used. In which case we have
+	 * to find a place to stash them.
+	 */
+	if(!inst->used_next) temp_store();
 	
 	return success;
 }
@@ -614,8 +662,8 @@ static RETURN Gen_inst(inst_pt inst){
 static RETURN Gen_blk(blk_pt blk){
 	inst_pt inst;
 	
-	// Initialize the register descriptor
-	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
+	msg_print(NULL, V_TRACE, "Gen_blk(): start");
+	
 	
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
@@ -638,6 +686,112 @@ static RETURN Gen_blk(blk_pt blk){
 			}
 	}
 	
+	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
+	return success;
+}
+
+
+/** Creates and tears down the activation record of a procedure
+ *	## Activation Record
+ *
+ *	<PRE>
+ *	   Activation Record    Instructions
+ *	|_____________________|
+ *	|     parameters      | PUSH params
+ *	|_____________________|
+ *	|       R8-R15        | PUSH R / POP R
+ *	|_____________________|
+ *	|        A-DI         | PUSH A / POP A
+ *	|_____________________|
+ *	|         BP          | PUSH BP / POP BP
+ *	|_____________________|
+ *	|         IP          | CALL / RET
+ *	|_____________________| ______________________________<- BP
+ *	| automatic variables | PUSH 0x0 / POP
+ *	|_____________________|
+ *	|     temporaries     | PUSH temp
+ *	|_____________________|
+ *	
+ *	</PRE>
+ *
+ *
+ *	To make life easier on myself I've decided to use SP and BP for their
+ *	intendend purposes. In long mode the first 8 parameters will be passed in
+ *	R8-15 with any others in the stack. In protected mode they are all passed on
+ *	the stack.
+ *
+ *	## Parameters
+ *	Parameters and return values are passed in registers reducing the stack
+ *	overhead. This also means that many of the registers need not be stored in
+ *	the stack before the call.
+ *
+ *	Since some of the registers may be needed during the execution of a routine,
+ *	the routine should allocate automaic variable space for each. If the routine
+ *	makes a CALL it will need to store them all in their stack locations.
+ *
+ *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
+ *	there are more parameters than this they will be placed on the stack.
+ *
+ *	### Calling convention
+ *
+ *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
+ *	* MOV caller loads parameters into registers
+ *	* SUB SP, param_offset; caller advances SP to next open location this offset
+ *	is calculated at compile time.
+ *	* CALL caller calls callee IP is pushed onto stack
+ *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
+ *	this offset is known at compile time.
+ *
+ *	auto variables are accessed as [SP+offset]. additional parameters are
+ *	accessed as [SP+auto_offset+8+offset]
+ *
+ *	It may be possible to add dynamically sized variables after SP with pointers
+ *	before it.
+ *
+ *	If we do ever implement closures this scheme will become obsolete since we'll
+ *	have to manage activation records in the heap. We will then have no use for
+ *	the built-in stack functions and SP will become general purpose.
+ 	
+ *	Generate the code for a single procedure.
+ *	We will probably have to make two passes: the first to determine how many
+ *	stack temporaries we need. All auto variables need to be declared at the
+ *	beginning.
+*/
+static RETURN Gen_proc(proc_pt proc){
+	blk_pt blk;
+	
+	msg_print(NULL, V_TRACE, "Gen_proc(): start");
+	
+	// Initialize the register descriptor
+	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
+	// TODO: place the label
+//	lbl(label);
+	// set the base pointer
+	put_cmd("\t%s\t%s,\t%s\n",
+		str_instruction(X_MOV),
+		str_reg(mode == xm_long? qword: dword, BP),
+		str_reg(mode == xm_long? qword: dword, SP)
+	);
+	SP_offset = 0;
+	
+	// TODO: make space for automatics
+	
+	if(!( blk=proc->first() )){
+		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Procedure");
+		return failure;
+	}
+	do{
+		if(Gen_blk(blk) == failure){
+			msg_print(NULL, V_ERROR,
+				"Internal Gen_proc(): Gen_blk() returned failure"
+			);
+			return failure;
+		}
+	}while(( blk=proc->next() ));
+	
+	//TODO: add a return if necessary
+	
+	msg_print(NULL, V_TRACE, "Gen_proc(): stop");
 	return success;
 }
 
@@ -648,7 +802,7 @@ static RETURN Gen_blk(blk_pt blk){
 
 
 void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
-	blk_pt blk = NULL;
+	proc_pt proc = NULL;
 	op_pt op = NULL;
 	
 	msg_print(NULL, V_INFO, "x86(): start");
@@ -662,26 +816,27 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
+	instructions = &(prog->instructions);
 	operands = &(prog->operands);
 	strings  = &(prog->strings);
 	fd   = out_fd;
 	mode = proccessor_mode;
 	
-	if(!( blk=prog->instructions.first() )){
-		msg_print(NULL, V_ERROR, "x86(): Empty block queue");
+	if(!( proc=prog->instructions.first() )){
+		msg_print(NULL, V_ERROR, "x86(): Empty Instruction queue");
 		return;
 	}
 	
 	fprintf(out_fd,"\nsection .text\t; Program code\n");
 	
 	do{
-		if(Gen_blk(blk) == failure){
+		if(Gen_proc(proc) == failure){
 			msg_print(NULL, V_ERROR,
 				"Internal x86(): Gen_blk() returned failure"
 			);
 			return;
 		}
-	} while(( blk=prog->instructions.next() ));
+	} while(( proc=prog->instructions.next() ));
 	
 	// string constants
 	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
@@ -721,8 +876,6 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 				fprintf(out_fd, "%s:\t!!bad!! 0x0\n", strings->get(op->label));
 			}
 	}while(( op = operands->next() ));
-	
-	//TODO: static variables
 	
 	msg_print(NULL, V_INFO, "x86(): stop");
 }

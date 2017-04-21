@@ -23,8 +23,7 @@
 
 /** This is a container for all the components of the portable program data.
 */
-class PPD{
-public:
+struct PPD{
 	String_Array       strings;      ///< the string space
 	Operands           operands;     ///< The symbol table
 	Instruction_Queue  instructions; ///< The program code in basic blocks
@@ -32,6 +31,8 @@ public:
 	// Optimizations applied
 	bool dead;      ///< indicates whether this PPD has passed opt_dead
 	bool constants; ///< indicates whether this PPD has passed opt_const
+	
+	PPD(void) : operands(&strings) { dead = constants = false; }
 };
 
 

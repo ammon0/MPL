@@ -33,6 +33,8 @@
 String_Array * strings;  ///< A pointer to the PPD string space
 Operands     * operands; ///< A pointer to the PPD operands
 
+op_pt arg1, arg2;
+
 
 /******************************************************************************/
 //                             PRIVATE FUNCTIONS
@@ -44,6 +46,8 @@ static void Liveness(blk_pt blk){
 	inst_pt inst;
 	
 	msg_print(NULL, V_TRACE, "Liveness(): start");
+	
+	arg1 = arg2 = NULL;
 	
 	inst = blk->last();
 	if(!inst) {
@@ -61,10 +65,17 @@ static void Liveness(blk_pt blk){
 		case i_lbl :
 		case i_call:
 		case i_parm:
+		case i_proc:
 		case i_jmp :
 		case i_jz  :
 		case i_loop:
-		case i_rtrn: inst->left->live = true; break;
+		case i_rtrn:
+			inst->left->live = true;
+			inst->used_next = false;
+			
+			arg1 = inst->left;
+			arg2 = NULL;
+			break;
 		
 		// unary ops
 		case i_ass :
@@ -87,9 +98,14 @@ static void Liveness(blk_pt blk){
 			
 			// now we know the result is live
 			inst->result->live = false;
-			
-			if(inst->left->live) inst->left_live = true;
 			inst->left->live = true;
+			
+			if(inst->result == arg1 || inst->result == arg2)
+				inst->used_next = true;
+			else inst->used_next = false;
+			
+			arg1 = inst->left;
+			arg2 = NULL;
 			break;
 		
 		// binary ops
@@ -125,12 +141,15 @@ static void Liveness(blk_pt blk){
 			
 			// now we know the result is live
 			inst->result->live = false;
-			
-			if(inst->left->live) inst->left_live = true;
-			if(inst->right->live) inst->right_live = true;
-			
 			inst->left->live = true;
 			inst->right->live = true;
+			
+			if(inst->result == arg1 || inst->result == arg2)
+				inst->used_next = true;
+			else inst->used_next = false;
+			
+			arg1 = inst->left;
+			arg2 = inst->right;
 			break;
 		
 		case i_NUM:
@@ -139,8 +158,6 @@ static void Liveness(blk_pt blk){
 				"Internal Liveness(): unknown instruction");
 		}
 	} while(( inst = blk->prev() ));
-	
-	prog_data->dead = true;
 	
 	msg_print(NULL, V_TRACE, "Liveness(): stop");
 }
@@ -152,18 +169,25 @@ static void Liveness(blk_pt blk){
 
 
 void opt_dead(PPD * prog_data){
-	blk_pt blk;
+	blk_pt  blk;
+	proc_pt proc;
 	
 	msg_print(NULL, V_TRACE, "opt_dead(): start");
 	
 	strings  = &prog_data->strings;
 	operands = &prog_data->operands;
 	
-	blk = prog_data->instructions.first();
+	proc = prog_data->instructions.first();
 	do{
-		Liveness(blk);
-		blk->flush();
-	} while(( blk = prog_data->instructions.next() ));
+		blk = proc->first();
+		do{
+			Liveness(blk);
+			blk->flush();
+		} while(( blk = proc->next() ));
+		
+	} while(( proc = prog_data->instructions.next() ));
+	
+	prog_data->dead = true;
 	
 	msg_print(NULL, V_TRACE, "opt_dead(): stop");
 }

@@ -108,16 +108,8 @@ bool Instruction_Queue::isempty(void) const{ return DS_isempty(q); }
 
 proc_pt Instruction_Queue::proc(void) const{ return (proc_pt)DS_current(q); }
 
-blk_pt Instruction_Queue::first(void) const{
-	return (blk_pt)( (proc_pt)DS_first(q) )->first();
-}
-blk_pt Instruction_Queue::next (void) const{
-	blk_pt temp;
-	
-	if(( temp=proc()->next() )) temp = ((proc_pt)DS_next(q))->first();
-	
-	return temp;
-}
+proc_pt Instruction_Queue::first(void) const{ return (proc_pt)DS_first(q); }
+proc_pt Instruction_Queue::next (void) const{ return (proc_pt)DS_next (q); }
 
 inst_pt Instruction_Queue::add(inst_pt instruction){
 	proc_pt last;
