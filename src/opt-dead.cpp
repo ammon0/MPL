@@ -42,7 +42,7 @@ op_pt arg1, arg2;
 
 
 /// Determine whether each symbol is live in each instruction
-static void Liveness(blk_pt blk){
+void Liveness(blk_pt blk){
 	inst_pt inst;
 	
 	msg_print(NULL, V_TRACE, "Liveness(): start");

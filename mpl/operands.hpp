@@ -73,8 +73,13 @@ typedef struct Operand{
 	umax      const_value;
 	str_dx    string_content;
 	
+private:
+	// this stuff is for the optimizer
+	typedef class Block * blk_pt;
 	bool live;
+	friend void Liveness(blk_pt);
 	
+	// these bits only apply to procedures
 private:
 	DS formal_params, autos;
 public:
