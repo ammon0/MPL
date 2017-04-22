@@ -126,10 +126,7 @@ typedef Block * blk_pt;
 
 /// A queue of basic blocks containing procedure information
 class Procedure{
-	DS blocks, autos;
-	
-	uint parameters; ///< count of parameters
-	uint auto_offset;
+	DS     blocks;
 public:
 	Procedure(void);
 	~Procedure(void);
@@ -137,15 +134,19 @@ public:
 	/// is this empty?
 	bool isempty(void) const;
 	
-	uint offset(void) const{ return auto_offset; }
-	
 	/// returns the first block
 	blk_pt first(void) const;
 	/// returns the next block
 	blk_pt next (void) const;
 	
-	/// add an instruction to the last block
+	/**	add an instruction to the last block
+	 *	@param instruction a pointer to the instruction to add
+	 *	@return pointer to the instruction in its new location
+	 */
 	inst_pt add (inst_pt instruction);
+	
+	/// get the procedure operand
+	op_pt  info;
 };
 
 /// A Procedure pointer

@@ -204,13 +204,17 @@ typedef enum {
 	NUM_inst
 } x86_inst;
 
+/// Keeps track of the stack details
 class Stack_man{
 	umax  SP_offset;
 public:
 	Stack_man(void){ SP_offset = 0; }
 	
-	RETURN push  (reg_t reg);
-	void   set_BP(void     );
+	RETURN push_temp(reg_t reg     ); ///< push as a temp
+	void   push_auto(op_pt auto_var); ///< push an automatic variable
+	void   push_parm(op_pt parameter); ///< push a parameter onto the stack
+	void   set_BP(void     ); ///< advance BP to the SP
+	void   unload(uint count); ///< unload parameters from the stack
 };
 
 
@@ -414,7 +418,30 @@ static reg_t check_reg(op_pt operand){
 	return (reg_t)i;
 }
 
-RETURN Stack_man::push(reg_t reg){
+/// push an auto variable onto the stack
+void Stack_man::push_auto(op_pt auto_var){
+	// issue push instruction
+	put_cmd("%s\t%s\n",
+		str_instruction(X_PUSH),
+		str_num(0)
+	);
+	
+	// increment SP_offset
+	if(mode == xm_long) SP_offset += qword;
+	else SP_offset += dword;
+	
+	// set the offset
+	auto_var->BP_offset = SP_offset;
+}
+
+/// push a temp variable onto the stack
+RETURN Stack_man::push_temp(reg_t reg){
+	
+	if(reg_d[reg]->type != st_temp){
+		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
+		return failure;
+	}
+	
 	// issue push instruction
 	put_cmd("%s\t%s\n",
 		str_instruction(X_PUSH),
@@ -426,21 +453,12 @@ RETURN Stack_man::push(reg_t reg){
 	if(mode == xm_long) SP_offset += qword;
 	else SP_offset += dword;
 	
-	// determine type (auto, param)
-	if(reg_d[reg]->type == st_auto) reg_d[reg]->BP_offset = SP_offset;
-	else if(reg_d[reg]->type == st_param){
-		// TODO: set BP_offset for parameters
-		
-	}
-	else{
-		msg_print(NULL, V_ERROR,
-			"Internal Stack_man::push(): invalid operand type");
-		return failure;
-	}
+	reg_d[reg]->BP_offset = SP_offset;
 	
 	return success;
 }
 
+/// advance BP to the next activation record
 void Stack_man::set_BP(void){
 	put_cmd("\t%s\t%s,\t%s\n",
 		str_instruction(X_MOV),
@@ -502,23 +520,16 @@ static inline void load(reg_t reg, op_pt mem){
 	reg_d[reg] = mem;
 }
 
-/*	store the temporary that is in the accumulator since it is not to be used
- *	immediately.
- */
-static inline void temp_store(void){
-	// we turn it into an automatic variable and add it to the stack
-	reg_d[A]->type = st_auto;
-	stack_manager.push(A);
-}
-
 /*************************** INSTRUCTION FUNCTIONS ****************************/
-// Alfabetical
+// Alphabetical
 
+/// make an assignment
 static inline void ass(op_pt result, op_pt arg){
 	load(A, arg);
 	reg_d[A] = result;
 }
 
+/// most binary operations
 static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
 	load(A, left);
 	load(C, right);
@@ -532,68 +543,71 @@ static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
 	reg_d[A] = result;
 }
 
-static inline void call(op_pt result, op_pt op){
+/// call a procedure
+static inline void call(op_pt result, op_pt proc){
 	// parameters are already loaded
 	
 	// store the processor state
 	if(mode == xm_long){
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), B);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), C);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), D);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), SI);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), DI);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), BP);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R8);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R9);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R10);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R11);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R12);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R13);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R14);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R15);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, B));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, C));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, D));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, SI));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, DI));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, BP));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R8));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R9));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R10));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R11));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R12));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R13));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R14));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R15));
 	}
 	else{
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), B);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), C);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), D);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), SI);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), DI);
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), BP);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, B));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, C));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, D));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, SI));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, DI));
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, BP));
 	}
 	
-	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(op->label));
+	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(proc->label));
 	
 	// restore the processor state
 	if(mode == xm_long){
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R15);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R14);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R13);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R12);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R11);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R10);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R9);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R8);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), BP);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), DI);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), SI);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), D);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), C);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), B);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R15));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R14));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R13));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R12));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R11));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R10));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R9) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R8) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, BP) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, DI) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, SI) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, D)  );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, C)  );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, B)  );
 	}
 	else{
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), BP);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), DI);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), SI);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), D);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), C);
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), B);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, BP));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, DI));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, SI));
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, D) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, C) );
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, B) );
 	}
 	
-	// TODO: unload parameters
+	// unload parameters
+	stack_manager.unload(proc->param_cnt());
 	
 	reg_d[A] = result;
 }
 
+/// signed and unsigned division
 static void div(op_pt result, op_pt left, op_pt right){
 	load(A, left);
 	load(C, right);
@@ -614,6 +628,7 @@ static void div(op_pt result, op_pt left, op_pt right){
 	reg_d[A] = result;
 }
 
+/// dereference a pointer
 static inline void dref(op_pt result, op_pt pointer){
 	load(A, pointer);
 	put_cmd("%s\t%s,\t[%s]\n",
@@ -625,10 +640,12 @@ static inline void dref(op_pt result, op_pt pointer){
 	reg_d[A] = result;
 }
 
+/// place a label in the assembler file
 static inline void lbl(op_pt op){
 	put_cmd("%s:\n", strings->get(op->label));
 }
 
+/// signed and unsigned modulus division
 static void mod(op_pt result, op_pt left, op_pt right){
 	load(A, left);
 	load(C, right);
@@ -655,6 +672,7 @@ static void mod(op_pt result, op_pt left, op_pt right){
 	reg_d[A] = result;
 }
 
+/// signed and unsigned multiplication
 static void mul(op_pt result, op_pt left, op_pt right){
 	load(A, left);
 	load(C, right);
@@ -699,6 +717,7 @@ static RETURN ref(op_pt result, op_pt arg){
 	return success;
 }
 
+/// return from a function
 static inline void ret(op_pt value){
 	// load the return value if present
 	if(value) load(A, value);
@@ -713,6 +732,7 @@ static inline void ret(op_pt value){
 	put_cmd("\t%s\n", inst_array[X_RET]);
 }
 
+/// return the size, in bytes, of an operand
 static inline void sz(op_pt result, op_pt arg){
 	switch(set_width(arg->width)){
 	case byte:
@@ -755,6 +775,7 @@ static inline void sz(op_pt result, op_pt arg){
 	reg_d[A] = result;
 }
 
+/// most unary operations
 static inline void unary(op_pt result, op_pt arg, x86_inst op){
 	// load the accumulator
 	load(A, arg);
@@ -821,7 +842,7 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_loop: break;
 	case i_cpy : break;
 	
-	case i_parm: break;
+	case i_parm: stack_manager.push_parm(inst->left); break;
 	case i_call: call(inst->result, inst->left); break;
 	case i_proc: break;
 	case i_rtrn: ret(inst->left); break;
@@ -836,7 +857,20 @@ static RETURN Gen_inst(inst_pt inst){
 	 * accumulator unless they are not immediately used. In which case we have
 	 * to find a place to stash them.
 	 */
-	if(!inst->used_next) temp_store();
+	if(!inst->used_next){
+		if(inst->result->type == st_temp){
+			msg_print(NULL, V_INFO, "We're setting a stack temp");
+			if(stack_manager.push_temp(A) == failure){
+				msg_print(NULL, V_ERROR,
+					"Gen_inst(): could not set a stack temp");
+				return failure;
+			}
+		}
+		else if(store(A) == failure){
+			msg_print(NULL, V_ERROR, "Gen_inst(): could not store");
+			return failure;
+		}
+	}
 	
 	return success;
 }
@@ -876,30 +910,35 @@ static RETURN Gen_blk(blk_pt blk){
 
 
 /** Creates and tears down the activation record of a procedure
- *	Generate the code for a single procedure.
+ *
+ *	parameters are added to the stack with the i_parm instruction. Formal
+ *	parameters are read off the stack simply by their order:
+ *	BP+machine_state+(total_parameters-parameter_number)
+ *
+ *	parameters must be contiguously packed at the top of the stack when i_call
+ *	is made. this means we can't add new auto variables once a parameter has
+ *	been pushed.
 */
 static RETURN Gen_proc(proc_pt proc){
 	blk_pt blk;
+	op_pt  op;
 	
 	msg_print(NULL, V_TRACE, "Gen_proc(): start");
 	
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
-	// TODO: place the label
-//	lbl(label);
+	
+	// place the label
+	lbl(proc->info);
 	
 	// set the base pointer
 	stack_manager.set_BP();
 	
-	
-	// TODO: make space for automatics
-	
-	// for each auto variable
-	
-	// push 0 onto the stack
-	
-	// record variable offset
-	
+	// make space for automatics
+	if(( op=proc->info->first_auto() ))
+		do{
+			stack_manager.push_auto(op);
+		}while(( op=proc->info->next_auto() ));
 	
 	if(!( blk=proc->first() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Procedure");

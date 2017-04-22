@@ -150,7 +150,7 @@ RECURSIVE              = NO
 
 HTML_OUTPUT            = docs
 
-
+SEARCHENGINE = NO
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the

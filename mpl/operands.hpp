@@ -53,8 +53,11 @@ typedef enum{
 	st_NUM     ///< This is the count of storage classes
 } segment_t;
 
+/// pointer to an Operand
+typedef struct Operand * op_pt;
+
 /// A single MPL operand
-typedef struct{
+typedef struct Operand{
 	str_dx    label;
 	
 	segment_t type;
@@ -71,11 +74,20 @@ typedef struct{
 	str_dx    string_content;
 	
 	bool live;
+	
+private:
+	DS formal_params, autos;
+public:
+	uint param_cnt(void) const{ return DS_count(formal_params); }
+	
+	op_pt first_param(void) const;
+	op_pt  next_param(void) const;
+	op_pt first_auto (void) const;
+	op_pt  next_auto (void) const;
+	
+	op_pt add_param(op_pt parameter);
+	op_pt add_auto (op_pt auto_var);
 } Operand;
-
-/// pointer to an Operand
-typedef Operand * op_pt;
-
 
 /** This is the symbol table
 */
