@@ -509,7 +509,7 @@ static RETURN store(reg_t reg){
 
 /** Load data from memory to a register.
  */
-static inline void load(reg_t reg, op_pt mem){
+static void load(reg_t reg, op_pt mem){
 	reg_t test_reg;
 	
 	// check if it's already in a register

@@ -130,6 +130,7 @@ static void Liveness(blk_pt blk){
 		case i_gte:
 		case i_and:
 		case i_or :
+		case i_cpy:
 			// if the result is dead remove it
 			if(inst->result->type == st_temp && !inst->result->live){
 				// remove the temp symbol

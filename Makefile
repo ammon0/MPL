@@ -91,12 +91,8 @@ LEX:= flex
 ################################# PRODUCTIONS ##################################
 
 
-libgen.a: $(ppd_objects) $(gen_objects)
-	ar rcs $@ $(gen_objects) $(ppd_objects)
-libopt.a: $(opt_objects) $(ppd_objects)
-	ar rcs $@ $(opt_objects) $(ppd_objects)
-libpexe.a: $(pexe_objects)
-
+libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects)
+	ar rcs $@ $<
 
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile
@@ -108,6 +104,10 @@ $(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) | $(WORKDIR)
 $(WORKDIR):
 	mkdir -p $@
 
+install: $(headers) libmpl.a
+	install -d $(LIBDIR) $(INCDIR)
+	for f in $(libraries); do install -C $$f $(LIBDIR); done
+	for f in $(headers)  ; do install -C $$f $(INCDIR); done
 
 ################################## UTILITIES ###################################
 
