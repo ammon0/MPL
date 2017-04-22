@@ -32,14 +32,17 @@ ppd_objects :=operands.o instructions.o
 gen_objects :=gen-arm.o gen-x86.o
 pexe_objects:=gen-pexe.o read-pexe.o
 opt_objects :=opt-dead.o
+string_objects:=string_array.o
 
 # Prefix the object files
 ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
 gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
 pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
 opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
+string_objects :=$(addprefix $(WORKDIR)/, $(string_objects))
 
-CPP_OBJECTS:=$(ppd_objects) $(gen_objects) $(pexe_objects) $(opt_objects)
+CPP_OBJECTS:= \
+$(ppd_objects) $(gen_objects) $(pexe_objects) $(opt_objects) $(string_objects)
 
 
 #################################### FLAGS #####################################
@@ -91,7 +94,7 @@ LEX:= flex
 ################################# PRODUCTIONS ##################################
 
 
-libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects)
+libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects) $(string_objects)
 	ar rcs $@ $<
 
 docs: Doxyfile README.md $(allfiles)
@@ -108,6 +111,7 @@ install: $(headers) libmpl.a
 	install -d $(LIBDIR) $(INCDIR)
 	for f in $(libraries); do install -C $$f $(LIBDIR); done
 	for f in $(headers)  ; do install -C $$f $(INCDIR); done
+
 
 ################################## UTILITIES ###################################
 
