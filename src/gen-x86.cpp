@@ -21,14 +21,76 @@
  *	algebraically rearranges things.
  *
  *	## Register Allocation
- *	There is a problem if a temp variable is not immediatly used. All temps are
+ *	There is a problem if a temp variable is not immediately used. All temps are
  *	produced in the accumulator. If at any point in code generation we find that
  *	the contents of the accumulator is temp and not being used in the current
  *	instruction then it will have to be stored somewhere. A register would be
  *	ideal. However, all the registers are potentially filled with parameters. We
  *	have no way of knowing whether it would be better to switch out a parameter.
  *	We do know that the temp will only ever be used once so I feel less bad
- *	about putting it on the stack if there are no registers availible.
+ *	about putting it on the stack if there are no registers available.
+ *
+ *	## Activation Record
+ *
+ *	<PRE>
+ *	   Activation Record    Instructions
+ *	|_____________________|
+ *	|     parameters      | PUSH params
+ *	|_____________________|
+ *	|       R8-R15        | PUSH R / POP R
+ *	|_____________________|
+ *	|        B-DI         | PUSH A / POP A
+ *	|_____________________|
+ *	|         BP          | PUSH BP / POP BP
+ *	|_____________________|
+ *	|         IP          | CALL / RET
+ *	|_____________________| ______________________________<- BP
+ *	| automatic variables | PUSH 0x0 / POP
+ *	|_____________________|
+ *	|     temporaries     | PUSH temp
+ *	|_____________________|
+ *	
+ *	</PRE>
+ *
+ *	SP is always pointing to the top item on the stack, so
+ *	PUSH=DEC,MOV POP=MOV,INC
+ *
+ *	To make life easier on myself I've decided to use SP and BP for their
+ *	intendend purposes. In long mode the first 8 parameters will be passed in
+ *	R8-15 with any others in the stack. In protected mode they are all passed on
+ *	the stack.
+ *
+ *	## Parameters
+ *	Parameters and return values are passed in registers reducing the stack
+ *	overhead. This also means that many of the registers need not be stored in
+ *	the stack before the call.
+ *
+ *	Since some of the registers may be needed during the execution of a routine,
+ *	the routine should allocate automatic variable space for each. If the routine
+ *	makes a CALL it will need to store them all in their stack locations.
+ *
+ *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
+ *	there are more parameters than this they will be placed on the stack.
+ *
+ *	### Calling convention
+ *
+ *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
+ *	* MOV caller loads parameters into registers
+ *	* SUB SP, param_offset; caller advances SP to next open location this offset
+ *	is calculated at compile time.
+ *	* CALL caller calls callee IP is pushed onto stack
+ *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
+ *	this offset is known at compile time.
+ *
+ *	auto variables are accessed as [SP+offset]. additional parameters are
+ *	accessed as [SP+auto_offset+8+offset]
+ *
+ *	It may be possible to add dynamically sized variables after SP with pointers
+ *	before it.
+ *
+ *	If we do ever implement closures this scheme will become obsolete since we'll
+ *	have to manage activation records in the heap. We will then have no use for
+ *	the built-in stack functions and SP will become general purpose.
  */
 
 
@@ -56,7 +118,7 @@ typedef enum{
 	D,  ///< Data
 	SI, ///< Source Index
 	DI, ///< Destination Index
-	BP, ///< Base Pointer (General Purpose)
+	BP, ///< Base Pointer
 	SP, ///< Stack Pointer
 	R8,  ///< General Purpose
 	R9,  ///< General Purpose
@@ -71,11 +133,11 @@ typedef enum{
 
 /// These are the x86 register sizes
 typedef enum {
-	bad_width,
-	byte,
-	word,
-	dword,
-	qword
+	bad_width=0,
+	byte     =1,
+	word     =2,
+	dword    =4,
+	qword    =8
 } reg_width;
 
 
@@ -142,6 +204,15 @@ typedef enum {
 	NUM_inst
 } x86_inst;
 
+class Stack_man{
+	umax  SP_offset;
+public:
+	Stack_man(void){ SP_offset = 0; }
+	
+	RETURN push  (reg_t reg);
+	void   set_BP(void     );
+};
+
 
 /******************************************************************************/
 //                  GLOBAL CONSTANTS IN THE GEN-X86 MODULE
@@ -167,17 +238,19 @@ static const char * inst_array[NUM_inst] = {
 /******************************************************************************/
 
 
-/**	the register descriptor.
- *	keeps track of what value is in each register at any time
- */
-static op_pt reg_d[NUM_reg];
-static umax  SP_offset; ///< the offset of SP from BP at any time
-
 static Instruction_Queue * instructions; ///< the instructions for the PPD
 static Operands          * operands; ///< the operand index for the PPD
 static String_Array      * strings ; ///< the string space for the PPD
 static FILE              * fd  ; ///< the output file descriptor
 static x86_mode_t          mode; ///< the processor mode we are building for
+
+/**	the register descriptor.
+ *	keeps track of what value is in each register at any time
+ */
+static op_pt reg_d[NUM_reg];
+static Stack_man stack_manager;
+
+#define STATE_SZ 0 ///< how many bytes are needed to save the processor state
 
 
 /******************************************************************************/
@@ -189,7 +262,7 @@ static x86_mode_t          mode; ///< the processor mode we are building for
 void test_x86(void);
 
 
-/****************************** HELPER FUNCTIONS ******************************/
+/************************** STRING WRITING FUNCTIONS **************************/
 
 /** Return the correct assembler string for the given x86 instruction.
  */
@@ -210,7 +283,11 @@ static inline const char * str_num(umax num){
 static const char * str_reg(reg_width width, reg_t reg){
 	static char array[4] = "   ";
 	
-	//TODO: check mode
+	if(mode != xm_long && width == qword){
+		msg_print(NULL, V_ERROR,
+			"Internal str_reg(): qword only availible in long mode");
+		return "!!Bad width!!";
+	}
 	
 	switch (width){
 	case byte : array[0] = ' '; array[2] = ' '; break;
@@ -245,7 +322,7 @@ static const char * str_reg(reg_width width, reg_t reg){
 	case NUM_reg:
 	default:
 		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_t");
-		return NULL;
+		return "!!bad!!";
 	}
 	
 	return array;
@@ -267,9 +344,14 @@ static inline const char * str_oprand(op_pt op){
 	case st_code  : return strings->get(op->label);
 	
 	// these are read from the stack
-	case st_auto: // SP-offset
-		i = i+1 %3; // increment i
+	case st_auto:
+		i = (i+1) %3; // increment i
 		sprintf(arr[i], "BP-%s", str_num(op->BP_offset));
+		return arr[i];
+	
+	case st_param:
+		i = (i+1) %3; // increment i
+		sprintf(arr[i], "BP+%s", str_num(op->BP_offset+STATE_SZ));
 		return arr[i];
 	
 	// these are in registers
@@ -295,6 +377,8 @@ put_cmd(const char * format, ...){
 	vfprintf(fd, format, ap);
 	va_end(ap);
 }
+
+/***************************** HELPER FUNCTIONS *******************************/
 
 /** Return the appropriate x86 register width for the given data size.
  */
@@ -328,6 +412,42 @@ static reg_t check_reg(op_pt operand){
 		if(reg_d[j] == operand) break;
 	}
 	return (reg_t)i;
+}
+
+RETURN Stack_man::push(reg_t reg){
+	// issue push instruction
+	put_cmd("%s\t%s\n",
+		str_instruction(X_PUSH),
+		str_reg(set_width(reg_d[reg]->width), reg)
+		// or should this be the stack width?
+	);
+	
+	// increment SP_offset
+	if(mode == xm_long) SP_offset += qword;
+	else SP_offset += dword;
+	
+	// determine type (auto, param)
+	if(reg_d[reg]->type == st_auto) reg_d[reg]->BP_offset = SP_offset;
+	else if(reg_d[reg]->type == st_param){
+		// TODO: set BP_offset for parameters
+		
+	}
+	else{
+		msg_print(NULL, V_ERROR,
+			"Internal Stack_man::push(): invalid operand type");
+		return failure;
+	}
+	
+	return success;
+}
+
+void Stack_man::set_BP(void){
+	put_cmd("\t%s\t%s,\t%s\n",
+		str_instruction(X_MOV),
+		str_reg(mode == xm_long? qword: dword, BP),
+		str_reg(mode == xm_long? qword: dword, SP)
+	);
+	SP_offset = 0;
 }
 
 /** Store data in register to its appropriate memory location.
@@ -387,10 +507,8 @@ static inline void load(reg_t reg, op_pt mem){
  */
 static inline void temp_store(void){
 	// we turn it into an automatic variable and add it to the stack
-	
 	reg_d[A]->type = st_auto;
-	
-	
+	stack_manager.push(A);
 }
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
@@ -414,8 +532,66 @@ static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
 	reg_d[A] = result;
 }
 
-static inline void call(op_pt op){
+static inline void call(op_pt result, op_pt op){
+	// parameters are already loaded
+	
+	// store the processor state
+	if(mode == xm_long){
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), B);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), C);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), D);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), SI);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), DI);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), BP);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R8);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R9);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R10);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R11);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R12);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R13);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R14);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword), R15);
+	}
+	else{
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), B);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), C);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), D);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), SI);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), DI);
+		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword), BP);
+	}
+	
 	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(op->label));
+	
+	// restore the processor state
+	if(mode == xm_long){
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R15);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R14);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R13);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R12);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R11);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R10);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R9);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), R8);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), BP);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), DI);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), SI);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), D);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), C);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword), B);
+	}
+	else{
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), BP);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), DI);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), SI);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), D);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), C);
+		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword), B);
+	}
+	
+	// TODO: unload parameters
+	
+	reg_d[A] = result;
 }
 
 static void div(op_pt result, op_pt left, op_pt right){
@@ -470,7 +646,13 @@ static void mod(op_pt result, op_pt left, op_pt right){
 		);
 	}
 	
-	reg_d[D] = result;
+	put_cmd("%s\t%s,\t%s\n",
+		str_instruction(X_MOV),
+		str_reg(set_width(result->width), A),
+		str_reg(set_width(result->width), D)
+	);
+	
+	reg_d[A] = result;
 }
 
 static void mul(op_pt result, op_pt left, op_pt right){
@@ -520,13 +702,14 @@ static RETURN ref(op_pt result, op_pt arg){
 static inline void ret(op_pt value){
 	// load the return value if present
 	if(value) load(A, value);
+	// pop the current activation record
 	put_cmd(
 		"\t%s\t%s,\t%s\n",
 		inst_array[X_MOV],
 		str_reg(mode == xm_long? qword:dword, SP),
 		str_reg(mode == xm_long? qword:dword, BP)
 	);
-	
+	// return
 	put_cmd("\t%s\n", inst_array[X_RET]);
 }
 
@@ -636,9 +819,10 @@ static RETURN Gen_inst(inst_pt inst){
 	case i_jmp : break;
 	case i_jz  : break;
 	case i_loop: break;
+	case i_cpy : break;
 	
 	case i_parm: break;
-	case i_call: call(inst->left); break;
+	case i_call: call(inst->result, inst->left); break;
 	case i_proc: break;
 	case i_rtrn: ret(inst->left); break;
 	
@@ -692,70 +876,7 @@ static RETURN Gen_blk(blk_pt blk){
 
 
 /** Creates and tears down the activation record of a procedure
- *	## Activation Record
- *
- *	<PRE>
- *	   Activation Record    Instructions
- *	|_____________________|
- *	|     parameters      | PUSH params
- *	|_____________________|
- *	|       R8-R15        | PUSH R / POP R
- *	|_____________________|
- *	|        A-DI         | PUSH A / POP A
- *	|_____________________|
- *	|         BP          | PUSH BP / POP BP
- *	|_____________________|
- *	|         IP          | CALL / RET
- *	|_____________________| ______________________________<- BP
- *	| automatic variables | PUSH 0x0 / POP
- *	|_____________________|
- *	|     temporaries     | PUSH temp
- *	|_____________________|
- *	
- *	</PRE>
- *
- *
- *	To make life easier on myself I've decided to use SP and BP for their
- *	intendend purposes. In long mode the first 8 parameters will be passed in
- *	R8-15 with any others in the stack. In protected mode they are all passed on
- *	the stack.
- *
- *	## Parameters
- *	Parameters and return values are passed in registers reducing the stack
- *	overhead. This also means that many of the registers need not be stored in
- *	the stack before the call.
- *
- *	Since some of the registers may be needed during the execution of a routine,
- *	the routine should allocate automaic variable space for each. If the routine
- *	makes a CALL it will need to store them all in their stack locations.
- *
- *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
- *	there are more parameters than this they will be placed on the stack.
- *
- *	### Calling convention
- *
- *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
- *	* MOV caller loads parameters into registers
- *	* SUB SP, param_offset; caller advances SP to next open location this offset
- *	is calculated at compile time.
- *	* CALL caller calls callee IP is pushed onto stack
- *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
- *	this offset is known at compile time.
- *
- *	auto variables are accessed as [SP+offset]. additional parameters are
- *	accessed as [SP+auto_offset+8+offset]
- *
- *	It may be possible to add dynamically sized variables after SP with pointers
- *	before it.
- *
- *	If we do ever implement closures this scheme will become obsolete since we'll
- *	have to manage activation records in the heap. We will then have no use for
- *	the built-in stack functions and SP will become general purpose.
- 	
  *	Generate the code for a single procedure.
- *	We will probably have to make two passes: the first to determine how many
- *	stack temporaries we need. All auto variables need to be declared at the
- *	beginning.
 */
 static RETURN Gen_proc(proc_pt proc){
 	blk_pt blk;
@@ -766,15 +887,19 @@ static RETURN Gen_proc(proc_pt proc){
 	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
 	// TODO: place the label
 //	lbl(label);
+	
 	// set the base pointer
-	put_cmd("\t%s\t%s,\t%s\n",
-		str_instruction(X_MOV),
-		str_reg(mode == xm_long? qword: dword, BP),
-		str_reg(mode == xm_long? qword: dword, SP)
-	);
-	SP_offset = 0;
+	stack_manager.set_BP();
+	
 	
 	// TODO: make space for automatics
+	
+	// for each auto variable
+	
+	// push 0 onto the stack
+	
+	// record variable offset
+	
 	
 	if(!( blk=proc->first() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Procedure");
@@ -789,7 +914,8 @@ static RETURN Gen_proc(proc_pt proc){
 		}
 	}while(( blk=proc->next() ));
 	
-	//TODO: add a return if necessary
+	// in case there was no explicit return. this will be dead code otherwise
+	ret(NULL);
 	
 	msg_print(NULL, V_TRACE, "Gen_proc(): stop");
 	return success;

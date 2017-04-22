@@ -71,6 +71,8 @@ typedef enum {
 	i_call,
 	i_rtrn,
 	
+	i_cpy, ///< copy `right` bytes from `left` to `result`
+	
 	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
 	
 	i_NUM

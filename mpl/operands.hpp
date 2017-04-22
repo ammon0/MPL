@@ -44,6 +44,7 @@ typedef enum{
 	st_temp,   ///< A compiler generated temporary
 	st_static, ///< A static storage location
 	st_auto,   ///< A stack variable
+	st_param,  ///< A formal parameter
 	
 	st_const,  ///< A compile-time constant. An immediate.
 	st_string, ///< A string constant
@@ -58,7 +59,7 @@ typedef struct{
 	
 	segment_t type;
 	
-	//auto
+	//auto and param
 	umax BP_offset;
 	
 	// temp, const, static, auto
