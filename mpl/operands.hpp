@@ -19,7 +19,8 @@
 #define _LABEL_HPP
 
 
-#include <util/string_array.hpp>
+#include <mpl/string_array.hpp>
+
 #include <util/types.h>
 #include <util/data.h>
 

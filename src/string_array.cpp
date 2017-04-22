@@ -15,8 +15,9 @@
 /******************************************************************************/
 
 
+#include <mpl/string_array.hpp>
+
 #include <util/msg.h>
-#include <util/string_array.hpp>
 
 #include <stdlib.h>
 #include <string.h>

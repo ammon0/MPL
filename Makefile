@@ -20,7 +20,7 @@ headerdir :=./mpl
 WORKDIR   :=./work
 INSTALLDIR:=$(HOME)/prg
 LIBDIR    :=$(INSTALLDIR)/lib
-INCDIR    :=$(INSTALLDIR)/include
+INCDIR    :=$(INSTALLDIR)/include/mpl
 
 headers:=$(wildcard $(headerdir)/*.hpp)
 cpp_sources:=$(wildcard $(srcdir)/*.cpp)
@@ -109,7 +109,7 @@ $(WORKDIR):
 
 install: $(headers) libmpl.a
 	install -d $(LIBDIR) $(INCDIR)
-	for f in $(libraries); do install -C $$f $(LIBDIR); done
+	install -C libmpl.a $(LIBDIR)
 	for f in $(headers)  ; do install -C $$f $(INCDIR); done
 
 
