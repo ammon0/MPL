@@ -148,6 +148,7 @@ typedef enum {
 	X_MOVSXD, ///< copy 32-bit data to a 64-bit register and sign extend
 	X_MOVZX, ///< copy 8, or 16-bit data to a larger location and zero extend
 	X_MOVBE, ///< copy and swap byte order
+	X_LEA,  ///< load effective address
 	
 	X_CLD, ///< clear DF
 	X_STD, ///< set DF
@@ -156,7 +157,8 @@ typedef enum {
 	X_MOVS, ///< copy from memory to memory. uses DI, SI, DS, and DF flag
 	X_OUTS, ///< write a string to IO. uses DS, SI, D, and DF flag
 	X_INS,  ///< read a string from IO.
-	X_CMPS, ///< compare string
+	X_CMPS, ///< compare arrays
+	X_SCAS, ///< scan an array in DI
 	
 	X_IN,  ///< read from an IO port
 	X_OUT, ///< write to an IO port
@@ -170,7 +172,8 @@ typedef enum {
 	X_XADD, ///< exchange then add
 	X_SUB,
 	X_NEG,
-	X_CMP,  ///< sets the status flags as if subtraction had occured
+	X_CMP,  ///< sets the status flags as if subtraction had occurred
+	// X_SETcc sets a register based on flag conditions
 	
 	X_MUL,  ///< unsigned multiplication
 	X_IMUL, ///< signed multiplication
@@ -182,7 +185,7 @@ typedef enum {
 	X_OR,
 	X_XOR,
 	X_NOT,
-	X_TEST, ///< sets the status flags as if AND had occured
+	X_TEST, ///< sets the status flags as if AND had occurred
 	
 	X_SHR, ///< bit shift right unsigned
 	X_SAR, ///< bit shift right signed (behavior is not the same as idiv)
@@ -215,6 +218,7 @@ public:
 	void   push_parm(op_pt parameter); ///< push a parameter onto the stack
 	void   set_BP(void     ); ///< advance BP to the SP
 	void   unload(uint count); ///< unload parameters from the stack
+	void   pop(void); ///< pop the current activation record
 };
 
 
@@ -225,8 +229,8 @@ public:
 
 /// the assembler strings for each x86 instruction
 static const char * inst_array[NUM_inst] = {
-	"mov", "movsx", "movsxd", "movzx", "movbe",
-	"cld", "std", "stos", "lods", "movs", "outs", "ins",
+	"mov", "movsx", "movsxd", "movzx", "movbe", "lea",
+	"cld", "std", "stos", "lods", "movs", "outs", "ins", "cmps", "scas",
 	"in", "out",
 	"push", "pop",
 	"inc", "dec", "add", "xadd", "sub", "neg", "cmp",
@@ -356,6 +360,7 @@ static inline const char * str_oprand(op_pt op){
 	case st_param:
 		i = (i+1) %3; // increment i
 		sprintf(arr[i], "BP+%s", str_num(op->BP_offset+STATE_SZ));
+		msg_print(NULL, V_WARN, "Internal str_oprand(): bad parameter offset");
 		return arr[i];
 	
 	// these are in registers
@@ -468,6 +473,16 @@ void Stack_man::set_BP(void){
 	SP_offset = 0;
 }
 
+void Stack_man::pop(void){
+	put_cmd(
+		"\t%s\t%s,\t%s\n",
+		inst_array[X_MOV],
+		str_reg(mode == xm_long? qword:dword, SP),
+		str_reg(mode == xm_long? qword:dword, BP)
+	);
+	SP_offset=0;
+}
+
 /** Store data in register to its appropriate memory location.
  */
 static RETURN store(reg_t reg){
@@ -572,6 +587,7 @@ static inline void call(op_pt result, op_pt proc){
 		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, DI));
 		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, BP));
 	}
+	// do we need to store flags? X_POPF
 	
 	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(proc->label));
 	
@@ -689,6 +705,7 @@ static void mul(op_pt result, op_pt left, op_pt right){
 			str_reg(set_width(right->width), C)
 		);
 	}
+	// sets the carry and overflow flags if D is non-zero
 	
 	reg_d[A] = result;
 }
@@ -722,12 +739,7 @@ static inline void ret(op_pt value){
 	// load the return value if present
 	if(value) load(A, value);
 	// pop the current activation record
-	put_cmd(
-		"\t%s\t%s,\t%s\n",
-		inst_array[X_MOV],
-		str_reg(mode == xm_long? qword:dword, SP),
-		str_reg(mode == xm_long? qword:dword, BP)
-	);
+	stack_manager.pop();
 	// return
 	put_cmd("\t%s\n", inst_array[X_RET]);
 }
@@ -797,6 +809,7 @@ static RETURN Gen_inst(inst_pt inst){
 	
 	switch (inst->op){
 	case i_nop : return success;
+	case i_proc: return success;
 	
 	case i_inc : unary(inst->result, inst->left, X_INC); break;
 	case i_dec : unary(inst->result, inst->left, X_DEC); break;
@@ -844,7 +857,7 @@ static RETURN Gen_inst(inst_pt inst){
 	
 	case i_parm: stack_manager.push_parm(inst->left); break;
 	case i_call: call(inst->result, inst->left); break;
-	case i_proc: break;
+	
 	case i_rtrn: ret(inst->left); break;
 	
 	case i_NUM:
@@ -896,7 +909,7 @@ static RETURN Gen_blk(blk_pt blk){
 	}while(( inst=blk->next() ));
 	
 	// flush the registers at the end of the block
-	for(uint i=0; i<NUM_reg; i++){
+	for(uint i=0; i<R8; i++){
 		if(reg_d[i] != NULL)
 			if( store((reg_t)i) == failure){
 				msg_print(NULL, V_ERROR, "Internal Gen_blk(): store() failed");
@@ -907,7 +920,6 @@ static RETURN Gen_blk(blk_pt blk){
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
 	return success;
 }
-
 
 /** Creates and tears down the activation record of a procedure
  *
