@@ -12,6 +12,21 @@
 
 #include <mpl/operands.hpp>
 
+#include <string.h>
+#include <util/data.h>
+
+
+
+Operand::Operand(void){
+	formal_params = DS_new_list(sizeof(op_pt));
+	autos         = DS_new_list(sizeof(op_pt));
+}
+Operand::~Operand(void){
+	DS_delete(autos);
+	DS_delete(formal_params);
+}
+
+
 static const void * op_label(const void * op){
 	return Operands::labels->get( ((op_pt)op)->label );
 }
@@ -50,5 +65,7 @@ op_pt Operands::add(str_dx label, width_t size, segment_t where, bool sign){
 
 op_pt Operands::first(void)const{ return (op_pt)DS_first(index); }
 op_pt Operands::next (void)const{ return (op_pt)DS_next (index); }
+
+uint Operand::param_cnt(void) const{ return DS_count(formal_params); }
 
 

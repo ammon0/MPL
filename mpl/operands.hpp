@@ -20,11 +20,8 @@
 
 
 #include <mpl/string_array.hpp>
-
 #include <util/types.h>
-#include <util/data.h>
-
-#include <string.h>
+typedef struct _root* DS;
 
 /// data sizes for numerical operands
 typedef enum{
@@ -54,6 +51,11 @@ typedef enum{
 	st_NUM     ///< This is the count of storage classes
 } segment_t;
 
+// TODO: MPL needs a way to declare memory arrays and records.
+
+/* A record size cannot be known until the sizes of all its components are known, and some primative sizes are machine dependent.
+*/
+
 /// pointer to an Operand
 typedef struct Operand * op_pt;
 
@@ -74,6 +76,9 @@ typedef struct Operand{
 	umax      const_value;
 	str_dx    string_content;
 	
+	Operand(void);
+	~Operand(void);
+	
 private:
 	// this stuff is for the optimizer
 	typedef class Block * blk_pt;
@@ -84,7 +89,7 @@ private:
 private:
 	DS formal_params, autos;
 public:
-	uint param_cnt(void) const{ return DS_count(formal_params); }
+	uint param_cnt(void) const;
 	
 	op_pt first_param(void) const;
 	op_pt  next_param(void) const;
@@ -94,6 +99,8 @@ public:
 	op_pt add_param(op_pt parameter);
 	op_pt add_auto (op_pt auto_var);
 } Operand;
+
+
 
 /** This is the symbol table
 */

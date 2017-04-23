@@ -17,6 +17,7 @@
 
 #include <mpl/instructions.hpp>
 #include <util/msg.h>
+#include <util/data.h>
 
 
 /******************************************************************************/
