@@ -9,11 +9,6 @@
  *
  ******************************************************************************/
 
-/**	@file instructions.cpp
- *	
- *	Definitions for portable instructions
- */
-
 
 #include <mpl/instructions.hpp>
 #include <util/msg.h>
@@ -45,48 +40,48 @@ inst_pt Block::remove (void        ){ return (inst_pt)DS_remove(q      ); }
 /******************************************************************************/
 
 
-Procedure::Procedure(void){ blocks = DS_new_list(sizeof(Block)); }
-Procedure::~Procedure(void){
-	blk_pt blk;
-	
-	while((blk = first())) delete blk;
-	DS_delete(blocks);
-}
+//Procedure::Procedure(void){ blocks = DS_new_list(sizeof(Block)); }
+//Procedure::~Procedure(void){
+//	blk_pt blk;
+//	
+//	while((blk = first())) delete blk;
+//	DS_delete(blocks);
+//}
 
-bool Procedure::isempty(void) const{ return DS_isempty(blocks); }
+//bool Procedure::isempty(void) const{ return DS_isempty(blocks); }
 
-blk_pt Procedure::first(void) const{ return (blk_pt)DS_first(blocks); }
-blk_pt Procedure::next (void) const{ return (blk_pt)DS_next (blocks); }
+//blk_pt Procedure::first(void) const{ return (blk_pt)DS_first(blocks); }
+//blk_pt Procedure::next (void) const{ return (blk_pt)DS_next (blocks); }
 
-/** This function adds one instruction to the instruction queue and forms basic
- *  blocks as it goes.
- */
-inst_pt Procedure::add (inst_pt instruction){
-	blk_pt last_blk;
-	inst_pt inst;
-	
-	msg_print(NULL, V_TRACE, "Procedure::add(): start");
-	
-	// if the instruction is a label it is a leader
-	if(instruction->op == i_lbl && !isempty()) DS_nq(blocks, new Block);
-	
-	// add the instruction
-	last_blk = (blk_pt)DS_last(blocks);
-	inst = last_blk->enqueue(instruction);
-	
-	// if the instruction is a branch the next one is a leader
-	if(
-		instruction->op == i_jmp  ||
-		instruction->op == i_jz   ||
-		instruction->op == i_loop ||
-		instruction->op == i_rtrn ||
-		instruction->op == i_call
-	) DS_nq(blocks, new Block);
-	
-	
-	msg_print(NULL, V_TRACE, "Procedure::add(): stop");
-	return inst;
-}
+///** This function adds one instruction to the instruction queue and forms basic
+// *  blocks as it goes.
+// */
+//inst_pt Procedure::add (inst_pt instruction){
+//	blk_pt last_blk;
+//	inst_pt inst;
+//	
+//	msg_print(NULL, V_TRACE, "Procedure::add(): start");
+//	
+//	// if the instruction is a label it is a leader
+//	if(instruction->op == i_lbl && !isempty()) DS_nq(blocks, new Block);
+//	
+//	// add the instruction
+//	last_blk = (blk_pt)DS_last(blocks);
+//	inst = last_blk->enqueue(instruction);
+//	
+//	// if the instruction is a branch the next one is a leader
+//	if(
+//		instruction->op == i_jmp  ||
+//		instruction->op == i_jz   ||
+//		instruction->op == i_loop ||
+//		instruction->op == i_rtrn ||
+//		instruction->op == i_call
+//	) DS_nq(blocks, new Block);
+//	
+//	
+//	msg_print(NULL, V_TRACE, "Procedure::add(): stop");
+//	return inst;
+//}
 
 
 /******************************************************************************/
@@ -94,36 +89,36 @@ inst_pt Procedure::add (inst_pt instruction){
 /******************************************************************************/
 
 
-Instruction_Queue::Instruction_Queue(void){
-	q = DS_new_list(sizeof(Procedure));
-	DS_nq(q, new Procedure);
-}
-Instruction_Queue::~Instruction_Queue(void){
-	proc_pt proc;
-	
-	while((proc = (proc_pt)DS_first(q))) delete proc;
-	DS_delete(q);
-}
+//Instruction_Queue::Instruction_Queue(void){
+//	q = DS_new_list(sizeof(Procedure));
+//	DS_nq(q, new Procedure);
+//}
+//Instruction_Queue::~Instruction_Queue(void){
+//	proc_pt proc;
+//	
+//	while((proc = (proc_pt)DS_first(q))) delete proc;
+//	DS_delete(q);
+//}
 
-bool Instruction_Queue::isempty(void) const{ return DS_isempty(q); }
+//bool Instruction_Queue::isempty(void) const{ return DS_isempty(q); }
 
-proc_pt Instruction_Queue::proc(void) const{ return (proc_pt)DS_current(q); }
+//proc_pt Instruction_Queue::proc(void) const{ return (proc_pt)DS_current(q); }
 
-proc_pt Instruction_Queue::first(void) const{ return (proc_pt)DS_first(q); }
-proc_pt Instruction_Queue::next (void) const{ return (proc_pt)DS_next (q); }
+//proc_pt Instruction_Queue::first(void) const{ return (proc_pt)DS_first(q); }
+//proc_pt Instruction_Queue::next (void) const{ return (proc_pt)DS_next (q); }
 
-inst_pt Instruction_Queue::add(inst_pt instruction){
-	proc_pt last;
-	inst_pt temp;
+//inst_pt Instruction_Queue::add(inst_pt instruction){
+//	proc_pt last;
+//	inst_pt temp;
 
-	msg_print(NULL, V_TRACE, "Instruction_Queue::add(): start");
-	
-	if(instruction->op == i_proc) DS_nq(q, new Procedure);
-	
-	last = (proc_pt)DS_last(q);
-	temp = last->add(instruction);
-	
-	msg_print(NULL, V_TRACE, "Instruction_Queue::add(): start");
-	return temp;
-}
+//	msg_print(NULL, V_TRACE, "Instruction_Queue::add(): start");
+//	
+//	if(instruction->op == i_proc) DS_nq(q, new Procedure);
+//	
+//	last = (proc_pt)DS_last(q);
+//	temp = last->add(instruction);
+//	
+//	msg_print(NULL, V_TRACE, "Instruction_Queue::add(): start");
+//	return temp;
+//}
 

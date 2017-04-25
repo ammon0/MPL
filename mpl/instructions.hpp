@@ -19,7 +19,9 @@
 #define _INSTRUCTIONS_HPP
 
 
-#include <mpl/operands.hpp>
+#include <mpl/object.hpp>
+
+typedef struct _root* DS;
 
 /// intermediate op codes
 typedef enum {
@@ -81,9 +83,9 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	op_pt     result;
-	op_pt     left;
-	op_pt     right;
+	obj_pt     result;
+	obj_pt     left;
+	obj_pt     right;
 	inst_code op;
 	bool      used_next;
 } Instruction;
@@ -125,56 +127,56 @@ public:
 typedef Block * blk_pt;
 
 /// A queue of basic blocks containing procedure information
-class Procedure{
-	DS     blocks;
-public:
-	Procedure(void);
-	~Procedure(void);
-	
-	/// is this empty?
-	bool isempty(void) const;
-	
-	/// returns the first block
-	blk_pt first(void) const;
-	/// returns the next block
-	blk_pt next (void) const;
-	
-	/**	add an instruction to the last block
-	 *	@param instruction a pointer to the instruction to add
-	 *	@return pointer to the instruction in its new location
-	 */
-	inst_pt add (inst_pt instruction);
-	
-	/// get the procedure operand
-	op_pt  info;
-};
+//class Procedure{
+//	DS     blocks;
+//public:
+//	Procedure(void);
+//	~Procedure(void);
+//	
+//	/// is this empty?
+//	bool isempty(void) const;
+//	
+//	/// returns the first block
+//	blk_pt first(void) const;
+//	/// returns the next block
+//	blk_pt next (void) const;
+//	
+//	/**	add an instruction to the last block
+//	 *	@param instruction a pointer to the instruction to add
+//	 *	@return pointer to the instruction in its new location
+//	 */
+//	inst_pt add (inst_pt instruction);
+//	
+//	/// get the procedure operand
+//	obj_pt  info;
+//};
 
-/// A Procedure pointer
-typedef Procedure * proc_pt;
+///// A Procedure pointer
+//typedef Procedure * proc_pt;
 
 /**	A queue of basic blocks
 */
-class Instruction_Queue{
-private:
-	DS q;
-public:
-	 Instruction_Queue(void);
-	~Instruction_Queue(void);
-	
-	/// is this empty?
-	bool isempty(void) const;
-	
-	/// get a pointer to the current procedure
-	proc_pt proc(void) const;
-	
-	/// returns the first block
-	proc_pt first(void) const;
-	/// returns the next block
-	proc_pt next (void) const;
-	
-	/// add an instruction to the last block
-	inst_pt add (inst_pt instruction);
-};
+//class Instruction_Queue{
+//private:
+//	DS q;
+//public:
+//	 Instruction_Queue(void);
+//	~Instruction_Queue(void);
+//	
+//	/// is this empty?
+//	bool isempty(void) const;
+//	
+//	/// get a pointer to the current procedure
+//	proc_pt proc(void) const;
+//	
+//	/// returns the first block
+//	proc_pt first(void) const;
+//	/// returns the next block
+//	proc_pt next (void) const;
+//	
+//	/// add an instruction to the last block
+//	inst_pt add (inst_pt instruction);
+//};
 
 
 #endif // _INSTRUCTIONS_HPP

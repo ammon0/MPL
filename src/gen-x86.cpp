@@ -214,8 +214,8 @@ public:
 	Stack_man(void){ SP_offset = 0; }
 	
 	RETURN push_temp(reg_t reg     ); ///< push as a temp
-	void   push_auto(op_pt auto_var); ///< push an automatic variable
-	void   push_parm(op_pt parameter); ///< push a parameter onto the stack
+	void   push_auto(obj_pt auto_var); ///< push an automatic variable
+	void   push_parm(obj_pt parameter); ///< push a parameter onto the stack
 	void   set_BP(void     ); ///< advance BP to the SP
 	void   unload(uint count); ///< unload parameters from the stack
 	void   pop(void); ///< pop the current activation record
@@ -246,16 +246,14 @@ static const char * inst_array[NUM_inst] = {
 /******************************************************************************/
 
 
-static Instruction_Queue * instructions; ///< the instructions for the PPD
-static Operands          * operands; ///< the operand index for the PPD
-static String_Array      * strings ; ///< the string space for the PPD
-static FILE              * fd  ; ///< the output file descriptor
-static x86_mode_t          mode; ///< the processor mode we are building for
+static PPD        * program_data;
+static FILE       * fd          ; ///< the output file descriptor
+static x86_mode_t   mode        ; ///< the processor mode we are building for
 
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  */
-static op_pt reg_d[NUM_reg];
+static obj_pt reg_d[NUM_reg];
 static Stack_man stack_manager;
 
 #define STATE_SZ 0 ///< how many bytes are needed to save the processor state
@@ -338,7 +336,7 @@ static const char * str_reg(reg_width width, reg_t reg){
 
 /** Return a string to access an operand
 */
-static inline const char * str_oprand(op_pt op){
+static inline const char * str_oprand(obj_pt op){
 	static char arr[3][24];
 	static uint i;
 
@@ -413,7 +411,7 @@ static reg_width set_width(width_t in){
 
 /** Determine whether an operand is already present in a register.
  */
-static reg_t check_reg(op_pt operand){
+static reg_t check_reg(obj_pt operand){
 	uint i;
 	
 	for(i=A; i!=NUM_reg; i++){
@@ -424,7 +422,7 @@ static reg_t check_reg(op_pt operand){
 }
 
 /// push an auto variable onto the stack
-void Stack_man::push_auto(op_pt auto_var){
+void Stack_man::push_auto(obj_pt auto_var){
 	// issue push instruction
 	put_cmd("%s\t%s\n",
 		str_instruction(X_PUSH),
@@ -509,7 +507,7 @@ static RETURN store(reg_t reg){
 
 /** Load data from memory to a register.
  */
-static void load(reg_t reg, op_pt mem){
+static void load(reg_t reg, obj_pt mem){
 	reg_t test_reg;
 	
 	// check if it's already in a register
@@ -539,13 +537,13 @@ static void load(reg_t reg, op_pt mem){
 // Alphabetical
 
 /// make an assignment
-static inline void ass(op_pt result, op_pt arg){
+static inline void ass(obj_pt result, obj_pt arg){
 	load(A, arg);
 	reg_d[A] = result;
 }
 
 /// most binary operations
-static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
+static inline void binary(obj_pt result, obj_pt left, obj_pt right, x86_inst op){
 	load(A, left);
 	load(C, right);
 	
@@ -559,7 +557,7 @@ static inline void binary(op_pt result, op_pt left, op_pt right, x86_inst op){
 }
 
 /// call a procedure
-static inline void call(op_pt result, op_pt proc){
+static inline void call(obj_pt result, obj_pt proc){
 	// parameters are already loaded
 	
 	// store the processor state
@@ -624,7 +622,7 @@ static inline void call(op_pt result, op_pt proc){
 }
 
 /// signed and unsigned division
-static void div(op_pt result, op_pt left, op_pt right){
+static void div(obj_pt result, obj_pt left, obj_pt right){
 	load(A, left);
 	load(C, right);
 	
@@ -645,7 +643,7 @@ static void div(op_pt result, op_pt left, op_pt right){
 }
 
 /// dereference a pointer
-static inline void dref(op_pt result, op_pt pointer){
+static inline void dref(obj_pt result, obj_pt pointer){
 	load(A, pointer);
 	put_cmd("%s\t%s,\t[%s]\n",
 		str_instruction(X_MOV),
@@ -657,12 +655,12 @@ static inline void dref(op_pt result, op_pt pointer){
 }
 
 /// place a label in the assembler file
-static inline void lbl(op_pt op){
+static inline void lbl(obj_pt op){
 	put_cmd("%s:\n", strings->get(op->label));
 }
 
 /// signed and unsigned modulus division
-static void mod(op_pt result, op_pt left, op_pt right){
+static void mod(obj_pt result, obj_pt left, obj_pt right){
 	load(A, left);
 	load(C, right);
 	
@@ -689,7 +687,7 @@ static void mod(op_pt result, op_pt left, op_pt right){
 }
 
 /// signed and unsigned multiplication
-static void mul(op_pt result, op_pt left, op_pt right){
+static void mul(obj_pt result, obj_pt left, obj_pt right){
 	load(A, left);
 	load(C, right);
 	
@@ -711,7 +709,7 @@ static void mul(op_pt result, op_pt left, op_pt right){
 }
 
 /// gets the address of a variable
-static RETURN ref(op_pt result, op_pt arg){
+static RETURN ref(obj_pt result, obj_pt arg){
 	if(arg->type != st_static || arg->type != st_auto){
 		msg_print(NULL, V_ERROR,
 			"Internal dref(): arg is not a memory location");
@@ -735,7 +733,7 @@ static RETURN ref(op_pt result, op_pt arg){
 }
 
 /// return from a function
-static inline void ret(op_pt value){
+static inline void ret(obj_pt value){
 	// load the return value if present
 	if(value) load(A, value);
 	// pop the current activation record
@@ -745,7 +743,7 @@ static inline void ret(op_pt value){
 }
 
 /// return the size, in bytes, of an operand
-static inline void sz(op_pt result, op_pt arg){
+static inline void sz(obj_pt result, obj_pt arg){
 	switch(set_width(arg->width)){
 	case byte:
 		put_cmd(
@@ -788,7 +786,7 @@ static inline void sz(op_pt result, op_pt arg){
 }
 
 /// most unary operations
-static inline void unary(op_pt result, op_pt arg, x86_inst op){
+static inline void unary(obj_pt result, obj_pt arg, x86_inst op){
 	// load the accumulator
 	load(A, arg);
 	
@@ -933,12 +931,12 @@ static RETURN Gen_blk(blk_pt blk){
 */
 static RETURN Gen_proc(proc_pt proc){
 	blk_pt blk;
-	op_pt  op;
+	obj_pt  op;
 	
 	msg_print(NULL, V_TRACE, "Gen_proc(): start");
 	
 	// Initialize the register descriptor
-	memset(reg_d, 0, sizeof(op_pt)*NUM_reg);
+	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
 	
 	// place the label
 	lbl(proc->info);
@@ -979,8 +977,7 @@ static RETURN Gen_proc(proc_pt proc){
 
 
 void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
-	proc_pt proc = NULL;
-	op_pt op = NULL;
+	obj_pt obj = NULL;
 	
 	msg_print(NULL, V_INFO, "x86(): start");
 	
@@ -993,18 +990,16 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
-	instructions = &(prog->instructions);
-	operands = &(prog->operands);
-	strings  = &(prog->strings);
-	fd   = out_fd;
-	mode = proccessor_mode;
+	program_data = prog;
+	fd           = out_fd;
+	mode         = proccessor_mode;
 	
-	if(!( proc=prog->instructions.first() )){
-		msg_print(NULL, V_ERROR, "x86(): Empty Instruction queue");
+	if(!( obj=prog->first() )){
+		msg_print(NULL, V_ERROR, "x86(): Program contains no objects");
 		return;
 	}
 	
-	fprintf(out_fd,"\nsection .text\t; Program code\n");
+	fprintf(out_fd,"\nsection .code\t; Program code\n");
 	
 	do{
 		if(Gen_proc(proc) == failure){

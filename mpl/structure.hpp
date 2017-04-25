@@ -9,40 +9,36 @@
  *
  ******************************************************************************/
 
-/**	@file ppd.hpp
- *	
- *	Bring all the Portable Program Data together.
- */
-
-
-#ifndef _PPD_HPP
-#define _PPD_HPP
+#ifndef _STRUCTURE_HPP
+#define _STRUCTURE_HPP
 
 
 #include <mpl/obj_container.hpp>
 
 
-/** This is a container for all the components of the portable program data.
-*/
-class PPD{
-	// Optimizations applied
-	bool dead;      ///< indicates whether this PPD has passed opt_dead
-	bool constants; ///< indicates whether this PPD has passed opt_const
+/******************************************************************************/
+//                             STRUCTURE CLASS
+/******************************************************************************/
+
+
+class Structure: public Object{
 	
 public:
-	Obj_Index objects;
-	
+	Obj_List members;
 	/****************************** CONSTRUCTOR *******************************/
-	
-	PPD(void){ dead = constants = false; }
 	
 	/******************************* ACCESSOR *********************************/
 	
+	virtual obj_t get_type (void) const{ return ot_struct; }
+	
+	const char * print_obj (void) const{}
+	
 	/******************************* MUTATORS *********************************/
 	
+
 };
 
 
-#endif // _PPD_HPP
+#endif // _STRUCTURE_HPP
 
 

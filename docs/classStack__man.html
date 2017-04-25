@@ -39,6 +39,7 @@
     <ul class="tablist">
       <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li><a href="classes.html"><span>Data&#160;Structure&#160;Index</span></a></li>
+      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Data&#160;Fields</span></a></li>
     </ul>
   </div>
@@ -59,13 +60,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae3ff836eba391d16f2de8d03a33ef8af"><td class="memItemLeft" align="right" valign="top">RETURN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#ae3ff836eba391d16f2de8d03a33ef8af">push_temp</a> (<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg)</td></tr>
 <tr class="memdesc:ae3ff836eba391d16f2de8d03a33ef8af"><td class="mdescLeft">&#160;</td><td class="mdescRight">push as a temp  <a href="#ae3ff836eba391d16f2de8d03a33ef8af">More...</a><br /></td></tr>
 <tr class="separator:ae3ff836eba391d16f2de8d03a33ef8af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a267d7877fbb146c3c120b343f69f0a79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#a267d7877fbb146c3c120b343f69f0a79">push_auto</a> (op_pt auto_var)</td></tr>
-<tr class="memdesc:a267d7877fbb146c3c120b343f69f0a79"><td class="mdescLeft">&#160;</td><td class="mdescRight">push an automatic variable  <a href="#a267d7877fbb146c3c120b343f69f0a79">More...</a><br /></td></tr>
-<tr class="separator:a267d7877fbb146c3c120b343f69f0a79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3fdb52e363376c0e5e0c2b8a9965131"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af3fdb52e363376c0e5e0c2b8a9965131"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#af3fdb52e363376c0e5e0c2b8a9965131">push_parm</a> (op_pt parameter)</td></tr>
-<tr class="memdesc:af3fdb52e363376c0e5e0c2b8a9965131"><td class="mdescLeft">&#160;</td><td class="mdescRight">push a parameter onto the stack <br /></td></tr>
-<tr class="separator:af3fdb52e363376c0e5e0c2b8a9965131"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2100f03a9f5f50e010b69a6b2c334979"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#a2100f03a9f5f50e010b69a6b2c334979">push_auto</a> (<a class="el" href="classObject.html">obj_pt</a> auto_var)</td></tr>
+<tr class="memdesc:a2100f03a9f5f50e010b69a6b2c334979"><td class="mdescLeft">&#160;</td><td class="mdescRight">push an automatic variable  <a href="#a2100f03a9f5f50e010b69a6b2c334979">More...</a><br /></td></tr>
+<tr class="separator:a2100f03a9f5f50e010b69a6b2c334979"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacdae290545b25304276bdcb901d7dc4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aacdae290545b25304276bdcb901d7dc4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#aacdae290545b25304276bdcb901d7dc4">push_parm</a> (<a class="el" href="classObject.html">obj_pt</a> parameter)</td></tr>
+<tr class="memdesc:aacdae290545b25304276bdcb901d7dc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">push a parameter onto the stack <br /></td></tr>
+<tr class="separator:aacdae290545b25304276bdcb901d7dc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77fe3d9a6efe7013dff4943f7b64d5fb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classStack__man.html#a77fe3d9a6efe7013dff4943f7b64d5fb">set_BP</a> (void)</td></tr>
 <tr class="memdesc:a77fe3d9a6efe7013dff4943f7b64d5fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">advance BP to the SP  <a href="#a77fe3d9a6efe7013dff4943f7b64d5fb">More...</a><br /></td></tr>
 <tr class="separator:a77fe3d9a6efe7013dff4943f7b64d5fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -81,14 +82,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Keeps track of the stack details. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a267d7877fbb146c3c120b343f69f0a79"></a>
+<a class="anchor" id="a2100f03a9f5f50e010b69a6b2c334979"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">void Stack_man::push_auto </td>
           <td>(</td>
-          <td class="paramtype">op_pt&#160;</td>
+          <td class="paramtype"><a class="el" href="classObject.html">obj_pt</a>&#160;</td>
           <td class="paramname"><em>auto_var</em></td><td>)</td>
           <td></td>
         </tr>
