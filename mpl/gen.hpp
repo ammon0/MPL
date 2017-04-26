@@ -18,7 +18,10 @@
 #ifndef _GEN_HPP
 #define _GEN_HPP
 
+
+#include <mpl/ppd.hpp>
 #include <stdio.h>
+
 
 /// x86 processor modes
 typedef enum{

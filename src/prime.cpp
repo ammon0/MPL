@@ -20,6 +20,10 @@ Prime::Prime(void){
 	// const_value
 }
 
+Prime::~Prime(void){
+	delete value;
+}
+
 /******************************* ACCESSOR *********************************/
 
 const char * Prime::print_obj (void) const{

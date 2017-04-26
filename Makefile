@@ -38,10 +38,8 @@ ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
 gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
 pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
 opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
-#string_objects :=$(addprefix $(WORKDIR)/, $(string_objects))
 
-CPP_OBJECTS:= \
-$(ppd_objects) $(gen_objects) $(pexe_objects) $(opt_objects)
+CPP_OBJECTS:= $(ppd_objects) $(opt_objects) $(gen_objects) $(pexe_objects)
 
 
 #################################### FLAGS #####################################
@@ -93,7 +91,7 @@ LEX:= flex
 ################################# PRODUCTIONS ##################################
 
 
-libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects)
+libmpl.a: $(ppd_objects) $(gen_objects)
 	ar rcs $@ $<
 
 docs: Doxyfile README.md $(allfiles)

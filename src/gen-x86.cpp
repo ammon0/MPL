@@ -336,41 +336,40 @@ static const char * str_reg(reg_width width, reg_t reg){
 
 /** Return a string to access an operand
 */
-static inline const char * str_oprand(obj_pt op){
+static inline const char * str_oprand(obj_pt obj){
 	static char arr[3][24];
 	static uint i;
 
-	switch(op->type){
+	switch(obj->get_sclass()){
 	// we include these as immediate values
-	case st_const: return str_num(op->const_value);
+	case sc_const: return str_num(op->const_value);
 	
 	// these are read from memory
-	case st_static:
-	case st_string:
-	case st_code  : return strings->get(op->label);
+	case sc_data:
+	case sc_code  : return strings->get(op->label);
 	
 	// these are read from the stack
-	case st_auto:
+	case sc_auto:
 		i = (i+1) %3; // increment i
 		sprintf(arr[i], "BP-%s", str_num(op->BP_offset));
 		return arr[i];
 	
-	case st_param:
+	case sc_param:
 		i = (i+1) %3; // increment i
 		sprintf(arr[i], "BP+%s", str_num(op->BP_offset+STATE_SZ));
 		msg_print(NULL, V_WARN, "Internal str_oprand(): bad parameter offset");
 		return arr[i];
 	
 	// these are in registers
-	case st_temp:
+	case sc_temp:
 		msg_print(NULL, V_ERROR, "Internal str_oprand(): got a temp");
-		return "!!bad!!";
+		throw;
 	
-	case st_none:
-	case st_NUM:
+	case sc_none:
+	case sc_NUM:
 	default:
 		msg_print(NULL, V_ERROR, "Internal str_oprand(): bad type");
-		return "!!bad!!";
+		throw;
 	}
 }
 
@@ -408,6 +407,9 @@ static reg_width set_width(width_t in){
 		return bad_width;
 	}
 }
+
+/// Get the size of an object in bytes
+static size_t size_of(obj_pt obj){}
 
 /** Determine whether an operand is already present in a register.
  */
@@ -561,59 +563,59 @@ static inline void call(obj_pt result, obj_pt proc){
 	// parameters are already loaded
 	
 	// store the processor state
-	if(mode == xm_long){
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, B));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, C));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, D));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, SI));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, DI));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, BP));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R8));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R9));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R10));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R11));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R12));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R13));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R14));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R15));
-	}
-	else{
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, B));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, C));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, D));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, SI));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, DI));
-		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, BP));
-	}
+//	if(mode == xm_long){
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, B));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, C));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, D));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, SI));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, DI));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, BP));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R8));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R9));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R10));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R11));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R12));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R13));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R14));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(qword, R15));
+//	}
+//	else{
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, B));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, C));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, D));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, SI));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, DI));
+//		put_cmd("%s\t%s\n", str_instruction(X_PUSH), str_reg(dword, BP));
+//	}
 	// do we need to store flags? X_POPF
 	
 	put_cmd("\t%s\t%s\n", inst_array[X_CALL], strings->get(proc->label));
 	
 	// restore the processor state
-	if(mode == xm_long){
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R15));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R14));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R13));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R12));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R11));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R10));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R9) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R8) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, BP) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, DI) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, SI) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, D)  );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, C)  );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, B)  );
-	}
-	else{
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, BP));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, DI));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, SI));
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, D) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, C) );
-		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, B) );
-	}
+//	if(mode == xm_long){
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R15));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R14));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R13));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R12));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R11));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R10));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R9) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, R8) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, BP) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, DI) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, SI) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, D)  );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, C)  );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(qword, B)  );
+//	}
+//	else{
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, BP));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, DI));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, SI));
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, D) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, C) );
+//		put_cmd("%s\t%s\n", str_instruction(X_POP), str_reg(dword, B) );
+//	}
 	
 	// unload parameters
 	stack_manager.unload(proc->param_cnt());
@@ -736,10 +738,7 @@ static RETURN ref(obj_pt result, obj_pt arg){
 static inline void ret(obj_pt value){
 	// load the return value if present
 	if(value) load(A, value);
-	// pop the current activation record
-	stack_manager.pop();
-	// return
-	put_cmd("\t%s\n", inst_array[X_RET]);
+	// TODO: jump to the return statement
 }
 
 /// return the size, in bytes, of an operand
@@ -886,9 +885,10 @@ static RETURN Gen_inst(inst_pt inst){
 	return success;
 }
 
+
 /** Generate code for a single basic block
  */
-static RETURN Gen_blk(blk_pt blk){
+static void Gen_blk(blk_pt blk){
 	inst_pt inst;
 	
 	msg_print(NULL, V_TRACE, "Gen_blk(): start");
@@ -896,50 +896,46 @@ static RETURN Gen_blk(blk_pt blk){
 	
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
-		return failure;
+		throw;
 	}
 	
-	do{
-		if( Gen_inst(inst) == failure ){
-			msg_print(NULL, V_ERROR, "Gen_blk(): Gen_inst() failed");
-			return failure;
-		}
-	}while(( inst=blk->next() ));
+	do Gen_inst(inst);
+	while(( inst=blk->next() ));
 	
 	// flush the registers at the end of the block
 	for(uint i=0; i<R8; i++){
-		if(reg_d[i] != NULL)
-			if( store((reg_t)i) == failure){
-				msg_print(NULL, V_ERROR, "Internal Gen_blk(): store() failed");
-				return failure;
-			}
+		if(reg_d[i] != NULL) store((reg_t)i);
 	}
 	
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
-	return success;
 }
+
 
 /** Creates and tears down the activation record of a procedure
  *
- *	parameters are added to the stack with the i_parm instruction. Formal
- *	parameters are read off the stack simply by their order:
- *	BP+machine_state+(total_parameters-parameter_number)
+ *	parameters are added to the stack in reverse order with the i_parm
+ *	instruction. Formal parameters are read off the stack simply by their
+ *	position: BP+machine_state+parameter_number
  *
  *	parameters must be contiguously packed at the top of the stack when i_call
  *	is made. this means we can't add new auto variables once a parameter has
  *	been pushed.
 */
-static RETURN Gen_proc(proc_pt proc){
+static void Gen_routine(obj_pt obj){
 	blk_pt blk;
-	obj_pt  op;
 	
-	msg_print(NULL, V_TRACE, "Gen_proc(): start");
+	if(obj->get_type() != ot_routine){
+		msg_print(NULL, V_ERROR, "Gen_routine(): object is not a routine");
+		throw;
+	}
+	
+	/***************** SETUP ******************/
 	
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
 	
 	// place the label
-	lbl(proc->info);
+	lbl(obj->get_label());
 	
 	// set the base pointer
 	stack_manager.set_BP();
@@ -950,24 +946,37 @@ static RETURN Gen_proc(proc_pt proc){
 			stack_manager.push_auto(op);
 		}while(( op=proc->info->next_auto() ));
 	
-	if(!( blk=proc->first() )){
-		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Procedure");
-		return failure;
+	/**************** MAIN LOOP ****************/
+	
+	if(!( blk=obj->get_first_blk() )){
+		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Routine");
+		throw;
 	}
-	do{
-		if(Gen_blk(blk) == failure){
-			msg_print(NULL, V_ERROR,
-				"Internal Gen_proc(): Gen_blk() returned failure"
-			);
-			return failure;
-		}
-	}while(( blk=proc->next() ));
 	
-	// in case there was no explicit return. this will be dead code otherwise
-	ret(NULL);
+	do Gen_blk(blk);
+	while(( blk=obj->get_next_blk() ));
 	
-	msg_print(NULL, V_TRACE, "Gen_proc(): stop");
-	return success;
+	/***************** RETURN *****************/
+	
+	// pop the current activation record
+	stack_manager.pop();
+	// return
+	put_cmd("\t%s\n", inst_array[X_RET]);
+}
+
+
+/// Generate a static data object
+static void Gen_static(obj_pt obj){
+	switch(obj->get_type()){
+	case ot_prime: break;
+	case ot_struct: break;
+	
+	case ot_base:
+	case ot_routine:
+	default:
+		msg_print(NULL, V_ERROR, "Gen_static(): not a prime or struct");
+		throw;
+	}
 }
 
 
@@ -994,60 +1003,33 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	fd           = out_fd;
 	mode         = proccessor_mode;
 	
-	if(!( obj=prog->first() )){
+	if(!( obj=prog->objects.first() )){
 		msg_print(NULL, V_ERROR, "x86(): Program contains no objects");
 		return;
 	}
 	
-	fprintf(out_fd,"\nsection .code\t; Program code\n");
+	/************ STATIC VARIABLES ************/
+	
+	obj=prog->objects.first();
+	
+	put_cmd("\nsection .data\t; Static data\n");
+	
+	if (mode == xm_long) put_cmd("align 8\n");
+	else put_cmd("align 4\n");
 	
 	do{
-		if(Gen_proc(proc) == failure){
-			msg_print(NULL, V_ERROR,
-				"Internal x86(): Gen_blk() returned failure"
-			);
-			return;
-		}
-	} while(( proc=prog->instructions.next() ));
+		if(obj->get_sclass() == sc_static) Gen_static(obj);
+	}while(( obj=prog->objects.next() ));
 	
-	// string constants
-	fprintf(out_fd,"\nsection .data\t; Data Section contains constants\n");
-	op = operands->first();
-	do{
-		if(op->type == st_string)
-			fprintf(out_fd, "%s:\t\"%s\"\n",
-				strings->get(op->label),
-				strings->get(op->string_content)
-			);
-	}while(( op = operands->next() ));
+	/************** PROGRAM CODE **************/
 	
-	// static variables
-	fprintf(out_fd,"\nsection .bss\t; Declare static variables\n");
-	if (mode == xm_long) fprintf(out_fd,"align 8\n");
-	else fprintf(out_fd,"align 4\n");
-	op = operands->first();
+	obj=prog->objects.first();
+	
+	put_cmd("\nsection .code\t; Program code\n");
+	
 	do{
-		if(op->type == st_static)
-			switch(set_width(op->width)){
-			case byte:
-				fprintf(out_fd, "%s:\tdb 0x0\n", strings->get(op->label));
-				break;
-			case word:
-				fprintf(out_fd, "%s:\tdw 0x0\n", strings->get(op->label));
-				break;
-			case dword:
-				fprintf(out_fd, "%s:\tdd 0x0\n", strings->get(op->label));
-				break;
-			case qword:
-				fprintf(out_fd, "%s:\tdq 0x0\n", strings->get(op->label));
-				break;
-			case bad_width:
-			default:
-				msg_print(NULL, V_ERROR,
-					"Internal x86(): set_width() returned invalid");
-				fprintf(out_fd, "%s:\t!!bad!! 0x0\n", strings->get(op->label));
-			}
-	}while(( op = operands->next() ));
+		if(obj->get_sclass() == sc_code) Gen_code(obj);
+	}while(( obj=prog->objects.next() ));
 	
 	msg_print(NULL, V_INFO, "x86(): stop");
 }

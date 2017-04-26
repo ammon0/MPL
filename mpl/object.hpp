@@ -33,7 +33,6 @@ typedef enum{
 	
 	sc_extern,
 	sc_const,  ///< A compile-time constant. An immediate.
-	sc_string, ///< A string constant
 	
 	sc_code,   ///< A jump location in the code
 	sc_NUM     ///< This is the count of storage classes
@@ -54,20 +53,19 @@ typedef enum{
 
 class Object{
 	std::string label;
-	umax        count;  ///< How many of these in the array
 	
 protected:
+	umax            count;  ///< How many of these in the array
 	storage_class_t sclass; ///< The storage class of the object
 	constexpr static const char * str_sclass[sc_NUM]= {
-		"none     ",
-		"temp     ",
-		"data     ",
-		"stack    ",
-		"parameter",
-		"extern   ",
-		"constant ",
-		"string   ",
-		"code     "
+		"none  ",
+		"temp  ",
+		"data  ",
+		"stack ",
+		"param ",
+		"extern",
+		"const ",
+		"code  "
 	}; ///< to facilitate the print funtions
 	
 public:
@@ -88,8 +86,9 @@ public:
 	/******************************* MUTATORS *********************************/
 	
 	virtual void set_sclass(storage_class_t storage_class);
+	virtual void set_count (umax            number       );
 	void set_name  (const char *    name         );
-	void set_count (umax            number       );
+	
 };
 
 typedef Object * obj_pt;

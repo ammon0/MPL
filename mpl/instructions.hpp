@@ -69,6 +69,7 @@ typedef enum {
 	i_jz ,
 	i_lbl,
 	i_loop,
+	
 	i_parm,
 	i_call,
 	i_rtrn,

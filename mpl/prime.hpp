@@ -42,14 +42,15 @@ typedef enum{
 
 
 class Prime: public Object{
-	width_t width;
-	bool    sign;
-	umax    value;
+	width_t   width;
+	bool      sign;
+	uint8_t * value;
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
 	Prime(void);
+	~Prime(void);
 	
 	/******************************* ACCESSOR *********************************/
 	
@@ -63,6 +64,7 @@ public:
 	/******************************* MUTATORS *********************************/
 	
 	void set_width   (width_t size);
+	void set_count   (umax    number);
 	void set_signed  (void        );
 	void set_init    (umax    val );
 	void set_constant(umax    val );

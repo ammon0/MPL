@@ -21,7 +21,7 @@
 
 
 #include <mpl/opt.hpp>
-
+#include <mpl/routine.hpp>
 #include <util/msg.h>
 
 
@@ -30,10 +30,8 @@
 /******************************************************************************/
 
 
-String_Array * strings;  ///< A pointer to the PPD string space
-Operands     * operands; ///< A pointer to the PPD operands
-
-op_pt arg1, arg2;
+Obj_Index * objects;
+obj_pt arg1, arg2;
 
 
 /******************************************************************************/
@@ -42,7 +40,7 @@ op_pt arg1, arg2;
 
 
 /// Determine whether each symbol is live in each instruction
-void Liveness(blk_pt blk){
+static void Liveness(blk_pt blk){
 	inst_pt inst;
 	
 	msg_print(NULL, V_TRACE, "Liveness(): start");
