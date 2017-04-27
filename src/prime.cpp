@@ -3,7 +3,7 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
- *	You should have received a copy of the licence terms with this software. If
+ *	You should have received a copy of the license terms with this software. If
  *	not, please visit the project homepage at:
  *	https://github.com/ammon0/MPL
  *
@@ -20,9 +20,9 @@ Prime::Prime(void){
 	// const_value
 }
 
-Prime::~Prime(void){
-	delete value;
-}
+//Prime::~Prime(void){
+//	delete value;
+//}
 
 /******************************* ACCESSOR *********************************/
 
@@ -68,7 +68,8 @@ void Prime::set_signed(void){
 }
 
 void Prime::set_init(umax val){
-	if(sclass == sc_stack || sclass == sc_data) value = val;
+	if(sclass == sc_stack || sclass == sc_static || sclass == sc_global)
+		value = val;
 	else{
 		msg_print(NULL, V_ERROR,
 			"Prime::set_constant(): object cannot be initialized",

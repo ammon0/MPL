@@ -70,6 +70,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aaee62ca5a1b1b1a1c33872e29d1d47b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaee62ca5a1b1b1a1c33872e29d1d47b3"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>named</b> (void) const </td></tr>
 <tr class="separator:aaee62ca5a1b1b1a1c33872e29d1d47b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae09d532840e4f0210420d3e141b2a479"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae09d532840e4f0210420d3e141b2a479"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_mem</b> (void) const </td></tr>
+<tr class="separator:ae09d532840e4f0210420d3e141b2a479"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd14ef44c123484c71c8e8abed517fa3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acd14ef44c123484c71c8e8abed517fa3"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>get_label</b> (void) const </td></tr>
 <tr class="separator:acd14ef44c123484c71c8e8abed517fa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -88,15 +91,19 @@ virtual const char *&#160;</td><td class="memItemRight" valign="bottom"><b>print
 <tr class="memitem:aae4b72efd224a5288488fa3dd500ffb0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae4b72efd224a5288488fa3dd500ffb0"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>set_sclass</b> (storage_class_t storage_class)</td></tr>
 <tr class="separator:aae4b72efd224a5288488fa3dd500ffb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6c51e2fbb82298fd4c0b867cd257adc0"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>set_count</b> (umax number)</td></tr>
+<tr class="separator:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15f146ee469fb15c7ba0898fd9d9ef34"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15f146ee469fb15c7ba0898fd9d9ef34"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_name</b> (const char *name)</td></tr>
 <tr class="separator:a15f146ee469fb15c7ba0898fd9d9ef34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6c51e2fbb82298fd4c0b867cd257adc0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_count</b> (umax number)</td></tr>
-<tr class="separator:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
+<tr class="memitem:a021f0f25e1a24260fa590f8fd0178560"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a021f0f25e1a24260fa590f8fd0178560"></a>
+umax&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classObject.html#a021f0f25e1a24260fa590f8fd0178560">count</a></td></tr>
+<tr class="memdesc:a021f0f25e1a24260fa590f8fd0178560"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many of these in the array. <br /></td></tr>
+<tr class="separator:a021f0f25e1a24260fa590f8fd0178560"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7307bc1a10c532a3e433e7188806c844"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7307bc1a10c532a3e433e7188806c844"></a>
 storage_class_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classObject.html#a7307bc1a10c532a3e433e7188806c844">sclass</a></td></tr>
 <tr class="memdesc:a7307bc1a10c532a3e433e7188806c844"><td class="mdescLeft">&#160;</td><td class="mdescRight">The storage class of the object. <br /></td></tr>
@@ -126,7 +133,7 @@ Static Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">        <span class="stringliteral">&quot;none     &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;temp     &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;data     &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;stack    &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;parameter&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;extern   &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;constant &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;string   &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;code     &quot;</span></div><div class="line">    }</div></div><!-- fragment -->
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">        <span class="stringliteral">&quot;none  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;temp  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;static&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;global&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;stack &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;param &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;extern&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;const &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;code  &quot;</span></div><div class="line">    }</div></div><!-- fragment -->
 <p>to facilitate the print funtions </p>
 
 </div>

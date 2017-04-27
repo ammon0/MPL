@@ -3,7 +3,7 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
- *	You should have received a copy of the licence terms with this software. If
+ *	You should have received a copy of the license terms with this software. If
  *	not, please visit the project homepage at:
  *	https://github.com/ammon0/MPL
  *
@@ -24,9 +24,7 @@
 
 
 /// x86 processor modes
-typedef enum{
-	xm_real,      ///< Real address (legacy) Mode not supported
-	xm_smm,       ///< System Management Mode not supported
+typedef enum x86_mode_t{
 	xm_protected, ///< Protected 32-bit mode
 	xm_long       ///< 64-bit mode
 } x86_mode_t;

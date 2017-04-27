@@ -58,14 +58,15 @@
 <p>Removes dead operands and instructions.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;<a class="el" href="opt_8hpp_source.html">mpl/opt.hpp</a>&gt;</code><br />
+<code>#include &lt;mpl/routine.hpp&gt;</code><br />
 <code>#include &lt;util/msg.h&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa1683bda029f462fc642bf046971d1be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa1683bda029f462fc642bf046971d1be"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-dead_8cpp.html#aa1683bda029f462fc642bf046971d1be">Liveness</a> (<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a> blk)</td></tr>
-<tr class="memdesc:aa1683bda029f462fc642bf046971d1be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine whether each symbol is live in each instruction. <br /></td></tr>
-<tr class="separator:aa1683bda029f462fc642bf046971d1be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-dead_8cpp.html#ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4">Liveness</a> (<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a> blk)</td></tr>
+<tr class="memdesc:ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine whether each symbol is live in each instruction. <br /></td></tr>
+<tr class="separator:ad03dc4e6bef6ea3e4d3cfb0f9ccec9f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a512f885a4366ee3b8ac7c12ed3037c4b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a512f885a4366ee3b8ac7c12ed3037c4b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-dead_8cpp.html#a512f885a4366ee3b8ac7c12ed3037c4b">opt_dead</a> (<a class="el" href="classPPD.html">PPD</a> *prog_data)</td></tr>
 <tr class="memdesc:a512f885a4366ee3b8ac7c12ed3037c4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes dead instructions and operands. <br /></td></tr>
@@ -73,20 +74,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a47a832bfd3851f46f74478f276ae8876"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47a832bfd3851f46f74478f276ae8876"></a>
-String_Array *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-dead_8cpp.html#a47a832bfd3851f46f74478f276ae8876">strings</a></td></tr>
-<tr class="memdesc:a47a832bfd3851f46f74478f276ae8876"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> string space. <br /></td></tr>
-<tr class="separator:a47a832bfd3851f46f74478f276ae8876"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acbc91ecdb45cc7fbc4e663c69c762824"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbc91ecdb45cc7fbc4e663c69c762824"></a>
-Operands *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opt-dead_8cpp.html#acbc91ecdb45cc7fbc4e663c69c762824">operands</a></td></tr>
-<tr class="memdesc:acbc91ecdb45cc7fbc4e663c69c762824"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to the <a class="el" href="classPPD.html" title="This is a container for all the components of the portable program data. ">PPD</a> operands. <br /></td></tr>
-<tr class="separator:acbc91ecdb45cc7fbc4e663c69c762824"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35be71f2fb0e1a2fc62c57abe24f2959"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a35be71f2fb0e1a2fc62c57abe24f2959"></a>
-op_pt&#160;</td><td class="memItemRight" valign="bottom"><b>arg1</b></td></tr>
-<tr class="separator:a35be71f2fb0e1a2fc62c57abe24f2959"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad188873e0f357dffa94a5d5391fa1d7d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad188873e0f357dffa94a5d5391fa1d7d"></a>
-op_pt&#160;</td><td class="memItemRight" valign="bottom"><b>arg2</b></td></tr>
-<tr class="separator:ad188873e0f357dffa94a5d5391fa1d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a368aa8ddc84fee8fcd56c6e7a55b6c6e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a368aa8ddc84fee8fcd56c6e7a55b6c6e"></a>
+<a class="el" href="classObj__Index.html">Obj_Index</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>objects</b></td></tr>
+<tr class="separator:a368aa8ddc84fee8fcd56c6e7a55b6c6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06ea08abf0965734628bdd1db590195d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a06ea08abf0965734628bdd1db590195d"></a>
+<a class="el" href="classObject.html">obj_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>arg1</b></td></tr>
+<tr class="separator:a06ea08abf0965734628bdd1db590195d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadae5e60afe31814b43808455a968983"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aadae5e60afe31814b43808455a968983"></a>
+<a class="el" href="classObject.html">obj_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>arg2</b></td></tr>
+<tr class="separator:aadae5e60afe31814b43808455a968983"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Removes dead operands and instructions. </p>

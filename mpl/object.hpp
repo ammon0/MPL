@@ -3,7 +3,7 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
- *	You should have received a copy of the licence terms with this software. If
+ *	You should have received a copy of the license terms with this software. If
  *	not, please visit the project homepage at:
  *	https://github.com/ammon0/MPL
  *
@@ -26,15 +26,19 @@
 typedef enum{
 	sc_none,   ///< This is just to catch errors; it is not used.
 	
-	sc_temp,  ///< A compiler generated temporary
-	sc_data,  ///< A static storage location (static)
-	sc_stack, ///< A stack variable (auto)
-	sc_param, ///< A formal parameter
+	// direct values
+	sc_temp  , ///< A compiler generated temporary
+	sc_static, ///< private static storage location (static)
+	sc_global, ///< data accessable outside the translation unit
+	sc_stack , ///< A stack variable (auto)
+	sc_param , ///< A formal parameter
 	
 	sc_extern,
-	sc_const,  ///< A compile-time constant. An immediate.
 	
-	sc_code,   ///< A jump location in the code
+	// immediate values
+	sc_const, ///< A compile-time constant. An immediate.
+	sc_code , ///< A jump location in the code
+	
 	sc_NUM     ///< This is the count of storage classes
 } storage_class_t;
 
@@ -60,7 +64,8 @@ protected:
 	constexpr static const char * str_sclass[sc_NUM]= {
 		"none  ",
 		"temp  ",
-		"data  ",
+		"static",
+		"global",
 		"stack ",
 		"param ",
 		"extern",
@@ -76,6 +81,22 @@ public:
 	/******************************* ACCESSOR *********************************/
 	
 	bool            named     (void) const{ return !label.empty(); }
+	bool is_mem(void) const{
+		switch(sclass){
+		case sc_static:
+		case sc_global:
+		case sc_extern:
+		case sc_stack : return true;
+		case sc_none :
+		case sc_temp :
+		case sc_param:
+		case sc_const:
+		case sc_code : return false;
+		case sc_NUM:
+		default    : throw;
+		}
+	}
+	
 	const char *    get_label (void) const{ return label.c_str(); }
 	storage_class_t get_sclass(void) const{ return sclass       ; }
 	umax            get_count (void) const{ return count        ; }
@@ -95,5 +116,4 @@ typedef Object * obj_pt;
 
 
 #endif // _OBJECT_HPP
-
 

@@ -89,56 +89,58 @@ typedef <a class="el" href="classBlock.html">Block</a> *&#160;</td><td class="me
 Enumerations</h2></td></tr>
 <tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> { <br />
 &#160;&#160;<b>i_nop</b>, 
-<b>i_ass</b>, 
-<b>i_ref</b>, 
-<b>i_dref</b>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597aa7b45ba837c4dd61e0cd3390d6138d21">i_idx</a>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a4ef0fb3c8606fbc53126926a732c2479">i_mbr</a>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a3ccd946a489332395b207cc55b4c03ac">i_ref</a>, 
 <br />
-&#160;&#160;<b>i_neg</b>, 
-<b>i_not</b>, 
+&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ad12f5abb59ee590b060092c757359764">i_dref</a>, 
+<b>i_ass</b>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c">i_cpy</a>, 
+<b>i_neg</b>, 
+<br />
+&#160;&#160;<b>i_not</b>, 
 <b>i_inv</b>, 
 <b>i_inc</b>, 
+<b>i_dec</b>, 
 <br />
-&#160;&#160;<b>i_dec</b>, 
-<b>i_sz</b>, 
+&#160;&#160;<b>i_sz</b>, 
 <b>i_mul</b>, 
 <b>i_div</b>, 
+<b>i_mod</b>, 
 <br />
-&#160;&#160;<b>i_mod</b>, 
-<b>i_exp</b>, 
+&#160;&#160;<b>i_exp</b>, 
 <b>i_lsh</b>, 
 <b>i_rsh</b>, 
+<b>i_rol</b>, 
 <br />
-&#160;&#160;<b>i_rol</b>, 
-<b>i_ror</b>, 
+&#160;&#160;<b>i_ror</b>, 
 <b>i_add</b>, 
 <b>i_sub</b>, 
+<b>i_band</b>, 
 <br />
-&#160;&#160;<b>i_band</b>, 
-<b>i_bor</b>, 
+&#160;&#160;<b>i_bor</b>, 
 <b>i_xor</b>, 
 <b>i_eq</b>, 
+<b>i_neq</b>, 
 <br />
-&#160;&#160;<b>i_neq</b>, 
-<b>i_lt</b>, 
+&#160;&#160;<b>i_lt</b>, 
 <b>i_gt</b>, 
 <b>i_lte</b>, 
+<b>i_gte</b>, 
 <br />
-&#160;&#160;<b>i_gte</b>, 
-<b>i_and</b>, 
+&#160;&#160;<b>i_and</b>, 
 <b>i_or</b>, 
 <b>i_jmp</b>, 
+<b>i_jz</b>, 
 <br />
-&#160;&#160;<b>i_jz</b>, 
-<b>i_lbl</b>, 
+&#160;&#160;<b>i_lbl</b>, 
 <b>i_loop</b>, 
 <b>i_parm</b>, 
+<b>i_call</b>, 
 <br />
-&#160;&#160;<b>i_call</b>, 
-<b>i_rtrn</b>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c">i_cpy</a>, 
+&#160;&#160;<b>i_rtrn</b>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9">i_proc</a>, 
-<br />
-&#160;&#160;<b>i_NUM</b>
+<b>i_NUM</b>
 <br />
  }<tr class="memdesc:a8e1f49c4010316f81ceff7f77e03b597"><td class="mdescLeft">&#160;</td><td class="mdescRight">intermediate op codes  <a href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">More...</a><br /></td></tr>
 </td></tr>
@@ -206,7 +208,19 @@ used_next</td>
 
 <p>intermediate op codes </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c"></a>i_cpy&#160;</td><td class="fielddoc">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597aa7b45ba837c4dd61e0cd3390d6138d21"></a>i_idx&#160;</td><td class="fielddoc">
+<p>&lt;Object&gt;, &lt;Object&gt; , &lt;Prime&gt; access a member of an array </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a4ef0fb3c8606fbc53126926a732c2479"></a>i_mbr&#160;</td><td class="fielddoc">
+<p>&lt;Object&gt;, &lt;Structure&gt;, &lt;Object&gt; access a member of a struct </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a3ccd946a489332395b207cc55b4c03ac"></a>i_ref&#160;</td><td class="fielddoc">
+<p>&lt;Prime&gt; , &lt;Object&gt; </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ad12f5abb59ee590b060092c757359764"></a>i_dref&#160;</td><td class="fielddoc">
+<p>&lt;Object&gt;, &lt;Prime&gt; </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c"></a>i_cpy&#160;</td><td class="fielddoc">
 <p>copy <code>right</code> bytes from <code>left</code> to <code>result</code> </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9"></a>i_proc&#160;</td><td class="fielddoc">

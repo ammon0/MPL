@@ -3,7 +3,7 @@
  *	MPL : Minimum Portable Language
  *
  *	Copyright (c) 2017 Ammon Dodson
- *	You should have received a copy of the licence terms with this software. If
+ *	You should have received a copy of the license terms with this software. If
  *	not, please visit the project homepage at:
  *	https://github.com/ammon0/MPL
  *
@@ -26,11 +26,21 @@ typedef struct _root* DS;
 /// intermediate op codes
 typedef enum {
 	i_nop,
-
+	
+	// accessors
+	i_idx , ///< <Object>, <Object>   , <Prime>  access a member of an array
+	i_mbr , ///< <Object>, <Structure>, <Object> access a member of a struct
+	
+	i_ref , ///< <Prime> , <Object>
+	i_dref, ///< <Object>, <Prime>
+	
+	i_ass,
+	i_cpy, ///< copy `right` bytes from `left` to `result`
+	
 	// unary ops (8)
-	i_ass ,
-	i_ref ,
-	i_dref,
+	
+	
+	
 	i_neg ,
 	i_not ,
 	i_inv ,
@@ -74,7 +84,7 @@ typedef enum {
 	i_call,
 	i_rtrn,
 	
-	i_cpy, ///< copy `right` bytes from `left` to `result`
+	
 	
 	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
 	
