@@ -34,15 +34,11 @@ typedef enum {
 	i_ref , ///< <Prime> , <Object>
 	i_dref, ///< <Object>, <Prime>
 	
-	i_ass,
-	i_cpy, ///< copy `right` bytes from `left` to `result`
+	i_ass, ///< <Prime>, <Prime>
+	i_cpy, ///< <Data>, <Data>, <Prime>
 	
 	// unary ops (8)
-	
-	
-	
 	i_neg ,
-	i_not ,
 	i_inv ,
 	i_inc ,
 	i_dec ,
@@ -71,6 +67,8 @@ typedef enum {
 	i_lte,
 	i_gte,
 
+	// logical
+	i_not,
 	i_and,
 	i_or ,
 
@@ -136,58 +134,6 @@ public:
 
 /// A pointer to Block.
 typedef Block * blk_pt;
-
-/// A queue of basic blocks containing procedure information
-//class Procedure{
-//	DS     blocks;
-//public:
-//	Procedure(void);
-//	~Procedure(void);
-//	
-//	/// is this empty?
-//	bool isempty(void) const;
-//	
-//	/// returns the first block
-//	blk_pt first(void) const;
-//	/// returns the next block
-//	blk_pt next (void) const;
-//	
-//	/**	add an instruction to the last block
-//	 *	@param instruction a pointer to the instruction to add
-//	 *	@return pointer to the instruction in its new location
-//	 */
-//	inst_pt add (inst_pt instruction);
-//	
-//	/// get the procedure operand
-//	obj_pt  info;
-//};
-
-///// A Procedure pointer
-//typedef Procedure * proc_pt;
-
-/**	A queue of basic blocks
-*/
-//class Instruction_Queue{
-//private:
-//	DS q;
-//public:
-//	 Instruction_Queue(void);
-//	~Instruction_Queue(void);
-//	
-//	/// is this empty?
-//	bool isempty(void) const;
-//	
-//	/// get a pointer to the current procedure
-//	proc_pt proc(void) const;
-//	
-//	/// returns the first block
-//	proc_pt first(void) const;
-//	/// returns the next block
-//	proc_pt next (void) const;
-//	
-//	/// add an instruction to the last block
-//	inst_pt add (inst_pt instruction);
-//};
 
 
 #endif // _INSTRUCTIONS_HPP

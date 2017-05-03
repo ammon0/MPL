@@ -14,7 +14,7 @@
 #define _PRIME_HPP
 
 
-#include <mpl/object.hpp>
+#include <mpl/data.hpp>
 
 
 /******************************************************************************/
@@ -41,16 +41,20 @@ typedef enum{
 /******************************************************************************/
 
 
-class Prime: public Object{
+// This is the only object that can be accessed immediately
+
+class Prime: public Data{
 	width_t   width;
 	bool      sign;
 	umax      value;
+	/** if sc_const then value is the immediate contant value. Otherwise value is
+	    the initialization of the variable.
+	*/
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
 	Prime(void);
-//	~Prime(void);
 	
 	/******************************* ACCESSOR *********************************/
 	

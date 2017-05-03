@@ -30,6 +30,7 @@ class Routine: public Object{
 public:
 	Obj_List formal_params;
 	Obj_List autos;
+	Obj_List temps;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -45,6 +46,8 @@ public:
 	
 	obj_t get_type (void) const{ return ot_routine; }
 	const char * print_obj (void) const;
+	
+	bool is_static_data(void) const{ return false; }
 	
 	/******************************* MUTATORS *********************************/
 	

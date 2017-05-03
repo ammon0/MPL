@@ -14,29 +14,26 @@
 #include <stdio.h>
 
 
-Prime::Prime(void){
+Prime::Prime(void) : Data(){
 	width = w_none;
 	sign = false;
 	// const_value
 }
 
-//Prime::~Prime(void){
-//	delete value;
-//}
 
 /******************************* ACCESSOR *********************************/
 
 const char * Prime::print_obj (void) const{
 	static char   array[100];
 	static const char * str_width[w_NUM]={
-		"none   ",
-		"byte   ",
-		"2byte  ",
-		"4byte  ",
-		"8byte  ",
-		"word   ",
-		"max    ",
-		"pointer"
+		"none ",
+		"byte ",
+		"byte2",
+		"byte4",
+		"byte8",
+		"word ",
+		"max  ",
+		"ptr  "
 	};
 	
 	sprintf(array, "%s %s %s %s",
@@ -68,7 +65,7 @@ void Prime::set_signed(void){
 }
 
 void Prime::set_init(umax val){
-	if(sclass == sc_stack || sclass == sc_static || sclass == sc_global)
+	if(sclass == sc_stack || sclass == sc_private || sclass == sc_public)
 		value = val;
 	else{
 		msg_print(NULL, V_ERROR,

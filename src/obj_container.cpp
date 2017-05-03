@@ -15,7 +15,7 @@
 
 #include <string.h>
 static inline const void * obj_label(const void * obj){
-	return (*(obj_pt*)obj)->get_label();
+	return (*(Data **)obj)->get_label();
 }
 static inline imax lbl_cmp(const void * left, const void * right){
 	return strcmp((char*) left, (char*) right);
@@ -24,7 +24,7 @@ static inline imax lbl_cmp(const void * left, const void * right){
 
 Obj_Index::Obj_Index(void){
 	index = DS_new_bst(
-		sizeof(obj_pt),
+		sizeof(Data *),
 		false,
 		&obj_label,
 		&lbl_cmp
@@ -34,33 +34,33 @@ Obj_Index::~Obj_Index(void){ DS_delete(index); }
 
 /******************************* ACCESSOR *********************************/
 
-obj_pt Obj_Index::find(const char * name) const{
-	return *(obj_pt*)DS_find(index, name);
+Data * Obj_Index::find(const char * name) const{
+	return *(Data **)DS_find(index, name);
 }
-obj_pt Obj_Index::first(void)const{
-	return *(obj_pt*)DS_first(index);
+Data * Obj_Index::first(void)const{
+	return *(Data **)DS_first(index);
 }
-obj_pt Obj_Index::next (void)const{
-	return *(obj_pt*)DS_next(index);
+Data * Obj_Index::next (void)const{
+	return *(Data **)DS_next(index);
 }
 
 /******************************* MUTATORS *********************************/
 
-obj_pt Obj_Index::remove(const char * name){
-	if(DS_find(index, name)) return *(obj_pt*)DS_remove(index);
+Data * Obj_Index::remove(const char * name){
+	if(DS_find(index, name)) return *(Data **)DS_remove(index);
 	else{
 		msg_print(NULL, V_ERROR, "Internal PPD::remove(): no such object");
 		throw;
 	}
 }
 
-obj_pt Obj_Index::add(obj_pt object){
+Data * Obj_Index::add(Data * object){
 	if(!object->named()){
 		msg_print(NULL, V_ERROR, "Internal PPD::add(): object has no name");
 		throw;
 	}
 	
-	return *(obj_pt*)DS_insert(index, object);
+	return *(Data **)DS_insert(index, object);
 }
 
 

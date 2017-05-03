@@ -16,9 +16,8 @@
 #include <util/msg.h>
 
 
-Routine::Routine(void){
+Routine::Routine(void): Object(){
 	blocks        = DS_new_list(sizeof(Block));
-	sclass        = sc_code;
 }
 Routine::~Routine(void){
 	blk_pt blk;
@@ -64,6 +63,9 @@ const char * Routine::print_obj (void) const{
 
 void __attribute__((noreturn))
 Routine::set_sclass(storage_class_t storage_class){
+	
+	// FIXME: several storage classes are allowed here
+	
 	msg_print(NULL, V_ERROR,
 		"Routine::set_sclass(): cannot change the storage class to %d",
 		storage_class

@@ -24,29 +24,23 @@
 
 
 typedef enum{
-	sc_none,   ///< This is just to catch errors; it is not used.
-	
-	// direct values
-	sc_temp  , ///< A compiler generated temporary
-	sc_static, ///< private static storage location (static)
-	sc_global, ///< data accessable outside the translation unit
-	sc_stack , ///< A stack variable (auto)
-	sc_param , ///< A formal parameter
-	
-	sc_extern,
-	
-	// immediate values
-	sc_const, ///< A compile-time constant. An immediate.
-	sc_code , ///< A jump location in the code
-	
-	sc_NUM     ///< This is the count of storage classes
+	sc_none   , ///< This is just to catch errors; it is not used.
+	sc_private, ///< private program image
+	sc_public , ///< public program image
+	sc_extern , ///< public program image declared in another module
+	sc_stack  , ///< A stack variable (auto)
+	sc_param  , ///< A formal parameter
+	sc_temp   , ///< A compiler generated temporary
+	sc_const  , ///< A compile-time constant. An immediate.
+	sc_NUM      ///< This is the count of storage classes
 } storage_class_t;
 
 typedef enum{
 	ot_base,
-	ot_prime,
 	ot_routine,
-	ot_struct
+	ot_prime,
+	ot_struct,
+	ot_array
 } obj_t;
 
 
@@ -59,18 +53,15 @@ class Object{
 	std::string label;
 	
 protected:
-	umax            count;  ///< How many of these in the array
 	storage_class_t sclass; ///< The storage class of the object
 	constexpr static const char * str_sclass[sc_NUM]= {
-		"none  ",
-		"temp  ",
-		"static",
-		"global",
-		"stack ",
-		"param ",
-		"extern",
-		"const ",
-		"code  "
+		"none ",
+		"prv  ",
+		"pub  ",
+		"stack",
+		"param",
+		"temp ",
+		"const"
 	}; ///< to facilitate the print funtions
 	
 public:
@@ -80,18 +71,17 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
-	bool            named     (void) const{ return !label.empty(); }
+	bool named(void) const{ return !label.empty(); }
 	bool is_mem(void) const{
 		switch(sclass){
-		case sc_static:
-		case sc_global:
+		case sc_private:
+		case sc_public:
 		case sc_extern:
 		case sc_stack : return true;
 		case sc_none :
 		case sc_temp :
 		case sc_param:
-		case sc_const:
-		case sc_code : return false;
+		case sc_const: return false;
 		case sc_NUM:
 		default    : throw;
 		}
@@ -99,16 +89,17 @@ public:
 	
 	const char *    get_label (void) const{ return label.c_str(); }
 	storage_class_t get_sclass(void) const{ return sclass       ; }
-	umax            get_count (void) const{ return count        ; }
 	
 	virtual obj_t get_type (void) const{ return ot_base; }
-	virtual const char * print_obj (void) const=0;
+	
+	virtual const char * print_obj     (void) const=0;
+	virtual bool         is_static_data(void) const=0;
 	
 	/******************************* MUTATORS *********************************/
 	
+	// this is virtual so it can be disabled for Routine
 	virtual void set_sclass(storage_class_t storage_class);
-	virtual void set_count (umax            number       );
-	void set_name  (const char *    name         );
+	void set_name  (const char * name);
 	
 };
 

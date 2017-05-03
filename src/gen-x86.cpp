@@ -102,6 +102,7 @@
 #include <mpl/prime.hpp>
 #include <mpl/routine.hpp>
 #include <mpl/structure.hpp>
+#include <mpl/array.hpp>
 
 #include <stdio.h>
 #include <string.h>
@@ -212,18 +213,24 @@ typedef enum {
 
 /// Keeps track of the stack details
 class Stack_man{
-	umax SP_offset;
+	int SP_offset;
 public:
 	Stack_man(void){ SP_offset = 0; }
 	
 	void push_temp(reg_t reg     ); ///< push as a temp
-	void push_auto(obj_pt auto_var); ///< push an automatic variable
+	void push_auto(Data * auto_var); ///< push an automatic variable
 	void push_parm(obj_pt parameter); ///< push a parameter onto the stack
 	void set_BP(void     ); ///< advance BP to the SP
 	void unload(uint count); ///< unload parameters from the stack
 	void pop(void); ///< pop the current activation record
 };
 
+/// Keeps track of what is in each register
+class Reg_man{
+	obj_pt reg_d[NUM_reg];
+public:
+	void flush(void);
+};
 
 /******************************************************************************/
 //                  GLOBAL CONSTANTS IN THE GEN-X86 MODULE
@@ -258,8 +265,6 @@ static x86_mode_t   mode        ; ///< the processor mode we are building for
  */
 static obj_pt reg_d[NUM_reg];
 static Stack_man stack_manager;
-
-#define STATE_SZ 0 ///< how many bytes are needed to save the processor state
 
 
 /******************************************************************************/
@@ -334,46 +339,6 @@ static const char * str_reg(reg_width width, reg_t reg){
 	return array;
 }
 
-/** Return a string to access an operand */
-static inline const char * str_prime(Prime& obj){
-	static char arr[3][24];
-	static uint i;
-
-	switch(obj.get_sclass()){
-	// we include these as immediate values
-	case sc_const: return str_num(obj.get_value());
-	
-	// these are read from memory
-	case sc_static:
-	case sc_global:
-	case sc_extern:
-	case sc_code  : return obj.get_label();
-	
-	// these are read from the stack
-	case sc_stack:
-		i = (i+1) %3; // increment i
-		sprintf(arr[i], "BP-%s", str_num(op->BP_offset));
-		return arr[i];
-	
-	case sc_param:
-		i = (i+1) %3; // increment i
-		sprintf(arr[i], "BP+%s", str_num(op->BP_offset+STATE_SZ));
-		msg_print(NULL, V_WARN, "Internal str_prime(): bad parameter offset");
-		return arr[i];
-	
-	// these are in registers
-	case sc_temp:
-		msg_print(NULL, V_ERROR, "Internal str_prime(): got a temp");
-		throw;
-	
-	case sc_none:
-	case sc_NUM:
-	default:
-		msg_print(NULL, V_ERROR, "Internal str_prime(): bad type");
-		throw;
-	}
-}
-
 /** Add a command string to the output file. */
 static void __attribute__((format(printf, 1, 2)))
 put_str(const char * format, ...){
@@ -386,58 +351,24 @@ put_str(const char * format, ...){
 
 /***************************** HELPER FUNCTIONS *******************************/
 
-/** Return the appropriate x86 register width for the given data size.
- */
-static reg_width set_width(Prime * in){
-	switch(in->get_width()){
-	case w_byte : return byte;
-	case w_byte2: return word;
-	case w_byte4: return dword;
-	case w_byte8: return qword;
-	case w_word :
-	case w_max  :
-	case w_ptr  :
-		if(mode == xm_long) return qword;
-		else return dword;
-	
-	case w_none :
-	case w_NUM  :
-	default     :
-		msg_print(NULL, V_ERROR, "set_width(): got a bad width");
-		return bad_width;
-	}
-}
-
-static reg_width set_width(width_t in){
-	switch(in){
-	case w_byte : return byte;
-	case w_byte2: return word;
-	case w_byte4: return dword;
-	case w_byte8: return qword;
-	case w_word :
-	case w_max  :
-	case w_ptr  :
-		if(mode == xm_long) return qword;
-		else return dword;
-	
-	case w_none :
-	case w_NUM  :
-	default     :
-		msg_print(NULL, V_ERROR, "set_width(): got a bad width");
-		return bad_width;
-	}
-}
-
-static inline void put_extern(const char * lbl){
-	put_str("extern %s\n", lbl);
-}
-
-static inline void put_global(const char * lbl){
-	put_str("global %s\n", lbl);
-}
-
 /// Get the size of an object in bytes
-static size_t size_of(obj_pt obj){}
+static size_t size_of(Data * data){
+	size_t size = 0;
+	
+	switch(data->get_type()){
+	case ot_array: break; //FIXME: do something
+	case ot_prime: break;
+	case ot_struct: break;
+	
+	case ot_base   :
+	case ot_routine:
+	default        :
+		msg_print(NULL, V_ERROR, "size_of(): data is not Data*");
+		throw;
+	}
+	
+	return size;
+}
 
 /** Determine whether an operand is already present in a register.
  */
@@ -452,10 +383,8 @@ static reg_t check_reg(obj_pt operand){
 }
 
 /// push an auto variable onto the stack
-void Stack_man::push_auto(obj_pt auto_var){
+void Stack_man::push_auto(Data * auto_var){
 	//TODO: calculate its size
-	
-	
 	
 	// issue push instruction
 	put_str("%s\t%s\n",
@@ -468,29 +397,32 @@ void Stack_man::push_auto(obj_pt auto_var){
 	else SP_offset += dword;
 	
 	// set the offset
-	auto_var->BP_offset = SP_offset;
+	auto_var->set_offset(SP_offset);
 }
 
 /// push a temp variable onto the stack
 void Stack_man::push_temp(reg_t reg){
+	Data * tmp;
 	
 	if(reg_d[reg]->get_sclass() != sc_temp){
 		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
 		throw;
 	}
 	
+	tmp = dynamic_cast<Data*>(reg_d[reg]);
+	
 	// issue push instruction
-	put_str("%s\t%s\n",
-		str_instruction(X_PUSH),
-		str_reg(set_width(reg_d[reg]), reg)
-		// or should this be the stack width?
-	);
+//	put_str("%s\t%s\n",
+//		str_instruction(X_PUSH),
+//		str_reg(set_width(tmp), reg)
+//		// or should this be the stack width?
+//	);
 	
 	// increment SP_offset
 	if(mode == xm_long) SP_offset += qword;
 	else SP_offset += dword;
 	
-	reg_d[reg]->BP_offset = SP_offset;
+	tmp->set_offset(SP_offset);
 }
 
 /// advance BP to the next activation record
@@ -516,22 +448,24 @@ void Stack_man::pop(void){
 /** Store data in register to its appropriate memory location.
  */
 static void store(reg_t reg){
+	Prime * prime;
+	
+	if(!reg_d[reg]->is_mem()) return;
+	
 	if(reg_d[reg] == NULL){
-		msg_print(
-			NULL,
-			V_ERROR,
+		msg_print(NULL, V_ERROR,
 			"store(): there is no memory location associated with register %u",
 			reg
 		);
 		throw;
 	}
 	
-	if(!reg_d[reg]->is_mem()) return;
+	prime = dynamic_cast<Prime*>(reg_d[reg]);
 	
 	put_str("\t%s\t[%s]\t%s",
 		str_instruction(X_MOV),
-		str_prime(reg_d[reg]),
-		str_reg(set_width(reg_d[reg]), reg)
+		str_prime(prime),
+		str_reg(set_width(prime), reg)
 	);
 }
 
@@ -562,6 +496,12 @@ static void load(reg_t reg, Prime * mem){
 	
 	reg_d[reg] = mem;
 }
+
+static void Store(reg_t reg){}
+
+static void Load(reg_t reg, Data * mem){}
+static void Load_index(reg_t, Array * array, Prime * idx){}
+static void Load_member(reg_t, Structure * array /*, FIXME */ ){}
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alphabetical
@@ -622,12 +562,14 @@ static void div(Prime * result, Prime * left, Prime * right){
 /// dereference a pointer
 static inline void dref(obj_pt result, Prime * pointer){
 	load(A, pointer);
-	put_str("%s\t%s,\t[%s]\n",
-		str_instruction(X_MOV),
-		str_reg(set_width(result), A),
-		str_reg(set_width(w_ptr),A)
-	);
+//	put_str("%s\t%s,\t[%s]\n",
+//		str_instruction(X_MOV),
+//		str_reg(set_width(result), A),
+//		str_reg(set_width(w_ptr),A)
+//	);
 	
+	
+	//FIXME
 	reg_d[A] = result;
 }
 
@@ -685,9 +627,21 @@ static void mul(Prime * result, Prime * left, Prime * right){
 	reg_d[A] = result;
 }
 
-/// gets the address of a variable
+/// gets the address of an object
 static void ref(Prime * result, obj_pt arg){
-	if(arg->get_sclass() != sc_static || arg->get_sclass() != sc_global){
+	
+	switch(arg->get_sclass()){
+	case sc_private:
+	case sc_public:
+	case sc_extern:
+	case sc_stack :
+	case sc_param: break;
+	
+	case sc_none :
+	case sc_temp :
+	case sc_const:
+	case sc_NUM  :
+	default      :
 		msg_print(NULL, V_ERROR,
 			"Internal dref(): arg is not a memory location");
 		throw;
@@ -698,11 +652,12 @@ static void ref(Prime * result, obj_pt arg){
 		throw;
 	}
 	
-	put_str("\t%s\t%s\n%s\n",
-		str_instruction(X_MOVZX),
-		str_reg(set_width(w_ptr), A),
-		str_obj(arg)
-	);
+	// FIXME
+//	put_str("\t%s\t%s\n%s\n",
+//		str_instruction(X_MOVZX),
+//		str_reg(set_width(w_ptr), A),
+//		str_obj(arg)
+//	);
 	
 	reg_d[A] = result;
 }
@@ -712,51 +667,6 @@ static inline void ret(obj_pt value){
 	// load the return value if present
 	//if(value) load(A, value);
 	// TODO: jump to the return statement
-}
-
-/// return the size, in bytes, of an operand
-static inline void sz(obj_pt result, obj_pt arg){
-//	switch(set_width(arg->width)){
-//	case byte:
-//		put_str(
-//			"%s\t%s,\t%s\n",
-//			str_instruction(X_MOVZX),
-//			str_reg(set_width(w_word), A),
-//			str_num(1)
-//		);
-//		break;
-//	case word:
-//		put_str(
-//			"%s\t%s,\t%s\n",
-//			str_instruction(X_MOVZX),
-//			str_reg(set_width(w_word), A),
-//			str_num(2)
-//		);
-//		break;
-//	case dword:
-//		put_str(
-//			"%s\t%s,\t%s\n",
-//			str_instruction(X_MOVZX),
-//			str_reg(set_width(w_word), A),
-//			str_num(4)
-//		);
-//		break;
-//	case qword:
-//		put_str(
-//			"%s\t%s,\t%s\n",
-//			str_instruction(X_MOVZX),
-//			str_reg(set_width(w_word), A),
-//			str_num(8)
-//		);
-//		break;
-//	case bad_width:
-//	default:
-//		msg_print(NULL, V_ERROR, "sz(): broken");
-//	}
-	
-	size_of(arg);
-	
-	reg_d[A] = result;
 }
 
 /// most unary operations
@@ -803,7 +713,7 @@ static void Gen_inst(inst_pt inst){
 	); break;
 	
 	case i_ass : ass (inst->result, inst->left); break;
-	case i_sz  : sz  (inst->result, inst->left); break;
+	case i_sz  : break;
 	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
 	
 	case i_ref : ref(dynamic_cast<Prime*>(inst->result), inst->left); break;
@@ -924,7 +834,6 @@ static void Gen_inst(inst_pt inst){
 	}
 }
 
-
 /** Generate code for a single basic block
  */
 static void Gen_blk(blk_pt blk){
@@ -959,12 +868,14 @@ static void Gen_blk(blk_pt blk){
  *	is made. this means we can't add new auto variables once a parameter has
  *	been pushed.
 */
-static void Gen_routine(const Routine& routine){
+static void Gen_routine(Routine * routine){
 	blk_pt blk;
 	obj_pt auto_var;
 	
-	if(routine.get_sclass() != sc_code){
-		msg_print(NULL, V_ERROR, "Gen_routine(): routine is not code");
+	/************** SANITY CHECKS *************/
+	
+	if(!routine){
+		msg_print(NULL, V_ERROR, "Gen_routine(): Got a NULL pointer");
 		throw;
 	}
 	
@@ -974,26 +885,30 @@ static void Gen_routine(const Routine& routine){
 	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
 	
 	// place the label
-	put_str("%s:\n", routine.get_label());
+	lbl(routine);
 	
 	// set the base pointer
 	stack_manager.set_BP();
 	
 	// make space for automatics
-	if(( auto_var=routine.autos.first() ))
+	if(( auto_var=routine->autos.first() ))
 		do{
-			stack_manager.push_auto(auto_var);
-		}while(( auto_var=routine.autos.next() ));
+			stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
+		}while(( auto_var=routine->autos.next() ));
+	
+	/************ SETUP STACK TEMPS ************/
+	
+	//FIXME
 	
 	/**************** MAIN LOOP ****************/
 	
-	if(!( blk=routine.get_first_blk() )){
+	if(!( blk=routine->get_first_blk() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Routine");
 		throw;
 	}
 	
 	do Gen_blk(blk);
-	while(( blk=routine.get_next_blk() ));
+	while(( blk=routine->get_next_blk() ));
 	
 	/***************** RETURN *****************/
 	
@@ -1003,17 +918,65 @@ static void Gen_routine(const Routine& routine){
 	put_str("\t%s\n", inst_array[X_RET]);
 }
 
+/*************************** DECLARATION FUNCTIONS ****************************/
+
+static void static_array(Array * array){
+	put_str("\tresb\t%s\n", str_num(size_of(array)));
+}
+
+static void static_prime(Prime * prime){
+	switch (size_of(prime)){
+	case byte : put_str("\tdb\t%s\n", str_num(prime->get_value())); break;
+	case word : put_str("\tdw\t%s\n", str_num(prime->get_value())); break;
+	case dword: put_str("\tdd\t%s\n", str_num(prime->get_value())); break;
+	case qword: put_str("\tdq\t%s\n", str_num(prime->get_value())); break;
+	default:
+		msg_print(NULL, V_ERROR,
+			"static_prime(): got a bad size from size_of()");
+		throw;
+	}
+}
+
+static void static_structure(Structure * structure){
+	Data * field;
+	
+	if(( field = structure->members.first() )){
+		do{
+			switch(field->get_type()){
+			case ot_array:
+				static_array(dynamic_cast<Array*>(field)); break;
+			case ot_prime:
+				static_prime(dynamic_cast<Prime*>(field)); break;
+			case ot_struct:
+				static_structure(dynamic_cast<Structure*>(field)); break;
+			case ot_base:
+			case ot_routine:
+			default:
+				msg_print(NULL, V_ERROR,
+					"static_structure(): got an invalid field");
+				throw;
+			}
+		}while(( field = structure->members.next() ));
+	}
+}
 
 /// Generate a static data object
-static void Gen_data(obj_pt obj){
-	switch(obj->get_type()){
-	case ot_prime: break;
-	case ot_struct: break;
+static void static_data(obj_pt obj){
 	
-	case ot_base:
+	// place the label
+	lbl(obj);
+	
+	switch(obj->get_type()){
+	// data
+	case ot_prime : static_prime    (dynamic_cast<Prime*>    (obj)); break;
+	case ot_struct: static_structure(dynamic_cast<Structure*>(obj)); break;
+	case ot_array : static_array    (dynamic_cast<Array*>    (obj)); break;
+	
+	// not data
+	case ot_base   :
 	case ot_routine:
-	default:
-		msg_print(NULL, V_ERROR, "Gen_data(): not a prime or struct");
+	default        :
+		msg_print(NULL, V_ERROR, "static_data(): not data");
 		throw;
 	}
 }
@@ -1043,7 +1006,33 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
+	/*********** DECLARE VISIBILITY ***********/
+	
+	do{
+		switch(obj->get_sclass()){
+		case sc_public: put_str("global %s\n", obj->get_label()); break; 
+		case sc_extern: put_str("extern %s\n", obj->get_label()); break;
+		
+		// Do nothing
+		case sc_private:
+		case sc_stack  :
+		case sc_param  :
+		case sc_temp   :
+		case sc_const  : break;
+		
+		// error
+		case sc_none:
+		case sc_NUM :
+		default     :
+			msg_print(NULL, V_ERROR,
+				"x86(): got an object with an invalid storage class");
+			throw;
+		}
+	}while(( obj=prog->objects.next() ));
+	
 	/************ STATIC VARIABLES ************/
+	
+	obj=prog->objects.first();
 	
 	put_str("\nsection .data\t; Static data\n");
 	
@@ -1051,23 +1040,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	else put_str("align 4\n");
 	
 	do{
-		switch(obj->get_sclass()){
-		case sc_static:                               Gen_data(obj); break;
-		case sc_global: put_global(obj->get_label()); Gen_data(obj); break;
-		case sc_extern: put_extern(obj->get_label()); Gen_data(obj); break;
-		
-		case sc_none:
-		case sc_temp:
-		case sc_stack:
-		case sc_param:
-		case sc_const:
-		case sc_code : break;
-		
-		case sc_NUM:
-		default:
-			msg_print(NULL, V_ERROR, "x86(): found an invalid storage class");
-			throw;
-		}
+		if(obj->is_static_data()) static_data(obj);
 	}while(( obj=prog->objects.next() ));
 	
 	/************** PROGRAM CODE **************/
@@ -1077,7 +1050,8 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	put_str("\nsection .code\t; Program code\n");
 	
 	do{
-		if(obj->get_type() == ot_routine) Gen_routine(*(Routine*)obj);
+		if(obj->get_type() == ot_routine)
+			Gen_routine(dynamic_cast<Routine*>(obj));
 	}while(( obj=prog->objects.next() ));
 	
 	msg_print(NULL, V_INFO, "x86(): stop");

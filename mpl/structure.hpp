@@ -21,17 +21,38 @@
 /******************************************************************************/
 
 
-class Structure: public Object{
+class Structure: public Data{
 	
 public:
 	Obj_List members;
 	/****************************** CONSTRUCTOR *******************************/
 	
+	Structure(void): Data(){}
+	
 	/******************************* ACCESSOR *********************************/
 	
 	virtual obj_t get_type (void) const{ return ot_struct; }
 	
-	const char * print_obj (void) const{}
+	const char * print_obj (void) const{
+		std::string str;
+		obj_pt obj;
+	
+		str = "Struct: ";
+		str += get_label();
+		str += "\n";
+	
+		if(( obj = members.first() )){
+			do{
+				str += "\t";
+				str += obj->print_obj();
+				str += "\n";
+			}while(( obj = members.next() ));
+		}
+	
+		str += "\n";
+	
+		return str.c_str();
+	}
 	
 	/******************************* MUTATORS *********************************/
 	
