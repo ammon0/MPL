@@ -18,16 +18,18 @@
 
 
 class Data: public Object{
-	int BP_offset;
+	int    offset;
+	size_t bytes;
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Data(): Object() { BP_offset = 0; }
+	Data(): Object() { offset = 0; bytes = 0; }
 	
 	/******************************* ACCESSOR *********************************/
 	
-	int get_offset(void) const{ return BP_offset; }
+	int    get_offset(void) const{ return offset; }
+	size_t get_size  (void) const{ return bytes ; }
 	
 	bool is_static_data(void)const{
 		if(get_sclass() == sc_private || get_sclass() == sc_public) return true;
@@ -36,7 +38,8 @@ public:
 	
 	/******************************* MUTATORS *********************************/
 	
-	void set_offset(int set){ BP_offset = set; }
+	void set_offset(int    set ){ offset = set; }
+	void set_size  (size_t size){ bytes = size; }
 	
 };
 

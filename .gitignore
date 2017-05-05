@@ -5,3 +5,8 @@
 .cproject
 .project
 .settings
+*.cbp
+*.depend
+*.layout
+*.save
+

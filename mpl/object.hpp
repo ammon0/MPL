@@ -75,12 +75,12 @@ public:
 	bool is_mem(void) const{
 		switch(sclass){
 		case sc_private:
-		case sc_public:
-		case sc_extern:
-		case sc_stack : return true;
+		case sc_public :
+		case sc_extern :
+		case sc_stack  :
+		case sc_param  :return true;
 		case sc_none :
 		case sc_temp :
-		case sc_param:
 		case sc_const: return false;
 		case sc_NUM:
 		default    : throw;

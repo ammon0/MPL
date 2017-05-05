@@ -20,6 +20,10 @@
 
 
 #include <mpl/obj_container.hpp>
+#include <mpl/prime.hpp>
+#include <mpl/routine.hpp>
+#include <mpl/structure.hpp>
+#include <mpl/array.hpp>
 
 
 /** This is a container for all the components of the portable program data.

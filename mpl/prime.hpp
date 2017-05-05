@@ -23,7 +23,7 @@
 
 
 /// data sizes for numerical operands
-typedef enum{
+typedef enum width_t{
 	w_none,
 	w_byte,
 	w_byte2,
@@ -47,26 +47,26 @@ class Prime: public Data{
 	width_t   width;
 	bool      sign;
 	umax      value;
-	/** if sc_const then value is the immediate contant value. Otherwise value is
-	    the initialization of the variable.
+	/**	if sc_const then value is the immediate contant value. Otherwise value is
+		the initialization of the variable.
 	*/
-	
+
 public:
 	/****************************** CONSTRUCTOR *******************************/
-	
+
 	Prime(void);
-	
+
 	/******************************* ACCESSOR *********************************/
-	
+
 	width_t get_width(void) const{ return width; }
 	umax    get_value(void) const{ return value; }
 	bool    is_signed(void) const{ return sign ; }
-	
+
 	virtual obj_t get_type (void) const{ return ot_prime; }
 	virtual const char * print_obj (void) const;
-	
+
 	/******************************* MUTATORS *********************************/
-	
+
 	void set_width   (width_t size);
 	void set_count   (umax    number);
 	void set_signed  (void        );

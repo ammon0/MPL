@@ -10,7 +10,7 @@
  ******************************************************************************/
 
 /**	@file gen-x86.cpp
- *	
+ *
  *	generates x86 assembler code from the portable program data.
  *
  *	## Code Generation
@@ -49,7 +49,7 @@
  *	|_____________________|
  *	|     temporaries     | PUSH temp
  *	|_____________________|
- *	
+ *
  *	</PRE>
  *
  *	SP is always pointing to the top item on the stack, so
@@ -94,15 +94,11 @@
  */
 
 
-#include <util/types.h>
+//#include <util/types.h>
 #include <util/msg.h>
 
 #include <mpl/ppd.hpp>
 #include <mpl/gen.hpp>
-#include <mpl/prime.hpp>
-#include <mpl/routine.hpp>
-#include <mpl/structure.hpp>
-#include <mpl/array.hpp>
 
 #include <stdio.h>
 #include <string.h>
@@ -136,14 +132,10 @@ typedef enum{
 } reg_t;
 
 /// These are the x86 register sizes
-typedef enum {
-	bad_width=0,
-	byte     =1,
-	word     =2,
-	dword    =4,
-	qword    =8
-} reg_width;
-
+#define BYTE  ((size_t) 1)
+#define WORD  ((size_t) 2)
+#define DWORD ((size_t) 4)
+#define QWORD ((size_t) 8)
 
 /// These are the x86 instructions that we are working with
 typedef enum {
@@ -153,7 +145,7 @@ typedef enum {
 	X_MOVZX, ///< copy 8, or 16-bit data to a larger location and zero extend
 	X_MOVBE, ///< copy and swap byte order
 	X_LEA,  ///< load effective address
-	
+
 	X_CLD, ///< clear DF
 	X_STD, ///< set DF
 	X_STOS, ///< store string. uses A, DI, ES, and DF flag
@@ -163,13 +155,13 @@ typedef enum {
 	X_INS,  ///< read a string from IO.
 	X_CMPS, ///< compare arrays
 	X_SCAS, ///< scan an array in DI
-	
+
 	X_IN,  ///< read from an IO port
 	X_OUT, ///< write to an IO port
-	
+
 	X_PUSH,   ///< push data onto the stack
 	X_POP,    ///< pop data from the stack
-	
+
 	X_INC, ///< Increment
 	X_DEC, ///< decrement
 	X_ADD,
@@ -178,25 +170,25 @@ typedef enum {
 	X_NEG,
 	X_CMP,  ///< sets the status flags as if subtraction had occurred
 	// X_SETcc sets a register based on flag conditions
-	
+
 	X_MUL,  ///< unsigned multiplication
 	X_IMUL, ///< signed multiplication
 	X_DIV,  ///< unsigned division
 	X_IDIV, ///< Signed division
-	
+
 	X_AND,
 	X_ANDN, ///< AND NOT
 	X_OR,
 	X_XOR,
 	X_NOT,
 	X_TEST, ///< sets the status flags as if AND had occurred
-	
+
 	X_SHR, ///< bit shift right unsigned
 	X_SAR, ///< bit shift right signed (behavior is not the same as idiv)
 	X_SHL, ///< bit shift left
 	X_ROR, ///< bit rotate right
 	X_ROL, ///< bit rotate left
-	
+
 	X_JMP,   ///< jump
 	X_JZ,    ///< jump if zero
 	X_JNZ,   ///< jump if non-zero
@@ -207,7 +199,7 @@ typedef enum {
 	X_BOUND, ///< check an index is within array bounds
 	X_ENTER,
 	X_LEAVE,
-	
+
 	NUM_inst
 } x86_inst;
 
@@ -216,7 +208,7 @@ class Stack_man{
 	int SP_offset;
 public:
 	Stack_man(void){ SP_offset = 0; }
-	
+
 	void push_temp(reg_t reg     ); ///< push as a temp
 	void push_auto(Data * auto_var); ///< push an automatic variable
 	void push_parm(obj_pt parameter); ///< push a parameter onto the stack
@@ -225,12 +217,6 @@ public:
 	void pop(void); ///< pop the current activation record
 };
 
-/// Keeps track of what is in each register
-class Reg_man{
-	obj_pt reg_d[NUM_reg];
-public:
-	void flush(void);
-};
 
 /******************************************************************************/
 //                  GLOBAL CONSTANTS IN THE GEN-X86 MODULE
@@ -272,10 +258,6 @@ static Stack_man stack_manager;
 /******************************************************************************/
 
 
-/// runs the various functions through their various outputs.
-static void test_x86(void){}
-
-
 /************************** STRING WRITING FUNCTIONS **************************/
 
 /** Return the correct assembler string for the given x86 instruction. */
@@ -291,27 +273,26 @@ static inline const char * str_num(umax num){
 }
 
 /** Return the appropriate string to use the given x86 register. */
-static const char * str_reg(reg_width width, reg_t reg){
+static const char * str_reg(size_t width, reg_t reg){
 	static char array[4] = "   ";
-	
-	if(mode != xm_long && width == qword){
+
+	if(mode != xm_long && width == QWORD){
 		msg_print(NULL, V_ERROR,
 			"Internal str_reg(): qword only availible in long mode");
 		return "!!Bad width!!";
 	}
-	
+
 	switch (width){
-	case byte : array[0] = ' '; array[2] = ' '; break;
-	case word : array[0] = ' '; array[2] = 'x'; break;
-	case dword: array[0] = 'e'; array[2] = 'x'; break;
-	case qword: array[0] = 'r'; array[2] = 'x'; break;
+	case BYTE : array[0] = ' '; array[2] = ' '; break;
+	case WORD : array[0] = ' '; array[2] = 'x'; break;
+	case DWORD: array[0] = 'e'; array[2] = 'x'; break;
+	case QWORD: array[0] = 'r'; array[2] = 'x'; break;
 	
-	case bad_width:
 	default:
-		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_width");
+		msg_print(NULL, V_ERROR, "str_reg(): got a bad width");
 		return NULL;
 	}
-	
+
 	switch (reg){
 	case A  : array[1] = 'a'; break;
 	case B  : array[1] = 'b'; break;
@@ -329,13 +310,13 @@ static const char * str_reg(reg_width width, reg_t reg){
 	case R13: array[1] = '1'; array[2] = '3'; break;
 	case R14: array[1] = '1'; array[2] = '4'; break;
 	case R15: array[1] = '1'; array[2] = '5'; break;
-	
+
 	case NUM_reg:
 	default:
 		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_t");
 		return "!!bad!!";
 	}
-	
+
 	return array;
 }
 
@@ -343,7 +324,7 @@ static const char * str_reg(reg_width width, reg_t reg){
 static void __attribute__((format(printf, 1, 2)))
 put_str(const char * format, ...){
 	va_list ap;
-	
+
 	va_start(ap, format);
 	vfprintf(fd, format, ap);
 	va_end(ap);
@@ -351,30 +332,11 @@ put_str(const char * format, ...){
 
 /***************************** HELPER FUNCTIONS *******************************/
 
-/// Get the size of an object in bytes
-static size_t size_of(Data * data){
-	size_t size = 0;
-	
-	switch(data->get_type()){
-	case ot_array: break; //FIXME: do something
-	case ot_prime: break;
-	case ot_struct: break;
-	
-	case ot_base   :
-	case ot_routine:
-	default        :
-		msg_print(NULL, V_ERROR, "size_of(): data is not Data*");
-		throw;
-	}
-	
-	return size;
-}
-
 /** Determine whether an operand is already present in a register.
  */
 static reg_t check_reg(obj_pt operand){
 	uint i;
-	
+
 	for(i=A; i!=NUM_reg; i++){
 		reg_t j = static_cast<reg_t>(i);
 		if(reg_d[j] == operand) break;
@@ -385,17 +347,17 @@ static reg_t check_reg(obj_pt operand){
 /// push an auto variable onto the stack
 void Stack_man::push_auto(Data * auto_var){
 	//TODO: calculate its size
-	
+
 	// issue push instruction
 	put_str("%s\t%s\n",
 		str_instruction(X_PUSH),
 		str_num(0)
 	);
-	
+
 	// increment SP_offset
-	if(mode == xm_long) SP_offset += qword;
-	else SP_offset += dword;
-	
+	if(mode == xm_long) SP_offset += QWORD;
+	else SP_offset += DWORD;
+
 	// set the offset
 	auto_var->set_offset(SP_offset);
 }
@@ -403,25 +365,25 @@ void Stack_man::push_auto(Data * auto_var){
 /// push a temp variable onto the stack
 void Stack_man::push_temp(reg_t reg){
 	Data * tmp;
-	
+
 	if(reg_d[reg]->get_sclass() != sc_temp){
 		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
 		throw;
 	}
-	
+
 	tmp = dynamic_cast<Data*>(reg_d[reg]);
-	
+
 	// issue push instruction
 //	put_str("%s\t%s\n",
 //		str_instruction(X_PUSH),
 //		str_reg(set_width(tmp), reg)
 //		// or should this be the stack width?
 //	);
-	
+
 	// increment SP_offset
-	if(mode == xm_long) SP_offset += qword;
-	else SP_offset += dword;
-	
+	if(mode == xm_long) SP_offset += QWORD;
+	else SP_offset += DWORD;
+
 	tmp->set_offset(SP_offset);
 }
 
@@ -429,8 +391,8 @@ void Stack_man::push_temp(reg_t reg){
 void Stack_man::set_BP(void){
 	put_str("\t%s\t%s,\t%s\n",
 		str_instruction(X_MOV),
-		str_reg(mode == xm_long? qword: dword, BP),
-		str_reg(mode == xm_long? qword: dword, SP)
+		str_reg(mode == xm_long? QWORD: DWORD, BP),
+		str_reg(mode == xm_long? QWORD: DWORD, SP)
 	);
 	SP_offset = 0;
 }
@@ -439,63 +401,63 @@ void Stack_man::pop(void){
 	put_str(
 		"\t%s\t%s,\t%s\n",
 		inst_array[X_MOV],
-		str_reg(mode == xm_long? qword:dword, SP),
-		str_reg(mode == xm_long? qword:dword, BP)
+		str_reg(mode == xm_long? QWORD:DWORD, SP),
+		str_reg(mode == xm_long? QWORD:DWORD, BP)
 	);
 	SP_offset=0;
 }
 
 /** Store data in register to its appropriate memory location.
  */
-static void store(reg_t reg){
-	Prime * prime;
-	
-	if(!reg_d[reg]->is_mem()) return;
-	
-	if(reg_d[reg] == NULL){
-		msg_print(NULL, V_ERROR,
-			"store(): there is no memory location associated with register %u",
-			reg
-		);
-		throw;
-	}
-	
-	prime = dynamic_cast<Prime*>(reg_d[reg]);
-	
-	put_str("\t%s\t[%s]\t%s",
-		str_instruction(X_MOV),
-		str_prime(prime),
-		str_reg(set_width(prime), reg)
-	);
-}
+//static void store(reg_t reg){
+//	Prime * prime;
+//
+//	if(!reg_d[reg]->is_mem()) return;
+//
+//	if(reg_d[reg] == NULL){
+//		msg_print(NULL, V_ERROR,
+//			"store(): there is no memory location associated with register %u",
+//			reg
+//		);
+//		throw;
+//	}
+//
+//	prime = dynamic_cast<Prime*>(reg_d[reg]);
+//
+//	put_str("\t%s\t[%s]\t%s",
+//		str_instruction(X_MOV),
+//		str_prime(prime),
+//		str_reg(set_width(prime), reg)
+//	);
+//}
 
-/** Load data from memory to a register.
- */
-static void load(reg_t reg, Prime * mem){
-	reg_t test_reg;
-	
-	// check if it's already in a register
-	test_reg = check_reg(mem);
-	
-	if(test_reg == reg) // if it's already where it needs to be
-		;
-	else if(test_reg != NUM_reg){ // if it's in another register
-		put_str("%s\t%s,\t%s\n",
-			str_instruction(X_MOV),
-			str_reg(set_width(mem), reg),
-			str_reg(set_width(mem), test_reg)
-		);
-		reg_d[test_reg] = NULL;
-	}
-	else // if it's in memory
-		put_str("\t%s\t%s,\t[%s]\n",
-			str_instruction(X_MOV),
-			str_reg(set_width(mem), reg),
-			str_prime(mem)
-		);
-	
-	reg_d[reg] = mem;
-}
+///** Load data from memory to a register.
+// */
+//static void load(reg_t reg, Prime * mem){
+//	reg_t test_reg;
+//
+//	// check if it's already in a register
+//	test_reg = check_reg(mem);
+//
+//	if(test_reg == reg) // if it's already where it needs to be
+//		;
+//	else if(test_reg != NUM_reg){ // if it's in another register
+//		put_str("%s\t%s,\t%s\n",
+//			str_instruction(X_MOV),
+//			str_reg(set_width(mem), reg),
+//			str_reg(set_width(mem), test_reg)
+//		);
+//		reg_d[test_reg] = NULL;
+//	}
+//	else // if it's in memory
+//		put_str("\t%s\t%s,\t[%s]\n",
+//			str_instruction(X_MOV),
+//			str_reg(set_width(mem), reg),
+//			str_prime(mem)
+//		);
+//
+//	reg_d[reg] = mem;
+//}
 
 static void Store(reg_t reg){}
 
@@ -506,321 +468,321 @@ static void Load_member(reg_t, Structure * array /*, FIXME */ ){}
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alphabetical
 
-/// make an assignment
-static inline void ass(obj_pt result, obj_pt arg){
-//	load(A, arg);
-//	reg_d[A] = result;
-}
+///// make an assignment
+//static inline void ass(obj_pt result, obj_pt arg){
+////	load(A, arg);
+////	reg_d[A] = result;
+//}
 
-/// most binary operations
-static inline void
-binary(Prime * result, Prime * left, Prime * right, x86_inst op){
-	load(A, left);
-	load(C, right);
-	
-	put_str("\t%s\t%s,\t%s\n",
-		str_instruction(op),
-		str_reg(set_width(left), A),
-		str_reg(set_width(right), C)
-	);
-	
-	reg_d[A] = result;
-}
-
-/// call a procedure
-static inline void call(obj_pt result, Routine * proc){
-	// parameters are already loaded
-	put_str("\t%s\t%s\n", inst_array[X_CALL], proc->get_label());
-	
-	// unload parameters
-	stack_manager.unload(proc->formal_params.count());
-	
-	reg_d[A] = result;
-}
-
-/// signed and unsigned division
-static void div(Prime * result, Prime * left, Prime * right){
-	load(A, left);
-	load(C, right);
-	
-	if(left->is_signed() || right->is_signed()){
-		put_str("\t%s\t%s\n",
-			str_instruction(X_IDIV),
-			str_reg(set_width(right), C)
-		);
-	}
-	else{
-		put_str("\t%s\t%s\n",
-			str_instruction(X_DIV),
-			str_reg(set_width(right), C)
-		);
-	}
-	
-	reg_d[A] = result;
-}
-
-/// dereference a pointer
-static inline void dref(obj_pt result, Prime * pointer){
-	load(A, pointer);
-//	put_str("%s\t%s,\t[%s]\n",
-//		str_instruction(X_MOV),
-//		str_reg(set_width(result), A),
-//		str_reg(set_width(w_ptr),A)
+///// most binary operations
+//static inline void
+//binary(Prime * result, Prime * left, Prime * right, x86_inst op){
+//	load(A, left);
+//	load(C, right);
+//
+//	put_str("\t%s\t%s,\t%s\n",
+//		str_instruction(op),
+//		str_reg(set_width(left), A),
+//		str_reg(set_width(right), C)
 //	);
-	
-	
-	//FIXME
-	reg_d[A] = result;
-}
+//
+//	reg_d[A] = result;
+//}
+
+///// call a procedure
+//static inline void call(obj_pt result, Routine * proc){
+//	// parameters are already loaded
+//	put_str("\t%s\t%s\n", inst_array[X_CALL], proc->get_label());
+//
+//	// unload parameters
+//	stack_manager.unload(proc->formal_params.count());
+//
+//	reg_d[A] = result;
+//}
+
+///// signed and unsigned division
+//static void div(Prime * result, Prime * left, Prime * right){
+//	load(A, left);
+//	load(C, right);
+//
+//	if(left->is_signed() || right->is_signed()){
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_IDIV),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//	else{
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_DIV),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//
+//	reg_d[A] = result;
+//}
+
+///// dereference a pointer
+//static inline void dref(obj_pt result, Prime * pointer){
+//	load(A, pointer);
+////	put_str("%s\t%s,\t[%s]\n",
+////		str_instruction(X_MOV),
+////		str_reg(set_width(result), A),
+////		str_reg(set_width(w_ptr),A)
+////	);
+//
+//
+//	//FIXME
+//	reg_d[A] = result;
+//}
 
 /// place a label in the assembler file
 static inline void lbl(obj_pt op){
 	put_str("%s:\n", op->get_label());
 }
 
-/// signed and unsigned modulus division
-static void mod(Prime * result, Prime * left, Prime * right){
-	load(A, left);
-	load(C, right);
-	
-	if(left->is_signed() || right->is_signed()){
-		put_str("\t%s\t%s\n",
-			str_instruction(X_IDIV),
-			str_reg(set_width(right), C)
-		);
-	}
-	else{
-		put_str("\t%s\t%s\n",
-			str_instruction(X_DIV),
-			str_reg(set_width(right), C)
-		);
-	}
-	
-	put_str("%s\t%s,\t%s\n",
-		str_instruction(X_MOV),
-		str_reg(set_width(result), A),
-		str_reg(set_width(result), D)
-	);
-	
-	reg_d[A] = result;
-}
-
-/// signed and unsigned multiplication
-static void mul(Prime * result, Prime * left, Prime * right){
-	load(A, left);
-	load(C, right);
-	
-	if(left->is_signed() || right->is_signed()){
-		put_str("\t%s\t%s\n",
-			str_instruction(X_IMUL),
-			str_reg(set_width(right), C)
-		);
-	}
-	else{
-		put_str("\t%s\t%s\n",
-			str_instruction(X_MUL),
-			str_reg(set_width(right), C)
-		);
-	}
-	// sets the carry and overflow flags if D is non-zero
-	
-	reg_d[A] = result;
-}
-
-/// gets the address of an object
-static void ref(Prime * result, obj_pt arg){
-	
-	switch(arg->get_sclass()){
-	case sc_private:
-	case sc_public:
-	case sc_extern:
-	case sc_stack :
-	case sc_param: break;
-	
-	case sc_none :
-	case sc_temp :
-	case sc_const:
-	case sc_NUM  :
-	default      :
-		msg_print(NULL, V_ERROR,
-			"Internal dref(): arg is not a memory location");
-		throw;
-	}
-	
-	if(result->get_width() != w_ptr){
-		msg_print(NULL, V_ERROR, "Internal dref(): result is not w_ptr");
-		throw;
-	}
-	
-	// FIXME
-//	put_str("\t%s\t%s\n%s\n",
-//		str_instruction(X_MOVZX),
-//		str_reg(set_width(w_ptr), A),
-//		str_obj(arg)
+///// signed and unsigned modulus division
+//static void mod(Prime * result, Prime * left, Prime * right){
+//	load(A, left);
+//	load(C, right);
+//
+//	if(left->is_signed() || right->is_signed()){
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_IDIV),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//	else{
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_DIV),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//
+//	put_str("%s\t%s,\t%s\n",
+//		str_instruction(X_MOV),
+//		str_reg(set_width(result), A),
+//		str_reg(set_width(result), D)
 //	);
-	
-	reg_d[A] = result;
-}
+//
+//	reg_d[A] = result;
+//}
 
-/// return from a function
-static inline void ret(obj_pt value){
-	// load the return value if present
-	//if(value) load(A, value);
-	// TODO: jump to the return statement
-}
+///// signed and unsigned multiplication
+//static void mul(Prime * result, Prime * left, Prime * right){
+//	load(A, left);
+//	load(C, right);
+//
+//	if(left->is_signed() || right->is_signed()){
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_IMUL),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//	else{
+//		put_str("\t%s\t%s\n",
+//			str_instruction(X_MUL),
+//			str_reg(set_width(right), C)
+//		);
+//	}
+//	// sets the carry and overflow flags if D is non-zero
+//
+//	reg_d[A] = result;
+//}
 
-/// most unary operations
-static inline void unary(Prime * result, Prime * arg, x86_inst op){
-	// load the accumulator
-	load(A, arg);
-	
-	put_str("\t%s\t%s\n",
-		str_instruction(op),
-		str_reg(set_width(arg->get_width()), A)
-	);
-	
-	//FIXME: reg_d[A] = result;
-}
+///// gets the address of an object
+//static void ref(Prime * result, obj_pt arg){
+//
+//	switch(arg->get_sclass()){
+//	case sc_private:
+//	case sc_public:
+//	case sc_extern:
+//	case sc_stack :
+//	case sc_param: break;
+//
+//	case sc_none :
+//	case sc_temp :
+//	case sc_const:
+//	case sc_NUM  :
+//	default      :
+//		msg_print(NULL, V_ERROR,
+//			"Internal dref(): arg is not a memory location");
+//		throw;
+//	}
+//
+//	if(result->get_width() != w_ptr){
+//		msg_print(NULL, V_ERROR, "Internal dref(): result is not w_ptr");
+//		throw;
+//	}
+//
+//	// FIXME
+////	put_str("\t%s\t%s\n%s\n",
+////		str_instruction(X_MOVZX),
+////		str_reg(set_width(w_ptr), A),
+////		str_obj(arg)
+////	);
+//
+//	reg_d[A] = result;
+//}
+
+///// return from a function
+//static inline void ret(obj_pt value){
+//	// load the return value if present
+//	//if(value) load(A, value);
+//	// TODO: jump to the return statement
+//}
+
+///// most unary operations
+//static inline void unary(Prime * result, Prime * arg, x86_inst op){
+//	// load the accumulator
+//	load(A, arg);
+//
+//	put_str("\t%s\t%s\n",
+//		str_instruction(op),
+//		str_reg(set_width(arg->get_width()), A)
+//	);
+//
+//	//FIXME: reg_d[A] = result;
+//}
 
 /***************************** ITERATOR FUNCTIONS *****************************/
 
 /** Generate code for a single intermediate instruction
  */
 static void Gen_inst(inst_pt inst){
-	switch (inst->op){
-	case i_nop : return;
-	case i_proc: return;
-	
-	case i_inc : unary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		X_INC
-	); break;
-	case i_dec : unary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		X_DEC
-	); break;
-	case i_neg : unary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		X_NEG
-	); break;
-	case i_not : unary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		X_NOT
-	); break;
-	
-	case i_ass : ass (inst->result, inst->left); break;
-	case i_sz  : break;
-	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
-	
-	case i_ref : ref(dynamic_cast<Prime*>(inst->result), inst->left); break;
-	
-	case i_lsh : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_SHL
-	); break;
-	case i_rsh : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_SHR
-	); break;
-	case i_rol : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_ROL
-	); break;
-	case i_ror : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_ROR
-	); break;
-	case i_add : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_ADD
-	); break;
-	case i_sub : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_SUB
-	); break;
-	case i_band: binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_AND
-	); break;
-	case i_bor : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_OR
-	) ; break;
-	case i_xor : binary(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right),
-		X_XOR
-	); break;
-	case i_mul : mul(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
-	); break;
-	case i_div : div(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
-	); break;
-	case i_mod : mod(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
-	); break;
-	case i_exp : break;
-	
-	// these are probably all implemented with X_CMP
-	case i_eq  : break;
-	case i_neq : break;
-	case i_lt  : break;
-	case i_gt  : break;
-	case i_lte : break;
-	case i_gte : break;
-	
-	case i_inv : break;
-	case i_and : break;
-	case i_or  : break;
-	
-	case i_lbl : lbl(inst->left); break;
-	case i_jmp : break;
-	case i_jz  : break;
-	case i_loop: break;
-	case i_cpy : break;
-	
-	case i_parm: stack_manager.push_parm(
-		dynamic_cast<Prime*>(inst->left)
-	); break;
-	case i_call: call(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Routine*>(inst->left)
-	); break;
-	
-	case i_rtrn: ret(inst->left); break;
-	
-	case i_NUM:
-	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
-	}
-	
+//	switch (inst->op){
+//	case i_nop : return;
+//	case i_proc: return;
+//
+//	case i_inc : unary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		X_INC
+//	); break;
+//	case i_dec : unary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		X_DEC
+//	); break;
+//	case i_neg : unary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		X_NEG
+//	); break;
+//	case i_not : unary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		X_NOT
+//	); break;
+//
+//	case i_ass : ass (inst->result, inst->left); break;
+//	case i_sz  : break;
+//	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
+//
+//	case i_ref : ref(dynamic_cast<Prime*>(inst->result), inst->left); break;
+//
+//	case i_lsh : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_SHL
+//	); break;
+//	case i_rsh : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_SHR
+//	); break;
+//	case i_rol : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_ROL
+//	); break;
+//	case i_ror : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_ROR
+//	); break;
+//	case i_add : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_ADD
+//	); break;
+//	case i_sub : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_SUB
+//	); break;
+//	case i_band: binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_AND
+//	); break;
+//	case i_bor : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_OR
+//	) ; break;
+//	case i_xor : binary(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right),
+//		X_XOR
+//	); break;
+//	case i_mul : mul(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right)
+//	); break;
+//	case i_div : div(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right)
+//	); break;
+//	case i_mod : mod(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Prime*>(inst->left),
+//		dynamic_cast<Prime*>(inst->right)
+//	); break;
+//	case i_exp : break;
+//
+//	// these are probably all implemented with X_CMP
+//	case i_eq  : break;
+//	case i_neq : break;
+//	case i_lt  : break;
+//	case i_gt  : break;
+//	case i_lte : break;
+//	case i_gte : break;
+//
+//	case i_inv : break;
+//	case i_and : break;
+//	case i_or  : break;
+//
+//	case i_lbl : lbl(inst->left); break;
+//	case i_jmp : break;
+//	case i_jz  : break;
+//	case i_loop: break;
+//	case i_cpy : break;
+//
+//	case i_parm: stack_manager.push_parm(
+//		dynamic_cast<Prime*>(inst->left)
+//	); break;
+//	case i_call: call(
+//		dynamic_cast<Prime*>(inst->result),
+//		dynamic_cast<Routine*>(inst->left)
+//	); break;
+//
+//	case i_rtrn: ret(inst->left); break;
+//
+//	case i_NUM:
+//	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
+//	}
+
 	/* Since temporaries are single use they can be completely covered by the
 	 * accumulator unless they are not immediately used. In which case we have
 	 * to find a place to stash them.
@@ -830,7 +792,7 @@ static void Gen_inst(inst_pt inst){
 			msg_print(NULL, V_INFO, "We're setting a stack temp");
 			stack_manager.push_temp(A);
 		}
-		else store(A);
+		else Store(A);
 	}
 }
 
@@ -838,22 +800,22 @@ static void Gen_inst(inst_pt inst){
  */
 static void Gen_blk(blk_pt blk){
 	inst_pt inst;
-	
+
 	msg_print(NULL, V_TRACE, "Gen_blk(): start");
-	
+
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
 		throw;
 	}
-	
+
 	do Gen_inst(inst);
 	while(( inst=blk->next() ));
-	
+
 	// flush the registers at the end of the block
 	for(uint i=0; i<R8; i++){
-		if(reg_d[i] != NULL) store((reg_t)i);
+		if(reg_d[i] != NULL) Store((reg_t)i);
 	}
-	
+
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
 }
 
@@ -871,47 +833,47 @@ static void Gen_blk(blk_pt blk){
 static void Gen_routine(Routine * routine){
 	blk_pt blk;
 	obj_pt auto_var;
-	
+
 	/************** SANITY CHECKS *************/
-	
+
 	if(!routine){
 		msg_print(NULL, V_ERROR, "Gen_routine(): Got a NULL pointer");
 		throw;
 	}
-	
+
 	/***************** SETUP ******************/
-	
+
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
-	
+
 	// place the label
 	lbl(routine);
-	
+
 	// set the base pointer
 	stack_manager.set_BP();
-	
+
 	// make space for automatics
 	if(( auto_var=routine->autos.first() ))
 		do{
 			stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
 		}while(( auto_var=routine->autos.next() ));
-	
+
 	/************ SETUP STACK TEMPS ************/
-	
+
 	//FIXME
-	
+
 	/**************** MAIN LOOP ****************/
-	
+
 	if(!( blk=routine->get_first_blk() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Routine");
 		throw;
 	}
-	
+
 	do Gen_blk(blk);
 	while(( blk=routine->get_next_blk() ));
-	
+
 	/***************** RETURN *****************/
-	
+
 	// pop the current activation record
 	stack_manager.pop();
 	// return
@@ -921,15 +883,15 @@ static void Gen_routine(Routine * routine){
 /*************************** DECLARATION FUNCTIONS ****************************/
 
 static void static_array(Array * array){
-	put_str("\tresb\t%s\n", str_num(size_of(array)));
+	put_str("\tresb\t%s\n", str_num(array->get_size()) );
 }
 
 static void static_prime(Prime * prime){
-	switch (size_of(prime)){
-	case byte : put_str("\tdb\t%s\n", str_num(prime->get_value())); break;
-	case word : put_str("\tdw\t%s\n", str_num(prime->get_value())); break;
-	case dword: put_str("\tdd\t%s\n", str_num(prime->get_value())); break;
-	case qword: put_str("\tdq\t%s\n", str_num(prime->get_value())); break;
+	switch (prime->get_size()){
+	case BYTE : put_str("\tdb\t%s\n", str_num(prime->get_value())); break;
+	case WORD : put_str("\tdw\t%s\n", str_num(prime->get_value())); break;
+	case DWORD: put_str("\tdd\t%s\n", str_num(prime->get_value())); break;
+	case QWORD: put_str("\tdq\t%s\n", str_num(prime->get_value())); break;
 	default:
 		msg_print(NULL, V_ERROR,
 			"static_prime(): got a bad size from size_of()");
@@ -939,7 +901,7 @@ static void static_prime(Prime * prime){
 
 static void static_structure(Structure * structure){
 	Data * field;
-	
+
 	if(( field = structure->members.first() )){
 		do{
 			switch(field->get_type()){
@@ -962,16 +924,16 @@ static void static_structure(Structure * structure){
 
 /// Generate a static data object
 static void static_data(obj_pt obj){
-	
+
 	// place the label
 	lbl(obj);
-	
+
 	switch(obj->get_type()){
 	// data
 	case ot_prime : static_prime    (dynamic_cast<Prime*>    (obj)); break;
 	case ot_struct: static_structure(dynamic_cast<Structure*>(obj)); break;
 	case ot_array : static_array    (dynamic_cast<Array*>    (obj)); break;
-	
+
 	// not data
 	case ot_base   :
 	case ot_routine:
@@ -982,11 +944,81 @@ static void static_data(obj_pt obj){
 }
 
 
+/****************************** CALCULATE SIZES *******************************/
+
+static void set_prime_size(Prime * prime){
+	switch(prime->get_width()){
+	case w_byte : prime->set_size(BYTE); break;
+	case w_byte2: prime->set_size(WORD); break;
+	case w_byte4: prime->set_size(DWORD); break;
+	
+	case w_byte8:
+		if(mode == xm_long) prime->set_size(QWORD);
+		else{
+			msg_print(NULL, V_ERROR,
+				"set_prime_size(): cannot use qwords in protected mode");
+			throw;
+		}
+		break;
+	
+	case w_word :
+	case w_ptr  :
+	case w_max  :
+		if(mode == xm_long) prime->set_size(QWORD);
+		else prime->set_size(DWORD);
+		break;
+	
+	case w_none:
+	case w_NUM :
+	default    :
+		msg_print(NULL, V_ERROR, "set_prime_size(): received invalid width");
+		throw;
+	}
+}
+
+static inline void set_size(Data * data);
+
+static void set_array_size(Array * array){
+	size_t child_sz;
+	
+	if(!( child_sz=array->get_child()->get_size() )){
+		set_size(array->get_child());
+		child_sz=array->get_child()->get_size();
+	}
+	
+	array->set_size(child_sz*array->get_count());
+}
+
+static void set_struct_size(Structure * structure){
+	size_t bytes;
+	
+	
+}
+
+static inline void set_size(Data * data){
+	switch(data->get_type()){
+	case ot_array : set_array_size (dynamic_cast<Array*>    (data)); break;
+	case ot_struct: set_struct_size(dynamic_cast<Structure*>(data)); break;
+	case ot_prime : set_prime_size (dynamic_cast<Prime*>    (data)); break;
+
+	// error
+	case ot_routine:
+	case ot_base   :
+	default        :
+		msg_print(NULL, V_ERROR, "set_size(): found an invalid object");
+		throw;
+	}
+}
+
+
 /******************************************************************************/
 //                             PUBLIC FUNCTION
 /******************************************************************************/
 
 
+/**	This function creates assembler code by making multiple passes through the
+ *	PPD object list.
+ */
 void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	obj_pt obj;
 	
@@ -1006,11 +1038,19 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
+	/********* SET SIZES AND OFFSETS **********/
+	
+	do{
+		if(obj->get_type() != ot_routine) set_size(dynamic_cast<Data*>(obj));
+	}while(( obj=prog->objects.next() ));
+	
 	/*********** DECLARE VISIBILITY ***********/
+	
+	obj=prog->objects.first();
 	
 	do{
 		switch(obj->get_sclass()){
-		case sc_public: put_str("global %s\n", obj->get_label()); break; 
+		case sc_public: put_str("global %s\n", obj->get_label()); break;
 		case sc_extern: put_str("extern %s\n", obj->get_label()); break;
 		
 		// Do nothing

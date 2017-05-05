@@ -27,17 +27,17 @@
 
 class Array: public Data{
 	umax   count; ///< How many of these in the array
-	obj_pt child; ///< An array of what must be sc_none they are anonymous and can only be stored as temp
+	Data * child; ///< An array of what must be sc_none they are anonymous and can only be stored as temp
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Array(umax quantity) : Data() { count = quantity; }
+	Array(umax quantity) : Data() { count = quantity; child = NULL; }
 	
 	/******************************* ACCESSOR *********************************/
 	
-	umax get_count(void) const{ return count; }
-	obj_pt get_child(void) const{ return child; }
+	umax   get_count(void) const{ return count; }
+	Data * get_child(void) const{ return child; }
 	
 	virtual obj_t get_type (void) const{ return ot_array; }
 	
