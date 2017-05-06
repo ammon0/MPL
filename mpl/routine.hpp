@@ -18,6 +18,8 @@
 
 typedef struct _root* DS;
 
+#define ot_routine ((obj_t) 1)
+
 
 /******************************************************************************/
 //                              ROUTINE CLASS
@@ -29,8 +31,7 @@ class Routine: public Object{
 	
 public:
 	Obj_List formal_params;
-	Obj_List autos;
-	Obj_List temps;
+	Obj_List auto_storage;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -46,8 +47,6 @@ public:
 	
 	obj_t get_type (void) const{ return ot_routine; }
 	const char * print_obj (void) const;
-	
-	bool is_static_data(void) const{ return false; }
 	
 	/******************************* MUTATORS *********************************/
 	

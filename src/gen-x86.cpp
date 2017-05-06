@@ -205,7 +205,7 @@ typedef enum {
 
 /// Keeps track of the stack details
 class Stack_man{
-	int SP_offset;
+	offset_t SP_offset;
 public:
 	Stack_man(void){ SP_offset = 0; }
 
@@ -248,6 +248,7 @@ static x86_mode_t   mode        ; ///< the processor mode we are building for
 
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
+ *	needs to contain enough information to be able to store the data
  */
 static obj_pt reg_d[NUM_reg];
 static Stack_man stack_manager;
@@ -346,7 +347,7 @@ static reg_t check_reg(obj_pt operand){
 
 /// push an auto variable onto the stack
 void Stack_man::push_auto(Data * auto_var){
-	//TODO: calculate its size
+	//TODO: handle structs and arrays
 
 	// issue push instruction
 	put_str("%s\t%s\n",
@@ -391,8 +392,8 @@ void Stack_man::push_temp(reg_t reg){
 void Stack_man::set_BP(void){
 	put_str("\t%s\t%s,\t%s\n",
 		str_instruction(X_MOV),
-		str_reg(mode == xm_long? QWORD: DWORD, BP),
-		str_reg(mode == xm_long? QWORD: DWORD, SP)
+		str_reg(mode == xm_long? QWORD:DWORD, BP),
+		str_reg(mode == xm_long? QWORD:DWORD, SP)
 	);
 	SP_offset = 0;
 }
@@ -459,20 +460,33 @@ void Stack_man::pop(void){
 //	reg_d[reg] = mem;
 //}
 
+
+/**	reg_d must contain the parent object and an index
+ *
+ */
 static void Store(reg_t reg){}
 
-static void Load(reg_t reg, Data * mem){}
-static void Load_index(reg_t, Array * array, Prime * idx){}
-static void Load_member(reg_t, Structure * array /*, FIXME */ ){}
+static void Load(reg_t reg, Data * data, Prime * idx){
+	
+	// if sc_stack the base is BP- data->offset
+	
+	// if sc_public, sc_extern or sc_private the base is the label
+	
+	// need to store the base and index in the reg_d
+	
+	
+}
 
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alphabetical
 
-///// make an assignment
-//static inline void ass(obj_pt result, obj_pt arg){
-////	load(A, arg);
-////	reg_d[A] = result;
-//}
+/// make an assignment
+static inline void ass(Data * result, Prime * idx, Prime * temp){
+	// reassign the temp value's register to the target location
+	
+	// store that register
+
+}
 
 ///// most binary operations
 //static inline void
@@ -833,47 +847,47 @@ static void Gen_blk(blk_pt blk){
 static void Gen_routine(Routine * routine){
 	blk_pt blk;
 	obj_pt auto_var;
-
+	
 	/************** SANITY CHECKS *************/
-
+	
 	if(!routine){
 		msg_print(NULL, V_ERROR, "Gen_routine(): Got a NULL pointer");
 		throw;
 	}
-
+	
+	/************ SETUP STACK TEMPS ************/
+	
+	//FIXME determine how many temps are needed and add them to the autos
+	
 	/***************** SETUP ******************/
-
+	
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
-
+	
 	// place the label
 	lbl(routine);
-
+	
 	// set the base pointer
 	stack_manager.set_BP();
-
+	
 	// make space for automatics
-	if(( auto_var=routine->autos.first() ))
+	if(( auto_var=routine->auto_storage.first() ))
 		do{
 			stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
-		}while(( auto_var=routine->autos.next() ));
-
-	/************ SETUP STACK TEMPS ************/
-
-	//FIXME
-
+		}while(( auto_var=routine->auto_storage.next() ));
+	
 	/**************** MAIN LOOP ****************/
-
+	
 	if(!( blk=routine->get_first_blk() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Routine");
 		throw;
 	}
-
+	
 	do Gen_blk(blk);
 	while(( blk=routine->get_next_blk() ));
-
+	
 	/***************** RETURN *****************/
-
+	
 	// pop the current activation record
 	stack_manager.pop();
 	// return
@@ -884,6 +898,8 @@ static void Gen_routine(Routine * routine){
 
 static void static_array(Array * array){
 	put_str("\tresb\t%s\n", str_num(array->get_size()) );
+	
+	// TODO: initialization
 }
 
 static void static_prime(Prime * prime){
@@ -900,26 +916,9 @@ static void static_prime(Prime * prime){
 }
 
 static void static_structure(Structure * structure){
-	Data * field;
-
-	if(( field = structure->members.first() )){
-		do{
-			switch(field->get_type()){
-			case ot_array:
-				static_array(dynamic_cast<Array*>(field)); break;
-			case ot_prime:
-				static_prime(dynamic_cast<Prime*>(field)); break;
-			case ot_struct:
-				static_structure(dynamic_cast<Structure*>(field)); break;
-			case ot_base:
-			case ot_routine:
-			default:
-				msg_print(NULL, V_ERROR,
-					"static_structure(): got an invalid field");
-				throw;
-			}
-		}while(( field = structure->members.next() ));
-	}
+	put_str("\tresb\t%s\n", str_num(structure->get_size()) );
+	
+	// TODO: initialization
 }
 
 /// Generate a static data object
@@ -944,9 +943,9 @@ static void static_data(obj_pt obj){
 }
 
 
-/****************************** CALCULATE SIZES *******************************/
+/************************** CALCULATE SIZES & OFFSETS *************************/
 
-static void set_prime_size(Prime * prime){
+static offset_t set_prime_size(Prime * prime, offset_t offset){
 	switch(prime->get_width()){
 	case w_byte : prime->set_size(BYTE); break;
 	case w_byte2: prime->set_size(WORD); break;
@@ -974,32 +973,56 @@ static void set_prime_size(Prime * prime){
 		msg_print(NULL, V_ERROR, "set_prime_size(): received invalid width");
 		throw;
 	}
+	
+	prime->set_offset(offset);
+	return offset + prime->get_size();
 }
 
-static inline void set_size(Data * data);
+static inline offset_t set_size(Data * data, offset_t offset);
 
-static void set_array_size(Array * array){
+static offset_t set_array_size(Array * array, offset_t offset){
 	size_t child_sz;
 	
-	if(!( child_sz=array->get_child()->get_size() )){
-		set_size(array->get_child());
-		child_sz=array->get_child()->get_size();
-	}
+	array->set_offset(offset);
+	
+	if(!array->get_child()->get_size()) set_size(array->get_child(), 0);
+	child_sz=array->get_child()->get_size();
 	
 	array->set_size(child_sz*array->get_count());
+	
+	return offset + array->get_size();
 }
 
-static void set_struct_size(Structure * structure){
-	size_t bytes;
+static offset_t set_struct_size(Structure * structure, offset_t offset){
+	size_t bytes=0;
+	Data * member;
 	
+	structure->set_offset(offset);
 	
+	member = structure->members.first();
+	do{
+		if(!member->get_size()) set_size(member, offset);
+		// FIXME: alignment padding
+		
+		bytes  += member->get_size();
+		offset += member->get_size();
+		
+	}while(( member = structure->members.next() ));
+	
+	structure->set_size(bytes);
+	
+	return offset;
 }
 
-static inline void set_size(Data * data){
+/// sets sizes of parents and offsets of children
+static inline offset_t set_size(Data * data, offset_t offset){
 	switch(data->get_type()){
-	case ot_array : set_array_size (dynamic_cast<Array*>    (data)); break;
-	case ot_struct: set_struct_size(dynamic_cast<Structure*>(data)); break;
-	case ot_prime : set_prime_size (dynamic_cast<Prime*>    (data)); break;
+	case ot_array:
+		return set_array_size(dynamic_cast<Array*>(data), offset);
+	case ot_struct:
+		return set_struct_size(dynamic_cast<Structure*>(data), offset);
+	case ot_prime:
+		return set_prime_size(dynamic_cast<Prime*>(data), offset);
 
 	// error
 	case ot_routine:
@@ -1041,7 +1064,8 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	/********* SET SIZES AND OFFSETS **********/
 	
 	do{
-		if(obj->get_type() != ot_routine) set_size(dynamic_cast<Data*>(obj));
+		if(obj->get_type() != ot_routine)
+			set_size(dynamic_cast<Data*>(obj), 0);
 	}while(( obj=prog->objects.next() ));
 	
 	/*********** DECLARE VISIBILITY ***********/
@@ -1057,6 +1081,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		case sc_private:
 		case sc_stack  :
 		case sc_param  :
+		case sc_member :
 		case sc_temp   :
 		case sc_const  : break;
 		
@@ -1080,7 +1105,29 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	else put_str("align 4\n");
 	
 	do{
-		if(obj->is_static_data()) static_data(obj);
+		switch(obj->get_type()){
+		case ot_array :
+		case ot_prime :
+		case ot_struct:
+			switch(obj->get_sclass()){
+			case sc_private:
+			case sc_public : static_data(obj);
+			
+			// ignore
+			case sc_stack :
+			case sc_param :
+			case sc_member:
+			case sc_temp  :
+			case sc_extern:
+			case sc_const : break;
+			
+			//error
+			case sc_none:
+			case sc_NUM:
+			default: throw;
+			}
+		default: break;
+		}
 	}while(( obj=prog->objects.next() ));
 	
 	/************** PROGRAM CODE **************/

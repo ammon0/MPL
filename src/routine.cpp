@@ -48,12 +48,12 @@ const char * Routine::print_obj (void) const{
 		}while(( obj = formal_params.next() ));
 	}
 	
-	if(( obj = autos.first() )){
+	if(( obj = auto_storage.first() )){
 		str += "\n\tStack Variables:";
 		do{
 			str += "\n";
 			str += obj->print_obj();
-		}while(( obj = autos.next() ));
+		}while(( obj = auto_storage.next() ));
 	}
 	
 	return str.c_str();
@@ -61,16 +61,17 @@ const char * Routine::print_obj (void) const{
 
 /******************************* MUTATORS *********************************/
 
-void __attribute__((noreturn))
-Routine::set_sclass(storage_class_t storage_class){
+void Routine::set_sclass(storage_class_t storage_class){
 	
-	// FIXME: several storage classes are allowed here
+	if(storage_class != sc_private && storage_class != sc_private){
+		msg_print(NULL, V_ERROR,
+			"Routine::set_sclass(): cannot change the storage class to %d",
+			storage_class
+		);
+		throw;
+	}
 	
-	msg_print(NULL, V_ERROR,
-		"Routine::set_sclass(): cannot change the storage class to %d",
-		storage_class
-	);
-	throw;
+	sclass = storage_class;
 }
 
 inst_pt Routine::add_inst (inst_pt instruction){

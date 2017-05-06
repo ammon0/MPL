@@ -15,6 +15,8 @@
 
 #include <mpl/obj_container.hpp>
 
+#define ot_struct ((obj_t) 4)
+
 
 /******************************************************************************/
 //                             STRUCTURE CLASS
@@ -31,7 +33,19 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
-	virtual obj_t get_type (void) const{ return ot_struct; }
+	obj_t get_type (void) const{ return ot_struct; }
+	
+	index_t get_idx_cnt(void) const{
+		Data * member;
+		index_t count=0;
+		
+		member = members.first();
+		do{
+			count += member->get_idx_cnt();
+		}while(( member = members.next() ));
+		
+		return count;
+	}
 	
 	const char * print_obj (void) const{
 		std::string str;

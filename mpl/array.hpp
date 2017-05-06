@@ -17,6 +17,8 @@
 
 #include <util/msg.h>
 
+#define ot_array ((obj_t) 3)
+
 
 /******************************************************************************/
 //                               ARRAY CLASS
@@ -29,6 +31,7 @@ class Array: public Data{
 	umax   count; ///< How many of these in the array
 	Data * child; ///< An array of what must be sc_none they are anonymous and can only be stored as temp
 	
+	std::string lit;
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -38,6 +41,10 @@ public:
 	
 	umax   get_count(void) const{ return count; }
 	Data * get_child(void) const{ return child; }
+	
+	index_t get_idx_cnt(void) const{
+		return count*child->get_idx_cnt();
+	}
 	
 	virtual obj_t get_type (void) const{ return ot_array; }
 	

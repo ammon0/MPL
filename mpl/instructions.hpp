@@ -28,21 +28,30 @@ typedef enum {
 	i_nop,
 	
 	// accessors
-	i_idx , ///< <Object>, <Object>   , <Prime>  access a member of an array
-	i_mbr , ///< <Object>, <Structure>, <Object> access a member of a struct
-	
-	i_ref , ///< <Prime> , <Object>
-	i_dref, ///< <Object>, <Prime>
-	
-	i_ass, ///< <Prime>, <Prime>
-	i_cpy, ///< <Data>, <Data>, <Prime>
-	
+	i_cpy,  ///< A:=B
+	i_stor, ///< A[i]:= temp
+	i_load, ///< temp:=   A[i]
+	i_ref , ///< temp:=   A+i
+	i_inc , ///< temp:= ++A[i], temp:= ++temp
+	i_dec , ///< temp:= --A[i], temp:= --temp
+
+
+/** TODO all compound data types are ultimately composed of primes. Every prime in the compound can then be assigned an index. If indexes can be resolved to offsets then all reads and writes can be done by indexes.
+
+Load(reg, Data*, offset);
+Store(reg, Data*, offset);
+
+all intermediate indexing values then have to be handled by the front end.
+
+
+*/
+
+
 	// unary ops (8)
 	i_neg ,
 	i_inv ,
-	i_inc ,
-	i_dec ,
 	i_sz  ,
+	i_dref, ///< <Object>, <Prime>
 
 	// binary ops (19)
 	i_mul,

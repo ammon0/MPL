@@ -17,8 +17,18 @@
 #include <mpl/object.hpp>
 
 
+/// a type for offsets
+typedef imax offset_t;
+typedef umax index_t;
+
 class Data: public Object{
-	int    offset;
+	offset_t offset;
+	/** if this is a stack parent object then the offset is from BP. If this is a
+	 *	child object then it is anonymous and this is the offset from the parent
+	 *	object.
+	 *	if this is the child of an array the offset should be 0.
+	*/
+	
 	size_t bytes;
 	
 public:
@@ -28,18 +38,20 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
-	int    get_offset(void) const{ return offset; }
-	size_t get_size  (void) const{ return bytes ; }
+	offset_t get_offset(void) const{ return offset; }
+	size_t   get_size  (void) const{ return bytes ; }
 	
 	bool is_static_data(void)const{
 		if(get_sclass() == sc_private || get_sclass() == sc_public) return true;
 		else return false;
 	}
 	
+	virtual index_t get_idx_cnt(void) const=0;
+	
 	/******************************* MUTATORS *********************************/
 	
-	void set_offset(int    set ){ offset = set; }
-	void set_size  (size_t size){ bytes = size; }
+	void set_offset(offset_t set ){ offset = set; }
+	void set_size  (size_t   size){ bytes = size; }
 	
 };
 
