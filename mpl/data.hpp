@@ -24,8 +24,8 @@ typedef umax index_t;
 class Data: public Object{
 	offset_t offset;
 	/** if this is a stack parent object then the offset is from BP. If this is a
-	 *	child object then it is anonymous and this is the offset from the parent
-	 *	object.
+	 *	structure member then it is anonymous and this is the offset from the
+	 *	parent object.
 	 *	if this is the child of an array the offset should be 0.
 	*/
 	

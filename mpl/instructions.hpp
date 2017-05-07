@@ -27,54 +27,75 @@ typedef struct _root* DS;
 typedef enum {
 	i_nop,
 	
-	// accessors
-	i_cpy,  ///< A:=B
-	i_stor, ///< A[i]:= temp
-	i_load, ///< temp:=   A[i]
-	i_ref , ///< temp:=   A+i
-	i_inc , ///< temp:= ++A[i], temp:= ++temp
-	i_dec , ///< temp:= --A[i], temp:= --temp
-
-
-/** TODO all compound data types are ultimately composed of primes. Every prime in the compound can then be assigned an index. If indexes can be resolved to offsets then all reads and writes can be done by indexes.
-
-Load(reg, Data*, offset);
-Store(reg, Data*, offset);
-
-all intermediate indexing values then have to be handled by the front end.
-
-
-*/
-
-
-	// unary ops (8)
+	/************ WRITE TO MEMORY ************/
+	
+	/**	ass(Prime * dest, Prime * source, NULL)
+	 *	The r-value source will be stored at the location indicated by the 
+	 *	l-value dest. If dest is a temp, the contents of the register
+	 *	will be taken as the address to store at.
+	 */
+	i_ass,
+	
+	/// Same as dec
+	i_inc,
+	/**	dec(Prime * arg, NULL, NULL)
+	 *	Increments data at the location indicated by the l-value arg.
+	 */
+	i_dec,
+	
+	/**	cpy(Data * dest, Data * source, Prime * bytes)
+	 *	Copies the data object at source to the location of dest. both must be
+	 *	l-values.
+	 */
+	i_cpy,
+	
+	/**	parm(Prime * parameter) ???
+	 *	
+	 */
+	i_parm,
+	
+	/*********** READ FROM MEMORY ***********/
+	
+	/**	dref(Data * object, Prime * reference)
+	 *	converts an l-value to its corresponding r-value
+	 */
+	i_dref,
+	
+	/**	idx(Data * field, Array * array, Prime * index)
+	 *	returns a reference (l-value) to the field indicated by the index
+	 */
+	i_idx,
+	
+	/******* OPERANDS MAY BE IN MEMORY *******/
+	
 	i_neg ,
 	i_inv ,
-	i_sz  ,
-	i_dref, ///< <Object>, <Prime>
-
-	// binary ops (19)
-	i_mul,
-	i_div,
-	i_mod,
-	i_exp,
-	i_lsh,
-	i_rsh,
-	i_rol,
-	i_ror,
-
 	i_add ,
 	i_sub ,
 	i_band,
 	i_bor ,
 	i_xor ,
-
+	i_shl,
+	i_shr,
+	i_rol,
+	i_ror,
 	i_eq ,
 	i_neq,
 	i_lt ,
 	i_gt ,
 	i_lte,
 	i_gte,
+	
+	/**** OPERANDS MUST BE IN REGISTERS *****/
+	
+	i_mul,
+	i_div,
+	i_mod,
+	
+	/********* REDUCE TO IMMEDIATE **********/
+	
+	i_sz,
+	
 
 	// logical
 	i_not,
@@ -87,11 +108,9 @@ all intermediate indexing values then have to be handled by the front end.
 	i_lbl,
 	i_loop,
 	
-	i_parm,
+	
 	i_call,
 	i_rtrn,
-	
-	
 	
 	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
 	

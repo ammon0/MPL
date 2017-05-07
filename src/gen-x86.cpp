@@ -103,6 +103,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <string>
 
 
 /******************************************************************************/
@@ -144,7 +145,7 @@ typedef enum {
 	X_MOVSXD, ///< copy 32-bit data to a 64-bit register and sign extend
 	X_MOVZX, ///< copy 8, or 16-bit data to a larger location and zero extend
 	X_MOVBE, ///< copy and swap byte order
-	X_LEA,  ///< load effective address
+	X_LEA,  ///< load effective address multipliers are 2, 4, 8, 3, 5, and 9
 
 	X_CLD, ///< clear DF
 	X_STD, ///< set DF
@@ -321,6 +322,14 @@ static const char * str_reg(size_t width, reg_t reg){
 	return array;
 }
 
+static const char * str_ref(Data * obj){
+	
+}
+
+static const char * str_val(Prime * obj){
+	
+}
+
 /** Add a command string to the output file. */
 static void __attribute__((format(printf, 1, 2)))
 put_str(const char * format, ...){
@@ -329,6 +338,32 @@ put_str(const char * format, ...){
 	va_start(ap, format);
 	vfprintf(fd, format, ap);
 	va_end(ap);
+}
+
+static void asm_line(
+	x86_inst     instruction,
+	const char * arg1,
+	const char * arg2,
+	const char * comment
+){
+	if(!arg1)
+		put_str("\t\t%6s                                           ; %s\n",
+			inst_array[instruction],
+			comment
+		);
+	else if (!arg2)
+		put_str("\t\t%6s %20s                      ; %s\n",
+			inst_array[instruction],
+			arg1,
+			comment
+		);
+	else 
+		put_str("\t\t%6s %20s, %20s; %s\n",
+			inst_array[instruction],
+			arg1,
+			arg2,
+			comment
+		);
 }
 
 /***************************** HELPER FUNCTIONS *******************************/
@@ -477,14 +512,21 @@ static void Load(reg_t reg, Data * data, Prime * idx){
 	
 }
 
+
+
 /*************************** INSTRUCTION FUNCTIONS ****************************/
 // Alphabetical
 
-/// make an assignment
-static inline void ass(Data * result, Prime * idx, Prime * temp){
-	// reassign the temp value's register to the target location
+/// ass(Prime * dest, Prime * source, NULL)
+static inline void ass(Prime * location, Prime * value){
+	switch(location->get_sclass()){
+	case sc_extern:
+	case sc_private:
+	case sc_public: put_str("\t%s");
 	
-	// store that register
+	//asm_line(NULL, X_MOV, , , "Assignment"); break;
+	//case
+	}
 
 }
 
@@ -994,15 +1036,25 @@ static offset_t set_array_size(Array * array, offset_t offset){
 }
 
 static offset_t set_struct_size(Structure * structure, offset_t offset){
-	size_t bytes=0;
+	size_t bytes=0, padding;
 	Data * member;
 	
 	structure->set_offset(offset);
 	
 	member = structure->members.first();
 	do{
-		if(!member->get_size()) set_size(member, offset);
-		// FIXME: alignment padding
+		
+		set_size(member, offset);
+		
+		if(( padding=member->get_offset() % member->get_size() )){
+			offset += padding;
+			set_size(member, offset);
+			msg_print(NULL, V_WARN, "padding member %s in record %s",
+				member->get_label(),
+				structure->get_label()
+			);
+		}
+		
 		
 		bytes  += member->get_size();
 		offset += member->get_size();
@@ -1064,8 +1116,18 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	/********* SET SIZES AND OFFSETS **********/
 	
 	do{
-		if(obj->get_type() != ot_routine)
-			set_size(dynamic_cast<Data*>(obj), 0);
+		switch(obj->get_type()){
+		case ot_prime:
+		case ot_array:
+		case ot_struct: set_size(dynamic_cast<Data*>(obj), 0); break;
+		
+		// ignore
+		case ot_routine: break;
+		
+		// error
+		case ot_base:
+		default     : throw;
+		}
 	}while(( obj=prog->objects.next() ));
 	
 	/*********** DECLARE VISIBILITY ***********/
