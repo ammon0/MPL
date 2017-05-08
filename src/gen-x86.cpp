@@ -906,13 +906,34 @@ static void Gen_routine(Routine * routine){
 /**************************** DECLARE STATIC DATA *****************************/
 
 static void static_array(Array * array){
-	put_str("\tresb\t%s\n", str_num(array->get_size()) );
 	
+	// if the array is not initialized just do this
+	if(array->value.empty()){
+		put_str("\tresb\t%s\n", str_num(array->get_size()) );
+		return;
+	}
+	
+	// so it is initialized. sanity check
 	if(array->value.size() > array->get_size()){
-		msg_print(NULL, V_ERROR, "static_array(): initialization too large");
+		msg_print(NULL, V_ERROR,
+			"static_array(): initialization too large");
 		throw;
 	}
-	// TODO: initialization
+	
+	put_str("\tdb\t");
+	
+	// declare an iterator
+	std::vector<uint8_t>::iterator byte;
+	
+	byte=array->value.begin();
+	if(*byte<0x80 && *byte>=0x20) put_str("'%c'", *byte);
+	else put_str("%s", str_num(*byte));
+	
+	while(++byte < array->value.end()){
+		if(*byte<0x80 && *byte>=0x20) put_str(",'%c'", *byte);
+		else put_str(",%s", str_num(*byte));
+	}
+	
 }
 
 static void static_prime(Prime * prime){

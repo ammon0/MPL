@@ -123,6 +123,6 @@ clean:
 	rm -fr $(WORKDIR)
 
 todolist:
-	-@for file in $(allfiles:Makefile=); do fgrep -H -e TODO -e FIXME $$file; done; true
+	-@for file in $(allfiles:Makefile=); do fgrep -nH -e TODO -e FIXME $$file; done; true
 
 
