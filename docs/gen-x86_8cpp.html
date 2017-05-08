@@ -219,7 +219,7 @@ static <a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">
 <tr class="memdesc:a36c1553a8ab6238e56972b10f7fe9502"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine whether an operand is already present in a register. <br /></td></tr>
 <tr class="separator:a36c1553a8ab6238e56972b10f7fe9502"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2693b99ea5451e3c02c9a61f387d22a"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#ab2693b99ea5451e3c02c9a61f387d22a">Store</a> (<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg)</td></tr>
-<tr class="memdesc:ab2693b99ea5451e3c02c9a61f387d22a"><td class="mdescLeft">&#160;</td><td class="mdescRight">push an auto variable onto the stack  <a href="#ab2693b99ea5451e3c02c9a61f387d22a">More...</a><br /></td></tr>
+<tr class="memdesc:ab2693b99ea5451e3c02c9a61f387d22a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store data in register to its appropriate memory location.  <a href="#ab2693b99ea5451e3c02c9a61f387d22a">More...</a><br /></td></tr>
 <tr class="separator:ab2693b99ea5451e3c02c9a61f387d22a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71823410a442b64e1b7cbe5c0b1cc1ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71823410a442b64e1b7cbe5c0b1cc1ab"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>Load</b> (<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg, <a class="el" href="classData.html">Data</a> *data, <a class="el" href="classPrime.html">Prime</a> *idx)</td></tr>
@@ -278,7 +278,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:aadebf70a64aff839b01cc7efdd9d3fb9"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#aadebf70a64aff839b01cc7efdd9d3fb9">inst_array</a> [NUM_inst]</td></tr>
-<tr class="memdesc:aadebf70a64aff839b01cc7efdd9d3fb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keeps track of the stack details.  <a href="#aadebf70a64aff839b01cc7efdd9d3fb9">More...</a><br /></td></tr>
+<tr class="memdesc:aadebf70a64aff839b01cc7efdd9d3fb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">the assembler strings for each x86 instruction  <a href="#aadebf70a64aff839b01cc7efdd9d3fb9">More...</a><br /></td></tr>
 <tr class="separator:aadebf70a64aff839b01cc7efdd9d3fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47be3006db60a04fdf5c8b2f42641641"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47be3006db60a04fdf5c8b2f42641641"></a>
 static <a class="el" href="classPPD.html">PPD</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>program_data</b></td></tr>
@@ -611,8 +611,8 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 </table>
 </div><div class="memdoc">
 
-<p>push an auto variable onto the stack </p>
-<p>push a temp variable onto the stack advance BP to the next activation record Store data in register to its appropriate memory location.Load data from memory to a register.reg_d must contain the parent object and an index </p>
+<p>Store data in register to its appropriate memory location. </p>
+<p>Load data from memory to a register.reg_d must contain the parent object and an index </p>
 
 </div>
 </div>
@@ -758,7 +758,6 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">    <span class="stringliteral">&quot;mov&quot;</span>, <span class="stringliteral">&quot;movsx&quot;</span>, <span class="stringliteral">&quot;movsxd&quot;</span>, <span class="stringliteral">&quot;movzx&quot;</span>, <span class="stringliteral">&quot;movbe&quot;</span>, <span class="stringliteral">&quot;lea&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;cld&quot;</span>, <span class="stringliteral">&quot;std&quot;</span>, <span class="stringliteral">&quot;stos&quot;</span>, <span class="stringliteral">&quot;lods&quot;</span>, <span class="stringliteral">&quot;movs&quot;</span>, <span class="stringliteral">&quot;outs&quot;</span>, <span class="stringliteral">&quot;ins&quot;</span>, <span class="stringliteral">&quot;cmps&quot;</span>, <span class="stringliteral">&quot;scas&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;in&quot;</span>, <span class="stringliteral">&quot;out&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;push&quot;</span>, <span class="stringliteral">&quot;pop&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;inc&quot;</span>, <span class="stringliteral">&quot;dec&quot;</span>, <span class="stringliteral">&quot;add&quot;</span>, <span class="stringliteral">&quot;xadd&quot;</span>, <span class="stringliteral">&quot;sub&quot;</span>, <span class="stringliteral">&quot;neg&quot;</span>, <span class="stringliteral">&quot;cmp&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;mul&quot;</span>, <span class="stringliteral">&quot;imul&quot;</span>, <span class="stringliteral">&quot;div&quot;</span>, <span class="stringliteral">&quot;idiv&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;and&quot;</span>, <span class="stringliteral">&quot;andn&quot;</span>, <span class="stringliteral">&quot;or&quot;</span>, <span class="stringliteral">&quot;xor&quot;</span>, <span class="stringliteral">&quot;not&quot;</span>, <span class="stringliteral">&quot;test&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;shr&quot;</span>, <span class="stringliteral">&quot;sar&quot;</span>, <span class="stringliteral">&quot;shl&quot;</span>, <span class="stringliteral">&quot;ror&quot;</span>, <span class="stringliteral">&quot;rol&quot;</span>,</div><div class="line">    <span class="stringliteral">&quot;jmp&quot;</span>, <span class="stringliteral">&quot;jz&quot;</span>, <span class="stringliteral">&quot;jnz&quot;</span>, <span class="stringliteral">&quot;loop&quot;</span>, <span class="stringliteral">&quot;call&quot;</span>, <span class="stringliteral">&quot;ret&quot;</span>, <span class="stringliteral">&quot;int&quot;</span>, <span class="stringliteral">&quot;bound&quot;</span>, <span class="stringliteral">&quot;enter&quot;</span>, <span class="stringliteral">&quot;leave&quot;</span></div><div class="line">}</div></div><!-- fragment -->
-<p>Keeps track of the stack details. </p>
 <p>the assembler strings for each x86 instruction </p>
 
 </div>

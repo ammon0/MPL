@@ -169,20 +169,6 @@ typedef enum {
 typedef imax offset_t;
 typedef umax index_t;
 
-/// Keeps track of the stack details
-//class Stack_man{
-//	offset_t SP_offset;
-//public:
-//	Stack_man(void){ SP_offset = 0; }
-
-//	void push_temp(reg_t reg     ); ///< push as a temp
-//	void push_auto(Data * auto_var); ///< push an automatic variable
-//	void push_parm(obj_pt parameter); ///< push a parameter onto the stack
-//	void set_BP(void     ); ///< advance BP to the SP
-//	void unload(uint count); ///< unload parameters from the stack
-//	void pop(void); ///< pop the current activation record
-//};
-
 
 /******************************************************************************/
 //                  GLOBAL CONSTANTS IN THE GEN-X86 MODULE
@@ -345,76 +331,14 @@ static reg_t check_reg(obj_pt operand){
 	return (reg_t)i;
 }
 
-/// push an auto variable onto the stack
-//void Stack_man::push_auto(Data * auto_var){
-//	//TODO: handle structs and arrays
-
-//	// issue push instruction
-//	put_str("%s\t%s\n",
-//		str_instruction(X_PUSH),
-//		str_num(0)
-//	);
-
-//	// increment SP_offset
-//	if(mode == xm_long) SP_offset += QWORD;
-//	else SP_offset += DWORD;
-
-//	// set the offset
-//	auto_var->set_offset(SP_offset);
-//}
-
-/// push a temp variable onto the stack
-//void Stack_man::push_temp(reg_t reg){
-//	Data * tmp;
-
-//	if(reg_d[reg]->get_sclass() != sc_temp){
-//		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
-//		throw;
-//	}
-
-//	tmp = dynamic_cast<Data*>(reg_d[reg]);
-
-//	// issue push instruction
-////	put_str("%s\t%s\n",
-////		str_instruction(X_PUSH),
-////		str_reg(set_width(tmp), reg)
-////		// or should this be the stack width?
-////	);
-
-//	// increment SP_offset
-//	if(mode == xm_long) SP_offset += QWORD;
-//	else SP_offset += DWORD;
-
-//	tmp->set_offset(SP_offset);
-//}
-
-/// advance BP to the next activation record
-//void Stack_man::set_BP(void){
-//	put_str("\t%s\t%s,\t%s\n",
-//		str_instruction(X_MOV),
-//		str_reg(mode == xm_long? QWORD:DWORD, BP),
-//		str_reg(mode == xm_long? QWORD:DWORD, SP)
-//	);
-//	SP_offset = 0;
-//}
-
-//void Stack_man::pop(void){
-//	put_str(
-//		"\t%s\t%s,\t%s\n",
-//		inst_array[X_MOV],
-//		str_reg(mode == xm_long? QWORD:DWORD, SP),
-//		str_reg(mode == xm_long? QWORD:DWORD, BP)
-//	);
-//	SP_offset=0;
-//}
 
 /** Store data in register to its appropriate memory location.
  */
 //static void store(reg_t reg){
 //	Prime * prime;
-//
+
 //	if(!reg_d[reg]->is_mem()) return;
-//
+
 //	if(reg_d[reg] == NULL){
 //		msg_print(NULL, V_ERROR,
 //			"store(): there is no memory location associated with register %u",
@@ -422,9 +346,9 @@ static reg_t check_reg(obj_pt operand){
 //		);
 //		throw;
 //	}
-//
+
 //	prime = dynamic_cast<Prime*>(reg_d[reg]);
-//
+
 //	put_str("\t%s\t[%s]\t%s",
 //		str_instruction(X_MOV),
 //		str_prime(prime),
@@ -436,10 +360,10 @@ static reg_t check_reg(obj_pt operand){
 // */
 //static void load(reg_t reg, Prime * mem){
 //	reg_t test_reg;
-//
+
 //	// check if it's already in a register
 //	test_reg = check_reg(mem);
-//
+
 //	if(test_reg == reg) // if it's already where it needs to be
 //		;
 //	else if(test_reg != NUM_reg){ // if it's in another register
@@ -456,7 +380,7 @@ static reg_t check_reg(obj_pt operand){
 //			str_reg(set_width(mem), reg),
 //			str_prime(mem)
 //		);
-//
+
 //	reg_d[reg] = mem;
 //}
 
@@ -900,8 +824,6 @@ static void Gen_routine(Routine * routine){
 	lbl(routine);
 	
 	put_str("\t%s %s\n", inst_array[X_ENTER], str_num(auto_size));
-	
-	// TODO: consider using ENTER and LEAVE here
 	
 	/**************** MAIN LOOP ****************/
 	
