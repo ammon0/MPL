@@ -1012,7 +1012,7 @@ static void set_array_size(Array * array){
  *	This function also prints a structure declaration to the out_fd
  */
 static void set_struct_size(Struct_def * structure){
-	size_t bytes=0;
+	size_t bytes=0, pad;
 	Data * field;
 	
 	// make sure all field sizes are available first
@@ -1046,7 +1046,29 @@ static void set_struct_size(Struct_def * structure){
 	// get the next field
 	while(( field = structure->members.next() )){
 		// decide whether any padding is needed
-		// if yes supply padding
+		if(mode == xm_long && field->get_size() > QWORD){
+			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
+				field->get_label(),
+				structure->get_label()
+			);
+			put_str("\talign %s\n", str_num(QWORD));
+		}
+		else if(mode == xm_protected && field->get_size() > DWORD){
+			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
+				field->get_label(),
+				structure->get_label()
+			);
+			put_str("\talign %s\n", str_num(DWORD));
+		}
+		// if we are here the field cannot be bigger than the mode alignment
+		else if(( pad=bytes%field->get_size() )){
+			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
+				field->get_label(),
+				structure->get_label()
+			);
+			put_str("\talign %s\n", str_num(field->get_size()));
+		}
+		
 		// print the field
 		put_str("\t%s\t: resb %s\n",
 			field->get_label(),
@@ -1060,6 +1082,11 @@ static void set_struct_size(Struct_def * structure){
 	
 	structure->set_size(bytes);
 	
+	put_str("%%if (%s != %s_size)\n\t %%error\n %%endif\n\n",
+		str_num(structure->get_size()),
+		structure->get_label()
+	
+	);
 	// FIXME: check the size against NASM's size
 }
 

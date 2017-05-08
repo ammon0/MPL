@@ -59,9 +59,12 @@ Inheritance diagram for Object:</div>
  <div class="center">
   <img src="classObject.png" usemap="#Object_map" alt=""/>
   <map id="Object_map" name="Object_map">
-<area href="classPrime.html" alt="Prime" shape="rect" coords="0,56,64,80"/>
-<area href="classRoutine.html" alt="Routine" shape="rect" coords="74,56,138,80"/>
-<area href="classStructure.html" alt="Structure" shape="rect" coords="148,56,212,80"/>
+<area href="classData.html" alt="Data" shape="rect" coords="81,56,152,80"/>
+<area href="classRoutine.html" alt="Routine" shape="rect" coords="162,56,233,80"/>
+<area href="classStruct__def.html" alt="Struct_def" shape="rect" coords="243,56,314,80"/>
+<area href="classArray.html" alt="Array" shape="rect" coords="0,112,71,136"/>
+<area href="classPrime.html" alt="Prime" shape="rect" coords="81,112,152,136"/>
+<area href="classStruct__inst.html" alt="Struct_inst" shape="rect" coords="162,112,233,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -70,40 +73,27 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aaee62ca5a1b1b1a1c33872e29d1d47b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaee62ca5a1b1b1a1c33872e29d1d47b3"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>named</b> (void) const </td></tr>
 <tr class="separator:aaee62ca5a1b1b1a1c33872e29d1d47b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae09d532840e4f0210420d3e141b2a479"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae09d532840e4f0210420d3e141b2a479"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_mem</b> (void) const </td></tr>
-<tr class="separator:ae09d532840e4f0210420d3e141b2a479"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd14ef44c123484c71c8e8abed517fa3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acd14ef44c123484c71c8e8abed517fa3"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>get_label</b> (void) const </td></tr>
 <tr class="separator:acd14ef44c123484c71c8e8abed517fa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbc44e644f8e6eb15c3098b48350afc8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbc44e644f8e6eb15c3098b48350afc8"></a>
 storage_class_t&#160;</td><td class="memItemRight" valign="bottom"><b>get_sclass</b> (void) const </td></tr>
 <tr class="separator:acbc44e644f8e6eb15c3098b48350afc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0005ea5fd6f13ec0b752ce45f2836ede"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0005ea5fd6f13ec0b752ce45f2836ede"></a>
-umax&#160;</td><td class="memItemRight" valign="bottom"><b>get_count</b> (void) const </td></tr>
-<tr class="separator:a0005ea5fd6f13ec0b752ce45f2836ede"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3e8c214d376846cca38da127cea8ca9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa3e8c214d376846cca38da127cea8ca9"></a>
-virtual obj_t&#160;</td><td class="memItemRight" valign="bottom"><b>get_type</b> (void) const </td></tr>
-<tr class="separator:aa3e8c214d376846cca38da127cea8ca9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bb0ab95bb0749ca7c7b984af461972a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7bb0ab95bb0749ca7c7b984af461972a"></a>
+virtual obj_t&#160;</td><td class="memItemRight" valign="bottom"><b>get_type</b> (void) const =0</td></tr>
+<tr class="separator:a7bb0ab95bb0749ca7c7b984af461972a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab316f5a4edc8ac2b6aba8cfb141c18d3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab316f5a4edc8ac2b6aba8cfb141c18d3"></a>
 virtual const char *&#160;</td><td class="memItemRight" valign="bottom"><b>print_obj</b> (void) const =0</td></tr>
 <tr class="separator:ab316f5a4edc8ac2b6aba8cfb141c18d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae4b72efd224a5288488fa3dd500ffb0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae4b72efd224a5288488fa3dd500ffb0"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>set_sclass</b> (storage_class_t storage_class)</td></tr>
 <tr class="separator:aae4b72efd224a5288488fa3dd500ffb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6c51e2fbb82298fd4c0b867cd257adc0"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>set_count</b> (umax number)</td></tr>
-<tr class="separator:a6c51e2fbb82298fd4c0b867cd257adc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15f146ee469fb15c7ba0898fd9d9ef34"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15f146ee469fb15c7ba0898fd9d9ef34"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_name</b> (const char *name)</td></tr>
 <tr class="separator:a15f146ee469fb15c7ba0898fd9d9ef34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a021f0f25e1a24260fa590f8fd0178560"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a021f0f25e1a24260fa590f8fd0178560"></a>
-umax&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classObject.html#a021f0f25e1a24260fa590f8fd0178560">count</a></td></tr>
-<tr class="memdesc:a021f0f25e1a24260fa590f8fd0178560"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many of these in the array. <br /></td></tr>
-<tr class="separator:a021f0f25e1a24260fa590f8fd0178560"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7307bc1a10c532a3e433e7188806c844"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7307bc1a10c532a3e433e7188806c844"></a>
 storage_class_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classObject.html#a7307bc1a10c532a3e433e7188806c844">sclass</a></td></tr>
 <tr class="memdesc:a7307bc1a10c532a3e433e7188806c844"><td class="mdescLeft">&#160;</td><td class="mdescRight">The storage class of the object. <br /></td></tr>
@@ -133,7 +123,7 @@ Static Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">        <span class="stringliteral">&quot;none  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;temp  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;static&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;global&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;stack &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;param &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;extern&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;const &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;code  &quot;</span></div><div class="line">    }</div></div><!-- fragment -->
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">        <span class="stringliteral">&quot;none  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;prv   &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;pub   &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;stack &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;param &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;membr &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;extern&quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;temp  &quot;</span>,</div><div class="line">        <span class="stringliteral">&quot;const &quot;</span></div><div class="line">    }</div></div><!-- fragment -->
 <p>to facilitate the print funtions </p>
 
 </div>

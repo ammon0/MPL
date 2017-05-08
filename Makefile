@@ -93,7 +93,7 @@ debug: libmpl.a
 
 
 libmpl.a: $(ppd_objects) $(gen_objects)
-	ar rcs $@ $<
+	ar rcs $@ $(ppd_objects) $(gen_objects)
 
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile
