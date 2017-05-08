@@ -25,6 +25,9 @@ public:
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
+	Struct_def(): Object("CONSTRUCTION ERROR"){}
+	Struct_def(const char * full_name): Object(full_name){}
+	
 	/******************************* ACCESSOR *********************************/
 	
 	obj_t get_type (void) const{ return ot_struct_def; }

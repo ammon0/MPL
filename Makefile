@@ -116,7 +116,7 @@ install: $(headers) libmpl.a
 
 cleanfiles:=*.a *.o
 
-.PHONEY: clean todolist
+.PHONEY: clean todolist count
 
 clean:
 	rm -f $(cleanfiles)
@@ -124,5 +124,8 @@ clean:
 
 todolist:
 	-@for file in $(allfiles:Makefile=); do fgrep -nH -e TODO -e FIXME $$file; done; true
+
+count:
+	cat $(allfiles) |line_count
 
 

@@ -69,7 +69,7 @@ protected:
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Object(void);
+	Object(const char * full_name);
 	
 	/******************************* ACCESSOR *********************************/
 	
@@ -96,6 +96,8 @@ class Data: public Object{
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
+	
+	Data(const char * full_name): Object(full_name){}
 	
 	/******************************* ACCESSOR *********************************/
 	

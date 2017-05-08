@@ -24,7 +24,8 @@ class Struct_inst: public Data{
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Struct_inst();
+	Struct_inst(): Data("CONSTRUCTION ERROR"){}
+	Struct_inst(const char * full_name): Data(full_name){}
 	
 	/******************************* ACCESSOR *********************************/
 	

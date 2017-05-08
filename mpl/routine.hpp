@@ -13,7 +13,7 @@
 #ifndef _ROUTINE_HPP
 #define _ROUTINE_HPP
 
-#include <mpl/obj_container.hpp>
+#include <mpl/struct_def.hpp>
 #include <mpl/instructions.hpp>
 
 typedef struct _root* DS;
@@ -30,12 +30,12 @@ class Routine: public Object{
 	DS blocks;
 	
 public:
-	Obj_List formal_params;
-	Obj_List auto_storage;
+	Struct_def formal_params;
+	Struct_def auto_storage;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Routine(void);
+	Routine(const char * full_name);
 	~Routine(void);
 	
 	/******************************* ACCESSOR *********************************/

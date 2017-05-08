@@ -57,7 +57,11 @@ class Prime: public Data{
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Prime(void){ width=w_none; bytes=0; sign=false; };
+	Prime(const char * full_name): Data(full_name) { 
+		width=w_none;
+		bytes=0;
+		sign=false;
+	};
 	
 	/******************************* ACCESSOR *********************************/
 	

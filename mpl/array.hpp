@@ -36,7 +36,8 @@ public:
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Array(umax quantity=0, Data * child_type=NULL){
+	Array(const char * full_name, umax quantity=0, Data * child_type=NULL)
+	: Data(full_name){
 		count = quantity;
 		child = child_type;
 	}

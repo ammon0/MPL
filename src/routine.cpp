@@ -16,8 +16,19 @@
 #include <util/msg.h>
 
 
-Routine::Routine(void): Object(){
-	blocks        = DS_new_list(sizeof(Block));
+Routine::Routine(const char * full_name): Object(full_name){
+	std::string temp;
+	
+	blocks = DS_new_list(sizeof(Block));
+	
+	temp = full_name;
+	temp += "_params";
+	formal_params.set_name(temp.c_str());
+	
+	temp = full_name;
+	temp += "_autos";
+	auto_storage.set_name(temp.c_str());
+	
 }
 Routine::~Routine(void){
 	blk_pt blk;
@@ -35,26 +46,15 @@ blk_pt Routine::get_next_blk (void) const{ return (blk_pt)DS_next (blocks); }
 
 const char * Routine::print_obj (void) const{
 	std::string str;
-	obj_pt obj;
 	
 	str = "Routine: ";
 	str += get_label();
 	
-	if(( obj = formal_params.first() )){
-		str += "\n\tParameters:";
-		do{
-			str += "\n";
-			str += obj->print_obj();
-		}while(( obj = formal_params.next() ));
-	}
+	str += "\n\tParameters:";
+	str += formal_params.print_obj();
 	
-	if(( obj = auto_storage.first() )){
-		str += "\n\tStack Variables:";
-		do{
-			str += "\n";
-			str += obj->print_obj();
-		}while(( obj = auto_storage.next() ));
-	}
+	str += "\n\tStack Variables:";
+	str += auto_storage.print_obj();
 	
 	return str.c_str();
 }

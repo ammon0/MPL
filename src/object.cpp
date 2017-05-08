@@ -14,8 +14,9 @@
 #include <util/msg.h>
 
 
-Object::Object(void){
+Object::Object(const char * full_name){
 	sclass = sc_none;
+	label = full_name;
 }
 
 /******************************* MUTATORS *********************************/

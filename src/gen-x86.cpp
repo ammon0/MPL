@@ -665,7 +665,11 @@ static inline void lbl(obj_pt op){
 //	//FIXME: reg_d[A] = result;
 //}
 
-/***************************** ITERATOR FUNCTIONS *****************************/
+
+/******************************************************************************/
+//                        GENERATE ROUTINE INSTRUCTIONS
+/******************************************************************************/
+
 
 /** Generate code for a single intermediate instruction
  */
@@ -840,6 +844,7 @@ static void Gen_blk(blk_pt blk){
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
 }
 
+static void set_struct_size(Struct_def * structure);
 
 /** Creates and tears down the activation record of a procedure
  *
@@ -853,7 +858,7 @@ static void Gen_blk(blk_pt blk){
 */
 static void Gen_routine(Routine * routine){
 	blk_pt blk;
-	obj_pt auto_var;
+	size_t auto_size, formal_size;
 	
 	/************** SANITY CHECKS *************/
 	
@@ -866,7 +871,27 @@ static void Gen_routine(Routine * routine){
 	
 	//FIXME determine how many temps are needed and add them to the autos
 	
-	/***************** SETUP ******************/
+	/********TODO SORT AUTOS AND PARAMETERS ********/
+	
+	/************ CALCULATE SIZES ***************/
+	
+	set_struct_size(&routine->auto_storage);
+	set_struct_size(&routine->formal_params);
+	
+	auto_size  =routine->auto_storage .get_size();
+	formal_size=routine->formal_params.get_size();
+	
+	// pad them up to the stack width
+	if(mode == xm_long){
+		formal_size += QWORD-(formal_size & 0xf);
+		auto_size   += QWORD-(auto_size   & 0xf);
+	}
+	else{
+		formal_size += DWORD-(formal_size & 0x7);
+		auto_size   += DWORD-(auto_size   & 0x7);
+	}
+	
+	/**************** PROLOGUE ******************/
 	
 	// Initialize the register descriptor
 	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
@@ -874,16 +899,9 @@ static void Gen_routine(Routine * routine){
 	// place the label
 	lbl(routine);
 	
-	// set the base pointer
-	//stack_manager.set_BP();
+	put_str("\t%s %s\n", inst_array[X_ENTER], str_num(auto_size));
 	
 	// TODO: consider using ENTER and LEAVE here
-	
-	// make space for automatics
-	if(( auto_var=routine->auto_storage.first() ))
-		do{
-			//stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
-		}while(( auto_var=routine->auto_storage.next() ));
 	
 	/**************** MAIN LOOP ****************/
 	
@@ -903,7 +921,11 @@ static void Gen_routine(Routine * routine){
 	put_str("\t%s\n", inst_array[X_RET]);
 }
 
-/**************************** DECLARE STATIC DATA *****************************/
+
+/******************************************************************************/
+//                            DECLARE STATIC DATA
+/******************************************************************************/
+
 
 static void static_array(Array * array){
 	
@@ -986,7 +1008,11 @@ static void static_data(Data * data){
 	}
 }
 
-/************************** CALCULATE SIZES & OFFSETS *************************/
+
+/******************************************************************************/
+//                          CALCULATE SIZES & OFFSETS
+/******************************************************************************/
+
 
 // forward declaration here
 static void set_size(obj_pt);
