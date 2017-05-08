@@ -42,7 +42,6 @@ typedef enum{
 } storage_class_t;
 
 typedef uint obj_t;
-#define ot_base ((obj_t) 0)
 
 
 /******************************************************************************/
@@ -79,9 +78,8 @@ public:
 	const char *    get_label (void) const{ return label.c_str(); }
 	storage_class_t get_sclass(void) const{ return sclass       ; }
 	
-	virtual obj_t get_type (void) const{ return ot_base; }
-	
-	virtual const char * print_obj     (void) const=0;
+	virtual       obj_t  get_type (void) const=0;
+	virtual const char * print_obj(void) const=0;
 	
 	/******************************* MUTATORS *********************************/
 	
@@ -93,6 +91,19 @@ public:
 
 typedef Object * obj_pt;
 
+
+class Data: public Object{
+	
+public:
+	/****************************** CONSTRUCTOR *******************************/
+	
+	/******************************* ACCESSOR *********************************/
+	
+	virtual size_t get_size(void) const=0;
+	
+	/******************************* MUTATORS *********************************/
+	
+};
 
 #endif // _OBJECT_HPP
 

@@ -61,10 +61,13 @@ typedef enum {
 	 */
 	i_dref,
 	
-	/**	idx(Data * field, Array * array, Prime * index)
-	 *	returns a reference (l-value) to the field indicated by the index
+	/**	ref(Data * field, Array * array, Prime * index)
+	 *	returns a reference (l-value) to the field indicated by the index. By
+	 *	returning the reference no memory access is made, and we can do another
+	 *	ref. We will have to do some kind of load operation.
+	 *	refs are used to resolve offsets
 	 */
-	i_idx,
+	i_ref,
 	
 	/******* OPERANDS MAY BE IN MEMORY *******/
 	

@@ -24,77 +24,39 @@
  *	There is a problem if a temp variable is not immediately used. All temps are
  *	produced in the accumulator. If at any point in code generation we find that
  *	the contents of the accumulator is temp and not being used in the current
- *	instruction then it will have to be stored somewhere. A register would be
- *	ideal. However, all the registers are potentially filled with parameters. We
- *	have no way of knowing whether it would be better to switch out a parameter.
- *	We do know that the temp will only ever be used once so I feel less bad
- *	about putting it on the stack if there are no registers available.
+ *	instruction then it will have to be stored somewhere. Another register
+ *	would be ideal.
  *
  *	## Activation Record
  *
  *	<PRE>
- *	   Activation Record    Instructions
- *	|_____________________|
- *	|     parameters      | PUSH params
- *	|_____________________|
- *	|       R8-R15        | PUSH R / POP R
- *	|_____________________|
- *	|        B-DI         | PUSH A / POP A
- *	|_____________________|
- *	|         BP          | PUSH BP / POP BP
- *	|_____________________|
- *	|         IP          | CALL / RET
- *	|_____________________| ______________________________<- BP
- *	| automatic variables | PUSH 0x0 / POP
- *	|_____________________|
- *	|     temporaries     | PUSH temp
- *	|_____________________|
+ *	  Activation Record   Instructions
+ *	|___________________|
+ *	|    parameters     | PUSH / POP
+ *	|___________________|
+ *	|         IP        | CALL / RET
+ *	|___________________|
+ *	|         BP        | ENTER / LEAVE
+ *	|___________________| <-BP
+ *	|       Autos       |
+ *	|_03_|_02_|_01_|_00_| <-SP
  *
  *	</PRE>
  *
  *	SP is always pointing to the top item on the stack, so
  *	PUSH=DEC,MOV POP=MOV,INC
  *
- *	To make life easier on myself I've decided to use SP and BP for their
- *	intendend purposes. In long mode the first 8 parameters will be passed in
- *	R8-15 with any others in the stack. In protected mode they are all passed on
- *	the stack.
+ *	BP is always pointing to the stored BP of the caller
  *
- *	## Parameters
- *	Parameters and return values are passed in registers reducing the stack
- *	overhead. This also means that many of the registers need not be stored in
- *	the stack before the call.
+ *	Formal parameters are accessed as [BP+2*stack_width+index*stack_width]
  *
- *	Since some of the registers may be needed during the execution of a routine,
- *	the routine should allocate automatic variable space for each. If the routine
- *	makes a CALL it will need to store them all in their stack locations.
+ *	Stack variables are accessed as [BP-frame_size+offset]
  *
- *	Parameters are stored in R8-15, BP, B, SI, DI, C, D, A in that order. If
- *	there are more parameters than this they will be placed on the stack.
- *
- *	### Calling convention
- *
- *	* MOV [SP-offset] caller loads stack parameters as offsets of SP
- *	* MOV caller loads parameters into registers
- *	* SUB SP, param_offset; caller advances SP to next open location this offset
- *	is calculated at compile time.
- *	* CALL caller calls callee IP is pushed onto stack
- *	* SUB SP, auto_offset; callee advances SP for all its automatic storage.
- *	this offset is known at compile time.
- *
- *	auto variables are accessed as [SP+offset]. additional parameters are
- *	accessed as [SP+auto_offset+8+offset]
- *
- *	It may be possible to add dynamically sized variables after SP with pointers
- *	before it.
- *
- *	If we do ever implement closures this scheme will become obsolete since we'll
- *	have to manage activation records in the heap. We will then have no use for
- *	the built-in stack functions and SP will become general purpose.
+ *	The ENTER instruction has a feature that allows up to 32 access links to be
+ *	added the the current stack frame
  */
 
 
-//#include <util/types.h>
 #include <util/msg.h>
 
 #include <mpl/ppd.hpp>
@@ -204,19 +166,22 @@ typedef enum {
 	NUM_inst
 } x86_inst;
 
-/// Keeps track of the stack details
-class Stack_man{
-	offset_t SP_offset;
-public:
-	Stack_man(void){ SP_offset = 0; }
+typedef imax offset_t;
+typedef umax index_t;
 
-	void push_temp(reg_t reg     ); ///< push as a temp
-	void push_auto(Data * auto_var); ///< push an automatic variable
-	void push_parm(obj_pt parameter); ///< push a parameter onto the stack
-	void set_BP(void     ); ///< advance BP to the SP
-	void unload(uint count); ///< unload parameters from the stack
-	void pop(void); ///< pop the current activation record
-};
+/// Keeps track of the stack details
+//class Stack_man{
+//	offset_t SP_offset;
+//public:
+//	Stack_man(void){ SP_offset = 0; }
+
+//	void push_temp(reg_t reg     ); ///< push as a temp
+//	void push_auto(Data * auto_var); ///< push an automatic variable
+//	void push_parm(obj_pt parameter); ///< push a parameter onto the stack
+//	void set_BP(void     ); ///< advance BP to the SP
+//	void unload(uint count); ///< unload parameters from the stack
+//	void pop(void); ///< pop the current activation record
+//};
 
 
 /******************************************************************************/
@@ -252,7 +217,7 @@ static x86_mode_t   mode        ; ///< the processor mode we are building for
  *	needs to contain enough information to be able to store the data
  */
 static obj_pt reg_d[NUM_reg];
-static Stack_man stack_manager;
+//static Stack_man stack_manager;
 
 
 /******************************************************************************/
@@ -381,67 +346,67 @@ static reg_t check_reg(obj_pt operand){
 }
 
 /// push an auto variable onto the stack
-void Stack_man::push_auto(Data * auto_var){
-	//TODO: handle structs and arrays
+//void Stack_man::push_auto(Data * auto_var){
+//	//TODO: handle structs and arrays
 
-	// issue push instruction
-	put_str("%s\t%s\n",
-		str_instruction(X_PUSH),
-		str_num(0)
-	);
-
-	// increment SP_offset
-	if(mode == xm_long) SP_offset += QWORD;
-	else SP_offset += DWORD;
-
-	// set the offset
-	auto_var->set_offset(SP_offset);
-}
-
-/// push a temp variable onto the stack
-void Stack_man::push_temp(reg_t reg){
-	Data * tmp;
-
-	if(reg_d[reg]->get_sclass() != sc_temp){
-		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
-		throw;
-	}
-
-	tmp = dynamic_cast<Data*>(reg_d[reg]);
-
-	// issue push instruction
+//	// issue push instruction
 //	put_str("%s\t%s\n",
 //		str_instruction(X_PUSH),
-//		str_reg(set_width(tmp), reg)
-//		// or should this be the stack width?
+//		str_num(0)
 //	);
 
-	// increment SP_offset
-	if(mode == xm_long) SP_offset += QWORD;
-	else SP_offset += DWORD;
+//	// increment SP_offset
+//	if(mode == xm_long) SP_offset += QWORD;
+//	else SP_offset += DWORD;
 
-	tmp->set_offset(SP_offset);
-}
+//	// set the offset
+//	auto_var->set_offset(SP_offset);
+//}
+
+/// push a temp variable onto the stack
+//void Stack_man::push_temp(reg_t reg){
+//	Data * tmp;
+
+//	if(reg_d[reg]->get_sclass() != sc_temp){
+//		msg_print(NULL, V_ERROR, "Internal push_temp(): Not a temp");
+//		throw;
+//	}
+
+//	tmp = dynamic_cast<Data*>(reg_d[reg]);
+
+//	// issue push instruction
+////	put_str("%s\t%s\n",
+////		str_instruction(X_PUSH),
+////		str_reg(set_width(tmp), reg)
+////		// or should this be the stack width?
+////	);
+
+//	// increment SP_offset
+//	if(mode == xm_long) SP_offset += QWORD;
+//	else SP_offset += DWORD;
+
+//	tmp->set_offset(SP_offset);
+//}
 
 /// advance BP to the next activation record
-void Stack_man::set_BP(void){
-	put_str("\t%s\t%s,\t%s\n",
-		str_instruction(X_MOV),
-		str_reg(mode == xm_long? QWORD:DWORD, BP),
-		str_reg(mode == xm_long? QWORD:DWORD, SP)
-	);
-	SP_offset = 0;
-}
+//void Stack_man::set_BP(void){
+//	put_str("\t%s\t%s,\t%s\n",
+//		str_instruction(X_MOV),
+//		str_reg(mode == xm_long? QWORD:DWORD, BP),
+//		str_reg(mode == xm_long? QWORD:DWORD, SP)
+//	);
+//	SP_offset = 0;
+//}
 
-void Stack_man::pop(void){
-	put_str(
-		"\t%s\t%s,\t%s\n",
-		inst_array[X_MOV],
-		str_reg(mode == xm_long? QWORD:DWORD, SP),
-		str_reg(mode == xm_long? QWORD:DWORD, BP)
-	);
-	SP_offset=0;
-}
+//void Stack_man::pop(void){
+//	put_str(
+//		"\t%s\t%s,\t%s\n",
+//		inst_array[X_MOV],
+//		str_reg(mode == xm_long? QWORD:DWORD, SP),
+//		str_reg(mode == xm_long? QWORD:DWORD, BP)
+//	);
+//	SP_offset=0;
+//}
 
 /** Store data in register to its appropriate memory location.
  */
@@ -843,13 +808,13 @@ static void Gen_inst(inst_pt inst){
 	 * accumulator unless they are not immediately used. In which case we have
 	 * to find a place to stash them.
 	 */
-	if(!inst->used_next){
-		if(inst->result->get_sclass() == sc_temp){
-			msg_print(NULL, V_INFO, "We're setting a stack temp");
-			stack_manager.push_temp(A);
-		}
-		else Store(A);
-	}
+//	if(!inst->used_next){
+//		if(inst->result->get_sclass() == sc_temp){
+//			msg_print(NULL, V_INFO, "We're setting a stack temp");
+//			stack_manager.push_temp(A);
+//		}
+//		else Store(A);
+//	}
 }
 
 /** Generate code for a single basic block
@@ -910,12 +875,14 @@ static void Gen_routine(Routine * routine){
 	lbl(routine);
 	
 	// set the base pointer
-	stack_manager.set_BP();
+	//stack_manager.set_BP();
+	
+	// TODO: consider using ENTER and LEAVE here
 	
 	// make space for automatics
 	if(( auto_var=routine->auto_storage.first() ))
 		do{
-			stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
+			//stack_manager.push_auto(dynamic_cast<Data*>(auto_var));
 		}while(( auto_var=routine->auto_storage.next() ));
 	
 	/**************** MAIN LOOP ****************/
@@ -931,16 +898,20 @@ static void Gen_routine(Routine * routine){
 	/***************** RETURN *****************/
 	
 	// pop the current activation record
-	stack_manager.pop();
+	//stack_manager.pop();
 	// return
 	put_str("\t%s\n", inst_array[X_RET]);
 }
 
-/*************************** DECLARATION FUNCTIONS ****************************/
+/**************************** DECLARE STATIC DATA *****************************/
 
 static void static_array(Array * array){
 	put_str("\tresb\t%s\n", str_num(array->get_size()) );
 	
+	if(array->value.size() > array->get_size()){
+		msg_print(NULL, V_ERROR, "static_array(): initialization too large");
+		throw;
+	}
 	// TODO: initialization
 }
 
@@ -957,37 +928,43 @@ static void static_prime(Prime * prime){
 	}
 }
 
-static void static_structure(Structure * structure){
+static void static_structure(Struct_inst * structure){
 	put_str("\tresb\t%s\n", str_num(structure->get_size()) );
-	
-	// TODO: initialization
 }
 
 /// Generate a static data object
-static void static_data(obj_pt obj){
-
+static void static_data(Data * data){
+	
+	/* TODO: the static data area can be considered one giant struct and probably should be for alignment purposes */
+	
+	// dynamic_cast will pass a null if not data
+	if(!data) return;
+	
 	// place the label
-	lbl(obj);
+	lbl(data);
 
-	switch(obj->get_type()){
+	switch(data->get_type()){
 	// data
-	case ot_prime : static_prime    (dynamic_cast<Prime*>    (obj)); break;
-	case ot_struct: static_structure(dynamic_cast<Structure*>(obj)); break;
-	case ot_array : static_array    (dynamic_cast<Array*>    (obj)); break;
+	case ot_prime : static_prime(dynamic_cast<Prime*>(data)); break;
+	case ot_array : static_array(dynamic_cast<Array*>(data)); break;
+	case ot_struct_inst:
+		static_structure(dynamic_cast<Struct_inst*>(data));
+		break;
 
 	// not data
-	case ot_base   :
-	case ot_routine:
 	default        :
-		msg_print(NULL, V_ERROR, "static_data(): not data");
+		msg_print(NULL, V_ERROR, "Internal static_data(): not data");
 		throw;
 	}
 }
 
-
 /************************** CALCULATE SIZES & OFFSETS *************************/
 
-static offset_t set_prime_size(Prime * prime, offset_t offset){
+// forward declaration here
+static void set_size(obj_pt);
+
+/// calculate the size of a prime
+static void set_prime_size(Prime * prime){
 	switch(prime->get_width()){
 	case w_byte : prime->set_size(BYTE); break;
 	case w_byte2: prime->set_size(WORD); break;
@@ -1015,72 +992,92 @@ static offset_t set_prime_size(Prime * prime, offset_t offset){
 		msg_print(NULL, V_ERROR, "set_prime_size(): received invalid width");
 		throw;
 	}
-	
-	prime->set_offset(offset);
-	return offset + prime->get_size();
 }
 
-static inline offset_t set_size(Data * data, offset_t offset);
-
-static offset_t set_array_size(Array * array, offset_t offset){
-	size_t child_sz;
+/// calculate the size of an array
+static void set_array_size(Array * array){
+	if(!array->get_child()){
+		msg_print(NULL, V_ERROR,
+			"set_array_size(): found array %s with no child",
+			array->get_label()
+		);
+		throw;
+	}
 	
-	array->set_offset(offset);
-	
-	if(!array->get_child()->get_size()) set_size(array->get_child(), 0);
-	child_sz=array->get_child()->get_size();
-	
-	array->set_size(child_sz*array->get_count());
-	
-	return offset + array->get_size();
+	// recursively set member sizes
+	if(!array->get_size()) set_size(array->get_child());
 }
 
-static offset_t set_struct_size(Structure * structure, offset_t offset){
-	size_t bytes=0, padding;
-	Data * member;
+/** calculate the size of structure and its member offsets
+ *	This function also prints a structure declaration to the out_fd
+ */
+static void set_struct_size(Struct_def * structure){
+	size_t bytes=0;
+	Data * field;
 	
-	structure->set_offset(offset);
-	
-	member = structure->members.first();
+	// make sure all field sizes are available first
+	field = structure->members.first();
 	do{
-		
-		set_size(member, offset);
-		
-		if(( padding=member->get_offset() % member->get_size() )){
-			offset += padding;
-			set_size(member, offset);
-			msg_print(NULL, V_WARN, "padding member %s in record %s",
-				member->get_label(),
-				structure->get_label()
-			);
+		if(!field->get_size()){
+			if(field->get_type() == ot_struct_inst)
+				set_struct_size(
+					dynamic_cast<Struct_inst*>(field)->get_layout()
+				);
+			else set_size(field);
 		}
-		
-		
-		bytes  += member->get_size();
-		offset += member->get_size();
-		
-	}while(( member = structure->members.next() ));
+	}while(( field = structure->members.next() ));
+	
+	
+	// calculate offsets and padding
+	put_str("\nstruc %s\n", structure->get_label());
+	
+	// get the first field
+	field = structure->members.first();
+	
+	// print the first field
+	put_str("\t%s\t: resb %s\n",
+		field->get_label(),
+		str_num(field->get_size())
+	);
+	
+	// store any necessary alignment info
+	bytes += field->get_size();
+	
+	// get the next field
+	while(( field = structure->members.next() )){
+		// decide whether any padding is needed
+		// if yes supply padding
+		// print the field
+		put_str("\t%s\t: resb %s\n",
+			field->get_label(),
+			str_num(field->get_size())
+		);
+		// store any necessary alignment info
+		bytes += field->get_size();
+	}
+	
+	put_str("endstrc\n");
 	
 	structure->set_size(bytes);
 	
-	return offset;
+	// FIXME: check the size against NASM's size
 }
 
-/// sets sizes of parents and offsets of children
-static inline offset_t set_size(Data * data, offset_t offset){
-	switch(data->get_type()){
-	case ot_array:
-		return set_array_size(dynamic_cast<Array*>(data), offset);
-	case ot_struct:
-		return set_struct_size(dynamic_cast<Structure*>(data), offset);
-	case ot_prime:
-		return set_prime_size(dynamic_cast<Prime*>(data), offset);
-
+static void set_size(obj_pt obj){
+	switch( obj->get_type() ){
+	case ot_prime: set_prime_size( dynamic_cast<Prime*>(obj) ); break;
+	case ot_array: set_array_size( dynamic_cast<Array*>(obj) ); break;
+	case ot_struct_def:
+		set_struct_size( dynamic_cast<Struct_def*>(obj) );
+		break;
+	
+	// ignore
+	case ot_routine    :
+	case ot_struct_inst: break;
+	
 	// error
-	case ot_routine:
-	case ot_base   :
-	default        :
-		msg_print(NULL, V_ERROR, "set_size(): found an invalid object");
+	default     :
+		msg_print(NULL, V_ERROR, "set_size(): found an invalid obj_t");
 		throw;
 	}
 }
@@ -1104,30 +1101,27 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		throw;
 	}
 	
+	if(!out_fd){
+		msg_print(NULL, V_ERROR, "x86(): out_fd is NULL");
+		throw;
+	}
+	
 	program_data = prog;
 	fd           = out_fd;
 	mode         = proccessor_mode;
+	
+	put_str("\n; A NASM assembler file generated from MPL\n");
+	// this should validate out_fd
 	
 	if(!( obj=prog->objects.first() )){
 		msg_print(NULL, V_ERROR, "x86(): Program contains no objects");
 		return;
 	}
 	
-	/********* SET SIZES AND OFFSETS **********/
+	/****** SET SIZES AND DECLARE STRUCTS ******/
 	
 	do{
-		switch(obj->get_type()){
-		case ot_prime:
-		case ot_array:
-		case ot_struct: set_size(dynamic_cast<Data*>(obj), 0); break;
-		
-		// ignore
-		case ot_routine: break;
-		
-		// error
-		case ot_base:
-		default     : throw;
-		}
+		set_size(obj);
 	}while(( obj=prog->objects.next() ));
 	
 	/*********** DECLARE VISIBILITY ***********/
@@ -1167,28 +1161,22 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	else put_str("align 4\n");
 	
 	do{
-		switch(obj->get_type()){
-		case ot_array :
-		case ot_prime :
-		case ot_struct:
-			switch(obj->get_sclass()){
-			case sc_private:
-			case sc_public : static_data(obj);
-			
-			// ignore
-			case sc_stack :
-			case sc_param :
-			case sc_member:
-			case sc_temp  :
-			case sc_extern:
-			case sc_const : break;
-			
-			//error
-			case sc_none:
-			case sc_NUM:
-			default: throw;
-			}
-		default: break;
+		switch(obj->get_sclass()){
+		case sc_private:
+		case sc_public : static_data(dynamic_cast<Data*>(obj));
+		
+		// ignore
+		case sc_stack :
+		case sc_param :
+		case sc_member:
+		case sc_temp  :
+		case sc_extern:
+		case sc_const : break;
+		
+		//error
+		case sc_none:
+		case sc_NUM:
+		default: throw;
 		}
 	}while(( obj=prog->objects.next() ));
 	
@@ -1197,6 +1185,9 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	obj=prog->objects.first();
 	
 	put_str("\nsection .code\t; Program code\n");
+	
+	if (mode == xm_long) put_str("align 8\n");
+	else put_str("align 4\n");
 	
 	do{
 		if(obj->get_type() == ot_routine)

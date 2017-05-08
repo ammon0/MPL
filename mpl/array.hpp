@@ -13,9 +13,11 @@
 #define _ARRAY_HPP
 
 
-#include <mpl/data.hpp>
+#include <mpl/object.hpp>
 
 #include <util/msg.h>
+
+#include <vector>
 
 #define ot_array ((obj_t) 3)
 
@@ -24,29 +26,27 @@
 //                               ARRAY CLASS
 /******************************************************************************/
 
-// HOW DO WE HANDLE ANYTHING BIGGER THAN A PRIME??????
-
 
 class Array: public Data{
 	umax   count; ///< How many of these in the array
 	Data * child; ///< An array of what must be sc_none they are anonymous and can only be stored as temp
 	
-	std::string lit;
 public:
+	std::vector<uint8_t> value;
+	
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Array(umax quantity) : Data() { count = quantity; child = NULL; }
+	Array(umax quantity=0, Data * child_type=NULL){
+		count = quantity;
+		child = child_type;
+	}
 	
 	/******************************* ACCESSOR *********************************/
 	
 	umax   get_count(void) const{ return count; }
 	Data * get_child(void) const{ return child; }
-	
-	index_t get_idx_cnt(void) const{
-		return count*child->get_idx_cnt();
-	}
-	
-	virtual obj_t get_type (void) const{ return ot_array; }
+	obj_t  get_type (void) const{ return ot_array; }
+	size_t get_size (void) const{ return child? child->get_size()*count:0; }
 	
 	const char * print_obj (void) const{
 		std::string str;
@@ -63,6 +63,8 @@ public:
 	}
 	
 	/******************************* MUTATORS *********************************/
+	
+	void set_child(Data * child_type){ child = child_type; }
 	
 	void set_count(umax number){
 		if(count == 1){

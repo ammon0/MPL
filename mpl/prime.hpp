@@ -14,7 +14,7 @@
 #define _PRIME_HPP
 
 
-#include <mpl/data.hpp>
+#include <mpl/object.hpp>
 
 
 /******************************************************************************/
@@ -46,35 +46,35 @@ typedef enum width_t{
 // This is the only object that can be accessed immediately
 
 class Prime: public Data{
-	width_t   width;
-	bool      sign;
-	umax      value;
+	width_t width;
+	size_t  bytes;
+	bool    sign;
+	umax    value;
 	/**	if sc_const then value is the immediate contant value. Otherwise value is
 		the initialization of the variable.
 	*/
-
+	
 public:
 	/****************************** CONSTRUCTOR *******************************/
-
-	Prime(void);
-
+	
+	Prime(void){ width=w_none; bytes=0; sign=false; };
+	
 	/******************************* ACCESSOR *********************************/
 	
-	width_t get_width  (void) const{ return width; }
-	umax    get_value  (void) const{ return value; }
-	bool    is_signed  (void) const{ return sign ; }
-	index_t get_idx_cnt(void) const{ return 1    ; }
+	width_t get_width(void) const{ return width; }
+	size_t  get_size (void) const{ return bytes ; }
+	umax    get_value(void) const{ return value; }
+	bool    is_signed(void) const{ return sign ; }
+	obj_t   get_type (void) const{ return ot_prime; }
 	
-	virtual obj_t get_type (void) const{ return ot_prime; }
-	virtual const char * print_obj (void) const;
+	const char * print_obj (void) const;
 	
 	/******************************* MUTATORS *********************************/
 	
 	void set_width   (width_t size);
-	void set_count   (umax    number);
+	void set_size    (size_t size ){ bytes = size; }
 	void set_signed  (void        );
-	void set_init    (umax    val );
-	void set_constant(umax    val );
+	void set_value   (umax    val );
 };
 
 

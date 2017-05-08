@@ -9,52 +9,36 @@
  *
  ******************************************************************************/
 
-#ifndef _STRUCTURE_HPP
-#define _STRUCTURE_HPP
+#ifndef _STRUCT_DEF_HPP
+#define _STRUCT_DEF_HPP
 
 
 #include <mpl/obj_container.hpp>
 
-#define ot_struct ((obj_t) 4)
+#define ot_struct_def ((obj_t) 5)
 
-
-/******************************************************************************/
-//                             STRUCTURE CLASS
-/******************************************************************************/
-
-
-class Structure: public Data{
+class Struct_def: public Object {
+	size_t bytes;
 	
 public:
 	Obj_List members;
-	/****************************** CONSTRUCTOR *******************************/
 	
-	Structure(void): Data(){}
+	/****************************** CONSTRUCTOR *******************************/
 	
 	/******************************* ACCESSOR *********************************/
 	
-	obj_t get_type (void) const{ return ot_struct; }
+	obj_t get_type (void) const{ return ot_struct_def; }
 	
-	index_t get_idx_cnt(void) const{
-		Data * member;
-		index_t count=0;
-		
-		member = members.first();
-		do{
-			count += member->get_idx_cnt();
-		}while(( member = members.next() ));
-		
-		return count;
-	}
+	size_t get_size(void) const{ return bytes; }
 	
 	const char * print_obj (void) const{
 		std::string str;
 		obj_pt obj;
-	
+		
 		str = "Struct: ";
 		str += get_label();
 		str += "\n";
-	
+		
 		if(( obj = members.first() )){
 			do{
 				str += "\t";
@@ -62,18 +46,19 @@ public:
 				str += "\n";
 			}while(( obj = members.next() ));
 		}
-	
+		
 		str += "\n";
-	
+		
 		return str.c_str();
 	}
 	
 	/******************************* MUTATORS *********************************/
 	
-
+	void set_size(size_t size){ bytes = size; }
+	
 };
 
 
-#endif // _STRUCTURE_HPP
+#endif // _STRUCT_DEF_HPP
 
 

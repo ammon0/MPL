@@ -14,13 +14,6 @@
 #include <stdio.h>
 
 
-Prime::Prime(void) : Data(){
-	width = w_none;
-	sign = false;
-	// const_value
-}
-
-
 /******************************* ACCESSOR *********************************/
 
 const char * Prime::print_obj (void) const{
@@ -64,23 +57,16 @@ void Prime::set_signed(void){
 	}
 }
 
-void Prime::set_init(umax val){
-	if(sclass == sc_stack || sclass == sc_private || sclass == sc_public)
-		value = val;
+void Prime::set_value(umax val){
+	if(
+		sclass == sc_stack ||
+		sclass == sc_private ||
+		sclass == sc_public ||
+		sclass == sc_const
+	) value = val;
 	else{
 		msg_print(NULL, V_ERROR,
 			"Prime::set_constant(): object cannot be initialized",
-			get_label()
-		);
-		throw;
-	}
-}
-
-void Prime::set_constant(umax val){
-	if(sclass == sc_const) value = val;
-	else{
-		msg_print(NULL, V_ERROR,
-			"Prime::set_constant(): object is not a constant",
 			get_label()
 		);
 		throw;
