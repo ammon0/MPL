@@ -898,7 +898,7 @@ static void Gen_routine(Routine * routine){
 	/***************** RETURN *****************/
 	
 	// pop the current activation record
-	//stack_manager.pop();
+	put_str("\t%s\n", inst_array[X_LEAVE]);
 	// return
 	put_str("\t%s\n", inst_array[X_RET]);
 }
@@ -934,11 +934,18 @@ static void static_structure(Struct_inst * structure){
 
 /// Generate a static data object
 static void static_data(Data * data){
-	
-	/* TODO: the static data area can be considered one giant struct and probably should be for alignment purposes */
-	
 	// dynamic_cast will pass a null if not data
 	if(!data) return;
+	
+	// set padding if needed
+	if(mode == xm_long && data->get_size() > QWORD){
+		put_str("\talign %s\n", str_num(QWORD));
+	}
+	else if(mode == xm_protected && data->get_size() > DWORD){
+		put_str("\talign %s\n", str_num(DWORD));
+	}
+	// if we are here the field cannot be bigger than the mode alignment
+	else put_str("\talign %s\n", str_num(data->get_size()));
 	
 	// place the label
 	lbl(data);
@@ -1082,12 +1089,14 @@ static void set_struct_size(Struct_def * structure){
 	
 	structure->set_size(bytes);
 	
-	put_str("%%if (%s != %s_size)\n\t %%error\n %%endif\n\n",
+	put_str(
+		"%%if (%s != %s_size)\n\
+		\t %%error \"Internal struct size mismatch\"\n\
+		%%endif\n\n",
 		str_num(structure->get_size()),
 		structure->get_label()
 	
 	);
-	// FIXME: check the size against NASM's size
 }
 
 static void set_size(obj_pt obj){
@@ -1145,13 +1154,15 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		return;
 	}
 	
-	/****** SET SIZES AND DECLARE STRUCTS ******/
+	/***** SET SIZES AND STRUCTURE OFFSETS *****/
 	
 	do{
 		set_size(obj);
 	}while(( obj=prog->objects.next() ));
 	
 	/*********** DECLARE VISIBILITY ***********/
+	
+	put_str("\n; Declaring Visibility\n");
 	
 	obj=prog->objects.first();
 	
