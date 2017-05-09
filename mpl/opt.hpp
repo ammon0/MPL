@@ -30,6 +30,24 @@ void opt_dead(PPD * prog_data);
 void opt_const(PPD * prog_data);
 
 
+/**	## Optimization Strategies
+ *	### Eliminate Branches
+ *	* Rearrange and fuse basic blocks to be contiguous
+ *	* use inlining if it will reduce code size or if the function is small and
+ *	often used
+ *	* do not put more that 3 branches in 16 bytes of code
+ *
+ *	### Unroll Loops
+ *	* If the loop contains branches and more than 16 iterations don't unroll.
+ *	* 
+ *
+ *	* make the fallthrough code the more likely jump
+ *
+ *	### Keep all memory objects and accesses aligned
+ *
+ *
+ */
+
 #endif // _OPT_HPP
 
 

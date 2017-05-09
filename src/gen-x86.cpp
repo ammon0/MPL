@@ -281,6 +281,11 @@ put_str(const char * format, ...){
 	va_end(ap);
 }
 
+#define FORM_2   "\t%s;%s\n"
+#define FORM_3   "\t%s\t%s;%s\n"
+#define FORM_4   "\t%s\t%s, %s;%s\n"
+#define FORM_LBL "%s:\n"
+
 
 /******************************************************************************/
 //                        RESOLVE DATA OBJECTS
@@ -330,8 +335,6 @@ static inline void op_size(std::string &s, Data * var){
 	}
 }
 
-/***************************** HELPER FUNCTIONS *******************************/
-
 /** Determine whether an operand is already present in a register.
  */
 static reg_t check_reg(obj_pt operand){
@@ -343,6 +346,77 @@ static reg_t check_reg(obj_pt operand){
 	}
 	return (reg_t)i;
 }
+
+#define BUFFER_CNT 3
+
+static void resolve_prime(Prime * obj){
+	static std::string buffers[BUFFER_CNT];
+	static uint        next;
+	reg_t reg;
+	
+	// pick a buffer
+	next++;
+	next%=BUFFER_CNT;
+	
+	// first check if it's already in a registers
+	if(( reg=check_reg(obj) )){
+		buffers[next]= str_reg(obj->get_size(), reg);
+		return;
+	}
+	
+	// generate its memory location
+	switch(obj->get_sclass()){
+	case sc_private:
+	case sc_public :
+	case sc_extern : ref_static(buffers[next], obj); break;
+	case sc_stack  : ref_auto  (buffers[next], obj); break;
+	case sc_param  : ref_param (buffers[next], obj); break;
+	
+	case sc_member:/* FIXME */ break;
+	
+	//error
+	case sc_temp :
+	case sc_const:
+	case sc_none :
+	case sc_NUM  :
+	default: throw;
+	}
+	
+	reftoval(buffers[next]);
+	op_size (buffers[next], obj);
+	return;
+}
+
+static void resolve_addr(obj_pt obj){
+	static std::string buffers[BUFFER_CNT];
+	static uint        next;
+	
+	// pick a buffer
+	next++;
+	next%=BUFFER_CNT;
+	
+	// generate its memory location
+	switch(obj->get_sclass()){
+	case sc_member : // member labels are equal to the offset value
+	case sc_private:
+	case sc_public :
+	case sc_extern : ref_static(buffers[next], obj); break;
+	case sc_stack  : ref_auto  (buffers[next], obj); break;
+	case sc_param  : ref_param (buffers[next], obj); break;
+	
+	//error
+	case sc_temp :
+	case sc_const:
+	case sc_none :
+	case sc_NUM  :
+	default: throw;
+	}
+}
+
+
+/***************************** HELPER FUNCTIONS *******************************/
+
+
 
 
 
@@ -398,40 +472,15 @@ static reg_t check_reg(obj_pt operand){
 //	reg_d[reg] = mem;
 //}
 
+static void Store_prime(reg_t reg){}
 
-/**	reg_d must contain the parent object and an index
- *
- */
-static void Store(reg_t reg){}
-
-static void Load(reg_t reg, Data * data, Prime * idx){
-	
-	// if sc_stack the base is BP- data->offset
-	
-	// if sc_public, sc_extern or sc_private the base is the label
-	
-	// need to store the base and index in the reg_d
-	
-	
-}
+static void Load_prime(reg_t reg, Prime * source){}
 
 
+/******************************************************************************/
+//                       ALPHABETICAL INSTRUCTION MACROS
+/******************************************************************************/
 
-/*************************** INSTRUCTION FUNCTIONS ****************************/
-// Alphabetical
-
-/// ass(Prime * dest, Prime * source, NULL)
-static inline void ass(Prime * location, Prime * value){
-	switch(location->get_sclass()){
-	case sc_extern:
-	case sc_private:
-	case sc_public: put_str("\t%s");
-	
-	//asm_line(NULL, X_MOV, , , "Assignment"); break;
-	//case
-	}
-
-}
 
 ///// most binary operations
 //static inline void
@@ -494,9 +543,115 @@ static inline void ass(Prime * location, Prime * value){
 //	reg_d[A] = result;
 //}
 
+static inline void ass(Prime * dest, Prime * source){
+	resolve_prime(dest);
+	resolve_prime(source);
+	
+	if(dest->get_size() < source->get_size())
+		msg_print(NULL, V_WARN, "Assignment may cause overflow");
+	
+	if(dest->is_signed() != source->is_signed())
+		msg_print(NULL, V_WARN, "Mismatched sign in assignment");
+	
+	put_str(FORM_4,
+		inst_array[X_MOV],
+		"FIXME",
+		"FIXME",
+		"An assignment"
+	);
+}
+
+static inline void dec(Prime* arg){
+	resolve_prime(arg);
+	
+	put_str("\t%s\t%s\n", inst_array[X_DEC], "FIXME");
+}
+
+static inline void idx(Prime * si, Array * array, Prime * index){
+	size_t step_size;
+	
+	// sanity check
+	if(!si || !array || !index){
+		msg_print(NULL, V_ERROR, "idx(): got a NULL");
+		throw;
+	}
+	
+	// get the address of the compound
+	resolve_addr(array);
+	put_str("\t%s\t%s, [%s]\n",
+		inst_array[X_LEA],
+		str_reg(si->get_size(), SI),
+		"FIXME",
+		"idx()"
+	);
+	
+	step_size= array->get_child()->get_size();
+	Load_prime(A, index);
+	
+	if(step_size > QWORD){
+		put_str(FORM_3, inst_array[X_MUL], str_num(step_size), "idx()");
+		
+		// A now contains the offset
+		put_str("\t%s\t%s, [%s+%s]\n",
+			inst_array[X_LEA],
+			str_reg(si->get_size(), SI),
+			str_reg(si->get_size(), SI),
+			str_reg(mode==xm_long? QWORD:DWORD, A)
+		);
+	}
+	else{
+		put_str("\t%s\t%s, [%s+%s*%s]\n",
+			inst_array[X_LEA],
+			str_reg(si->get_size(), SI), // target
+			str_reg(si->get_size(), SI), // base
+			str_reg(mode==xm_long? QWORD:DWORD, A), // index
+			str_num(step_size)
+		);
+	}
+	
+	// this is necessary if we want to later index the child
+	reg_d[SI] = array->get_child();
+}
+
+static inline void mbr(Prime * si, Struct_inst * s, Data * member){
+	
+	// sanity check
+	if(!si || !s || !member){
+		msg_print(NULL, V_ERROR, "idx(): got a NULL");
+		throw;
+	}
+	
+	// get the address of the compound
+	resolve_addr(s);
+	put_str("\t%s\t%s, [%s]\n",
+		inst_array[X_LEA],
+		str_reg(si->get_size(), SI),
+		"FIXME",
+		"idx()"
+	);
+	
+	resolve_addr(member);
+	put_str("\t%s\t%s, [%s+%s]\n",
+		inst_array[X_LEA],
+		str_reg(si->get_size(), SI),
+		str_reg(si->get_size(), SI),
+		"FIXME"
+	);
+}
+
+static inline void inc(Prime * arg){
+	resolve_prime(arg);
+	
+	put_str(FORM_3, inst_array[X_INC], "FIXME", "");
+}
+
 /// place a label in the assembler file
 static inline void lbl(obj_pt op){
-	put_str("%s:\n", op->get_label());
+	put_str(FORM_LBL, op->get_label());
+}
+
+static inline void ref(Prime * result, obj_pt obj){
+	// if object is a compound or a member then its reference may be in a register
 }
 
 ///// signed and unsigned modulus division
@@ -610,41 +765,39 @@ static inline void lbl(obj_pt op){
 
 
 /** Generate code for a single intermediate instruction
+ *	The vast majority of x86 instructions have only a source and destination
  */
 static void Gen_inst(inst_pt inst){
 	
 	
-//	switch (inst->op){
-//	case i_nop : return;
-//	case i_proc: return;
-//
-//	case i_inc : unary(
-//		dynamic_cast<Prime*>(inst->result),
-//		dynamic_cast<Prime*>(inst->left),
-//		X_INC
-//	); break;
-//	case i_dec : unary(
-//		dynamic_cast<Prime*>(inst->result),
-//		dynamic_cast<Prime*>(inst->left),
-//		X_DEC
-//	); break;
+	switch (inst->op){
+	case i_nop : 
+	case i_proc: return;
+	
+	//inc and dec act on a single object and have no other result
+	case i_inc: inc(dynamic_cast<Prime*>(inst->left)); break;
+	case i_dec: dec(dynamic_cast<Prime*>(inst->left)); break;
+	
+//	case i_ass: ass(inst->result, inst->left); break;
+	
+	
 //	case i_neg : unary(
 //		dynamic_cast<Prime*>(inst->result),
 //		dynamic_cast<Prime*>(inst->left),
 //		X_NEG
 //	); break;
-//	case i_not : unary(
-//		dynamic_cast<Prime*>(inst->result),
-//		dynamic_cast<Prime*>(inst->left),
-//		X_NOT
-//	); break;
-//
-//	case i_ass : ass (inst->result, inst->left); break;
+//		case i_inv : break;
+//	
+//	
+//	
+//	
+	
+//	
 //	case i_sz  : break;
 //	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
-//
+	
 //	case i_ref : ref(dynamic_cast<Prime*>(inst->result), inst->left); break;
-//
+	
 //	case i_lsh : binary(
 //		dynamic_cast<Prime*>(inst->result),
 //		dynamic_cast<Prime*>(inst->left),
@@ -715,7 +868,7 @@ static void Gen_inst(inst_pt inst){
 //		dynamic_cast<Prime*>(inst->right)
 //	); break;
 //	case i_exp : break;
-//
+	
 //	// these are probably all implemented with X_CMP
 //	case i_eq  : break;
 //	case i_neq : break;
@@ -723,17 +876,18 @@ static void Gen_inst(inst_pt inst){
 //	case i_gt  : break;
 //	case i_lte : break;
 //	case i_gte : break;
-//
-//	case i_inv : break;
+	
+	
 //	case i_and : break;
 //	case i_or  : break;
-//
+//	case i_not : break;
+	
 //	case i_lbl : lbl(inst->left); break;
 //	case i_jmp : break;
 //	case i_jz  : break;
 //	case i_loop: break;
 //	case i_cpy : break;
-//
+	
 //	case i_parm: stack_manager.push_parm(
 //		dynamic_cast<Prime*>(inst->left)
 //	); break;
@@ -741,12 +895,12 @@ static void Gen_inst(inst_pt inst){
 //		dynamic_cast<Prime*>(inst->result),
 //		dynamic_cast<Routine*>(inst->left)
 //	); break;
-//
+
 //	case i_rtrn: ret(inst->left); break;
-//
-//	case i_NUM:
-//	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
-//	}
+
+	case i_NUM:
+	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
+	}
 
 	/* Since temporaries are single use they can be completely covered by the
 	 * accumulator unless they are not immediately used. In which case we have
@@ -778,7 +932,7 @@ static void Gen_blk(blk_pt blk){
 
 	// flush the registers at the end of the block
 	for(uint i=0; i<R8; i++){
-		if(reg_d[i] != NULL) Store((reg_t)i);
+		if(reg_d[i] != NULL) Store_prime((reg_t)i);
 	}
 
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
