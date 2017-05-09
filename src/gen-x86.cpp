@@ -197,21 +197,19 @@ static const char * inst_array[NUM_inst] = {
 static PPD        * program_data;
 static FILE       * fd          ; ///< the output file descriptor
 static x86_mode_t   mode        ; ///< the processor mode we are building for
+static size_t       frame_sz    ; ///< the size of the current stack frame
 
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  *	needs to contain enough information to be able to store the data
  */
 static obj_pt reg_d[NUM_reg];
-//static Stack_man stack_manager;
 
 
 /******************************************************************************/
-//                             PRIVATE FUNCTIONS
+//                          STRING WRITING FUNCTIONS
 /******************************************************************************/
 
-
-/************************** STRING WRITING FUNCTIONS **************************/
 
 /** Return the correct assembler string for the given x86 instruction. */
 static inline const char * str_instruction(x86_inst instruction){
@@ -273,14 +271,6 @@ static const char * str_reg(size_t width, reg_t reg){
 	return array;
 }
 
-static const char * str_ref(Data * obj){
-	
-}
-
-static const char * str_val(Prime * obj){
-	
-}
-
 /** Add a command string to the output file. */
 static void __attribute__((format(printf, 1, 2)))
 put_str(const char * format, ...){
@@ -291,30 +281,53 @@ put_str(const char * format, ...){
 	va_end(ap);
 }
 
-static void asm_line(
-	x86_inst     instruction,
-	const char * arg1,
-	const char * arg2,
-	const char * comment
-){
-	if(!arg1)
-		put_str("\t\t%6s                                           ; %s\n",
-			inst_array[instruction],
-			comment
-		);
-	else if (!arg2)
-		put_str("\t\t%6s %20s                      ; %s\n",
-			inst_array[instruction],
-			arg1,
-			comment
-		);
-	else 
-		put_str("\t\t%6s %20s, %20s; %s\n",
-			inst_array[instruction],
-			arg1,
-			arg2,
-			comment
-		);
+
+/******************************************************************************/
+//                        RESOLVE DATA OBJECTS
+/******************************************************************************/
+
+
+// Stack variables are accessed as [BP-frame_size+offset]
+static inline void ref_auto(std::string& s, obj_pt var){
+	s = "BP-";
+	s += str_num(frame_sz);
+	s += "+";
+	s += var->get_label();
+}
+
+// Formal parameters are accessed as [BP+2*stack_width+index*stack_width]
+static inline void ref_param(std::string& s, obj_pt var){
+	if(mode == xm_long){
+		s = "BP+16+";
+		s +=var->get_label();
+		s += "*8";
+	}
+	else{
+		s = "BP+8+";
+		s +=var->get_label();
+		s += "*4";
+	}
+}
+
+static inline void ref_static(std::string &s, obj_pt var){
+	s=var->get_label();
+}
+
+static inline void reftoval(std::string &s){
+	s.insert(0, "[");
+	s += "]";
+}
+
+static inline void op_size(std::string &s, Data * var){
+	switch(var->get_size()){
+	case BYTE : s.insert(0, "byte "); break;
+	case WORD : s.insert(0, "word "); break;
+	case DWORD: s.insert(0, "dword "); break;
+	case QWORD: s.insert(0, "qword "); break;
+	default:
+		msg_print(NULL, V_ERROR, "op_size(): bad");
+		throw;
+	}
 }
 
 /***************************** HELPER FUNCTIONS *******************************/
@@ -330,6 +343,7 @@ static reg_t check_reg(obj_pt operand){
 	}
 	return (reg_t)i;
 }
+
 
 
 /** Store data in register to its appropriate memory location.
@@ -598,6 +612,8 @@ static inline void lbl(obj_pt op){
 /** Generate code for a single intermediate instruction
  */
 static void Gen_inst(inst_pt inst){
+	
+	
 //	switch (inst->op){
 //	case i_nop : return;
 //	case i_proc: return;
@@ -795,7 +811,7 @@ static void Gen_routine(Routine * routine){
 	
 	//FIXME determine how many temps are needed and add them to the autos
 	
-	/********TODO SORT AUTOS AND PARAMETERS ********/
+	/******** TODO SORT AUTOS AND PARAMETERS ********/
 	
 	/************ CALCULATE SIZES ***************/
 	
