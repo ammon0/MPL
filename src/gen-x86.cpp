@@ -72,32 +72,13 @@
 #include <stdarg.h>
 #include <string>
 
+#include "x86_reg.hpp"
+
 
 /******************************************************************************/
 //                               DEFINITIONS
 /******************************************************************************/
 
-
-/// These are all the x86 "general purpose" registers
-typedef enum{
-	A,  ///< Accumulator
-	B,  ///< General Purpose
-	C,  ///< Counter
-	D,  ///< Data
-	SI, ///< Source Index
-	DI, ///< Destination Index
-	BP, ///< Base Pointer
-	SP, ///< Stack Pointer
-	R8,  ///< General Purpose
-	R9,  ///< General Purpose
-	R10, ///< General Purpose
-	R11, ///< General Purpose
-	R12, ///< General Purpose
-	R13, ///< General Purpose
-	R14, ///< General Purpose
-	R15, ///< General Purpose
-	NUM_reg
-} reg_t;
 
 /// These are the x86 register sizes
 #define BYTE  ((size_t) 1)
@@ -210,7 +191,9 @@ static size_t       frame_sz    ; ///< the size of the current stack frame
  *	TODO: needs a marker to indicate whether the register contains the value or
  *	the reference of the object.
  */
-static obj_pt reg_d[NUM_reg];
+//static obj_pt reg_d[NUM_reg];
+
+static Reg_man reg_d;
 
 
 /******************************************************************************/
@@ -342,18 +325,6 @@ static inline void op_size(std::string &s, Data * var){
 	}
 }
 
-/** Determine whether an operand is already present in a register.
- */
-static inline reg_t check_reg(obj_pt operand){
-	uint i;
-
-	for(i=A; i!=NUM_reg; i++){
-		reg_t j = static_cast<reg_t>(i);
-		if(reg_d[j] == operand) break;
-	}
-	return (reg_t)i;
-}
-
 #define BUFFER_CNT 3
 
 static void resolve_prime(Prime * obj){
@@ -366,7 +337,7 @@ static void resolve_prime(Prime * obj){
 	next%=BUFFER_CNT;
 	
 	// first check if it's already in a registers
-	if(( reg=check_reg(obj) )){
+	if(( reg=reg_d.find_val(obj) )){
 		buffers[next]= str_reg(obj->get_size(), reg);
 		return;
 	}
@@ -490,7 +461,8 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 		throw;
 	}
 	
-	if( (reg=check_reg(array)) == NUM_reg ) throw;
+	//if( (reg=check_reg(array)) == NUM_reg ) throw;
+	if( (reg=reg_d.find_ref(array)) == NUM_reg ) throw;
 	
 	step_size= array->get_child()->get_size();
 	Load_prime(A, index);
@@ -517,7 +489,8 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 	}
 	
 	// this is necessary if we want to later index the child
-	reg_d[SI] = array->get_child();
+	//reg_d[SI] = array->get_child();
+	reg_d.set_ref(reg, array->get_child());
 }
 
 static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
@@ -529,7 +502,8 @@ static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
 		throw;
 	}
 	
-	if( (reg=check_reg(s)) == NUM_reg ) throw;
+	//if( (reg=check_reg(s)) == NUM_reg ) throw;
+	if( (reg=reg_d.find_ref(s)) == NUM_reg ) throw;
 	
 	put_str("\t%s\t%s, [%s+%s]\n",
 		inst_array[X_LEA],
@@ -537,6 +511,8 @@ static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
 		str_reg(si->get_size(), reg),
 		member->get_label()
 	);
+	
+	reg_d.set_ref(reg, member);
 }
 
 
@@ -621,7 +597,8 @@ static inline void call(Prime * result, Routine * proc){
 
 	// TODO: unload parameters
 
-	reg_d[A] = result;
+	//reg_d[A] = result;
+	reg_d.set_val(A, result);
 }
 
 static inline void dec(Prime* arg){
@@ -639,7 +616,7 @@ static inline void ref(Prime * si, Data * data, Data * index){
 	}
 	
 	// load the reference if it is not already there
-	if( check_reg(data) == NUM_reg){
+	if( reg_d.find_ref(data) == NUM_reg){
 		// get the address of the compound
 		resolve_addr(data);
 		put_str("\t%s\t%s, [%s] ;%s\n",
@@ -649,7 +626,8 @@ static inline void ref(Prime * si, Data * data, Data * index){
 			"idx()"
 		);
 		
-		reg_d[SI] = data;
+		reg_d.set_ref(SI, data);
+		//reg_d[SI] = data;
 	}
 	
 	if     (index && data->get_type() == ot_array)
@@ -955,8 +933,13 @@ static void Gen_blk(blk_pt blk){
 	while(( inst=blk->next() ));
 
 	// flush the registers at the end of the block
-	for(uint i=0; i<R8; i++){
-		if(reg_d[i] != NULL) Store_prime((reg_t)i);
+//	for(uint i=0; i<R8; i++){
+//		if(reg_d[i] != NULL) Store_prime((reg_t)i);
+//	}
+	
+	while(reg_d.check() != NUM_reg){
+		Store_prime(reg_d.check());
+		reg_d.clear(reg_d.check());
 	}
 
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
@@ -1012,7 +995,8 @@ static void Gen_routine(Routine * routine){
 	/**************** PROLOGUE ******************/
 	
 	// Initialize the register descriptor
-	memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
+	//memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
+	reg_d.clear();
 	
 	// place the label
 	lbl(routine);

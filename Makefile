@@ -24,8 +24,9 @@ INCDIR    :=$(INSTALLDIR)/include
 
 headers:=$(wildcard $(headerdir)/*.hpp)
 cpp_sources:=$(wildcard $(srcdir)/*.cpp)
+prv_headers:=$(wildcard $(srcdir)/*.hpp)
 
-allfiles:= $(headers) $(cpp_sources)
+allfiles:= $(headers) $(cpp_sources) $(prv_headers)
 
 # Object files
 ppd_objects := obj_container.o object.o prime.o instructions.o routine.o
@@ -98,7 +99,7 @@ libmpl.a: $(ppd_objects) $(gen_objects)
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile
 
-$(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) | $(WORKDIR)
+$(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) $(prv_headers) | $(WORKDIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # working directory
