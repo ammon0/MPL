@@ -16,7 +16,7 @@
  *	## Code Generation
  *	x86 instructions typically replace the left operand with the result. Since
  *	results will always be temporaries, and temporaries are only ever used once.
- *	In this generator will will try to make the left operand and the result
+ *	In this generator we will try to make the left operand and the result
  *	always be the accumulator. This creates an opportunity for an optimizer that
  *	algebraically rearranges things.
  *
@@ -26,6 +26,11 @@
  *	the contents of the accumulator is temp and not being used in the current
  *	instruction then it will have to be stored somewhere. Another register
  *	would be ideal.
+ *
+ *	values assigned to SI and DI are implicitly the reference to the object
+ *	even if the object is prime. This is because the results of the ref
+ *	operation stores in these locations and it will often be necessary to store
+ *	values at these locations.
  *
  *	## Activation Record
  *
@@ -201,7 +206,9 @@ static size_t       frame_sz    ; ///< the size of the current stack frame
 
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
- *	needs to contain enough information to be able to store the data
+ *
+ *	TODO: needs a marker to indicate whether the register contains the value or
+ *	the reference of the object.
  */
 static obj_pt reg_d[NUM_reg];
 
@@ -417,9 +424,6 @@ static void resolve_addr(obj_pt obj){
 /***************************** HELPER FUNCTIONS *******************************/
 
 
-
-
-
 /** Store data in register to its appropriate memory location.
  */
 //static void store(reg_t reg){
@@ -556,15 +560,6 @@ static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
 //	reg_d[A] = result;
 //}
 
-/// call a procedure
-static inline void call(Prime * result, Routine * proc){
-	// parameters are already loaded
-	put_str(FORM_3, inst_array[X_CALL], proc->get_label(), "call()");
-
-	// TODO: unload parameters
-
-	reg_d[A] = result;
-}
 
 ///// signed and unsigned division
 //static void div(Prime * result, Prime * left, Prime * right){
@@ -619,6 +614,16 @@ static inline void ass(Prime * dest, Prime * source){
 	);
 }
 
+/// call a procedure
+static inline void call(Prime * result, Routine * proc){
+	// parameters are already loaded
+	put_str(FORM_3, inst_array[X_CALL], proc->get_label(), "call()");
+
+	// TODO: unload parameters
+
+	reg_d[A] = result;
+}
+
 static inline void dec(Prime* arg){
 	resolve_prime(arg);
 	
@@ -646,7 +651,6 @@ static inline void ref(Prime * si, Data * data, Data * index){
 		
 		reg_d[SI] = data;
 	}
-	
 	
 	if     (index && data->get_type() == ot_array)
 		idx_array(si, static_cast<Array*>(data), dynamic_cast<Prime*>(index));
@@ -801,6 +805,8 @@ static void Gen_inst(inst_pt inst){
 		dynamic_cast<Data*> (inst->right)
 	); break;
 	
+	//case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
+	
 //	case i_neg : unary(
 //		dynamic_cast<Prime*>(inst->result),
 //		dynamic_cast<Prime*>(inst->left),
@@ -814,7 +820,7 @@ static void Gen_inst(inst_pt inst){
 	
 //	
 //	case i_sz  : break;
-//	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
+//	
 	
 //	case i_lsh : binary(
 //		dynamic_cast<Prime*>(inst->result),
