@@ -113,7 +113,7 @@ typedef enum {
 	
 	
 	i_call,
-	i_rtrn,
+	i_ret,
 	
 	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
 	

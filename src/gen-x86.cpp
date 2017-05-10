@@ -281,8 +281,8 @@ put_str(const char * format, ...){
 	va_end(ap);
 }
 
-#define FORM_2   "\t%s;%s\n"
-#define FORM_3   "\t%s\t%s;%s\n"
+#define FORM_2   "\t%s\t      ;%s\n"
+#define FORM_3   "\t%s\t%s    ;%s\n"
 #define FORM_4   "\t%s\t%s, %s;%s\n"
 #define FORM_LBL "%s:\n"
 
@@ -337,7 +337,7 @@ static inline void op_size(std::string &s, Data * var){
 
 /** Determine whether an operand is already present in a register.
  */
-static reg_t check_reg(obj_pt operand){
+static inline reg_t check_reg(obj_pt operand){
 	uint i;
 
 	for(i=A; i!=NUM_reg; i++){
@@ -476,6 +476,65 @@ static void Store_prime(reg_t reg){}
 
 static void Load_prime(reg_t reg, Prime * source){}
 
+static inline void idx_array(Prime * si, Array * array, Prime * index){
+	size_t step_size;
+	reg_t  reg;
+	
+	// sanity check
+	if(!si || !array || !index){
+		msg_print(NULL, V_ERROR, "idx(): got a NULL");
+		throw;
+	}
+	
+	if( (reg=check_reg(array)) == NUM_reg ) throw;
+	
+	step_size= array->get_child()->get_size();
+	Load_prime(A, index);
+	
+	if(step_size > QWORD){
+		put_str(FORM_3, inst_array[X_MUL], str_num(step_size), "idx()");
+	
+		// A now contains the offset
+		put_str("\t%s\t%s, [%s+%s]\n",
+			inst_array[X_LEA],
+			str_reg(si->get_size(), reg),
+			str_reg(si->get_size(), reg),
+			str_reg(mode==xm_long? QWORD:DWORD, A)
+		);
+	}
+	else{
+		put_str("\t%s\t%s, [%s+%s*%s]\n",
+			inst_array[X_LEA],
+			str_reg(si->get_size(), reg), // target
+			str_reg(si->get_size(), reg), // base
+			str_reg(mode==xm_long? QWORD:DWORD, A), // index
+			str_num(step_size)
+		);
+	}
+	
+	// this is necessary if we want to later index the child
+	reg_d[SI] = array->get_child();
+}
+
+static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
+	reg_t reg;
+	
+	// sanity check
+	if(!si || !s || !member){
+		msg_print(NULL, V_ERROR, "idx(): got a NULL");
+		throw;
+	}
+	
+	if( (reg=check_reg(s)) == NUM_reg ) throw;
+	
+	put_str("\t%s\t%s, [%s+%s]\n",
+		inst_array[X_LEA],
+		str_reg(si->get_size(), reg),
+		str_reg(si->get_size(), reg),
+		member->get_label()
+	);
+}
+
 
 /******************************************************************************/
 //                       ALPHABETICAL INSTRUCTION MACROS
@@ -497,16 +556,15 @@ static void Load_prime(reg_t reg, Prime * source){}
 //	reg_d[A] = result;
 //}
 
-///// call a procedure
-//static inline void call(obj_pt result, Routine * proc){
-//	// parameters are already loaded
-//	put_str("\t%s\t%s\n", inst_array[X_CALL], proc->get_label());
-//
-//	// unload parameters
-//	stack_manager.unload(proc->formal_params.count());
-//
-//	reg_d[A] = result;
-//}
+/// call a procedure
+static inline void call(Prime * result, Routine * proc){
+	// parameters are already loaded
+	put_str(FORM_3, inst_array[X_CALL], proc->get_label(), "call()");
+
+	// TODO: unload parameters
+
+	reg_d[A] = result;
+}
 
 ///// signed and unsigned division
 //static void div(Prime * result, Prime * left, Prime * right){
@@ -567,77 +625,35 @@ static inline void dec(Prime* arg){
 	put_str("\t%s\t%s\n", inst_array[X_DEC], "FIXME");
 }
 
-static inline void idx(Prime * si, Array * array, Prime * index){
-	size_t step_size;
-	
+
+static inline void ref(Prime * si, Data * data, Data * index){
 	// sanity check
-	if(!si || !array || !index){
-		msg_print(NULL, V_ERROR, "idx(): got a NULL");
+	if(!si || !data){
+		msg_print(NULL, V_ERROR, "ref(): got a NULL");
 		throw;
 	}
 	
-	// get the address of the compound
-	resolve_addr(array);
-	put_str("\t%s\t%s, [%s]\n",
-		inst_array[X_LEA],
-		str_reg(si->get_size(), SI),
-		"FIXME",
-		"idx()"
-	);
-	
-	step_size= array->get_child()->get_size();
-	Load_prime(A, index);
-	
-	if(step_size > QWORD){
-		put_str(FORM_3, inst_array[X_MUL], str_num(step_size), "idx()");
+	// load the reference if it is not already there
+	if( check_reg(data) == NUM_reg){
+		// get the address of the compound
+		resolve_addr(data);
+		put_str("\t%s\t%s, [%s] ;%s\n",
+			inst_array[X_LEA],
+			str_reg(si->get_size(), SI),
+			"FIXME",
+			"idx()"
+		);
 		
-		// A now contains the offset
-		put_str("\t%s\t%s, [%s+%s]\n",
-			inst_array[X_LEA],
-			str_reg(si->get_size(), SI),
-			str_reg(si->get_size(), SI),
-			str_reg(mode==xm_long? QWORD:DWORD, A)
-		);
-	}
-	else{
-		put_str("\t%s\t%s, [%s+%s*%s]\n",
-			inst_array[X_LEA],
-			str_reg(si->get_size(), SI), // target
-			str_reg(si->get_size(), SI), // base
-			str_reg(mode==xm_long? QWORD:DWORD, A), // index
-			str_num(step_size)
-		);
+		reg_d[SI] = data;
 	}
 	
-	// this is necessary if we want to later index the child
-	reg_d[SI] = array->get_child();
+	
+	if     (index && data->get_type() == ot_array)
+		idx_array(si, static_cast<Array*>(data), dynamic_cast<Prime*>(index));
+	else if(index && data->get_type() == ot_struct_inst)
+		idx_struct(si, static_cast<Struct_inst*>(data), index);
 }
 
-static inline void mbr(Prime * si, Struct_inst * s, Data * member){
-	
-	// sanity check
-	if(!si || !s || !member){
-		msg_print(NULL, V_ERROR, "idx(): got a NULL");
-		throw;
-	}
-	
-	// get the address of the compound
-	resolve_addr(s);
-	put_str("\t%s\t%s, [%s]\n",
-		inst_array[X_LEA],
-		str_reg(si->get_size(), SI),
-		"FIXME",
-		"idx()"
-	);
-	
-	resolve_addr(member);
-	put_str("\t%s\t%s, [%s+%s]\n",
-		inst_array[X_LEA],
-		str_reg(si->get_size(), SI),
-		str_reg(si->get_size(), SI),
-		"FIXME"
-	);
-}
 
 static inline void inc(Prime * arg){
 	resolve_prime(arg);
@@ -648,10 +664,6 @@ static inline void inc(Prime * arg){
 /// place a label in the assembler file
 static inline void lbl(obj_pt op){
 	put_str(FORM_LBL, op->get_label());
-}
-
-static inline void ref(Prime * result, obj_pt obj){
-	// if object is a compound or a member then its reference may be in a register
 }
 
 ///// signed and unsigned modulus division
@@ -778,8 +790,16 @@ static void Gen_inst(inst_pt inst){
 	case i_inc: inc(dynamic_cast<Prime*>(inst->left)); break;
 	case i_dec: dec(dynamic_cast<Prime*>(inst->left)); break;
 	
-//	case i_ass: ass(inst->result, inst->left); break;
+	case i_ass: ass(
+		dynamic_cast<Prime*>(inst->result),
+		dynamic_cast<Prime*>(inst->left)
+	); break;
 	
+	case i_ref: ref(
+		dynamic_cast<Prime*>(inst->result),
+		dynamic_cast<Data*> (inst->left),
+		dynamic_cast<Data*> (inst->right)
+	); break;
 	
 //	case i_neg : unary(
 //		dynamic_cast<Prime*>(inst->result),
@@ -795,8 +815,6 @@ static void Gen_inst(inst_pt inst){
 //	
 //	case i_sz  : break;
 //	case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
-	
-//	case i_ref : ref(dynamic_cast<Prime*>(inst->result), inst->left); break;
 	
 //	case i_lsh : binary(
 //		dynamic_cast<Prime*>(inst->result),
@@ -891,10 +909,10 @@ static void Gen_inst(inst_pt inst){
 //	case i_parm: stack_manager.push_parm(
 //		dynamic_cast<Prime*>(inst->left)
 //	); break;
-//	case i_call: call(
-//		dynamic_cast<Prime*>(inst->result),
-//		dynamic_cast<Routine*>(inst->left)
-//	); break;
+	case i_call: call(
+		dynamic_cast<Prime*>(inst->result),
+		dynamic_cast<Routine*>(inst->left)
+	); break;
 
 //	case i_rtrn: ret(inst->left); break;
 

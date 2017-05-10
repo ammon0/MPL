@@ -92,7 +92,7 @@ inst_pt Routine::add_inst (inst_pt instruction){
 		instruction->op == i_jmp  ||
 		instruction->op == i_jz   ||
 		instruction->op == i_loop ||
-		instruction->op == i_rtrn ||
+		instruction->op == i_ret  ||
 		instruction->op == i_call
 	) DS_nq(blocks, new Block);
 	
