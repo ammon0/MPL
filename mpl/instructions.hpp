@@ -29,11 +29,7 @@ typedef enum {
 	
 	/************ WRITE TO MEMORY ************/
 	
-	/**	ass(Prime * dest, Prime * source, NULL)
-	 *	The r-value source will be stored at the location indicated by the 
-	 *	l-value dest. If dest is a temp, the contents of the register
-	 *	will be taken as the address to store at.
-	 */
+	/**	ass(Data * dest, Data * source, NULL) */
 	i_ass,
 	
 	/// Same as dec
@@ -43,18 +39,12 @@ typedef enum {
 	 */
 	i_dec,
 	
-	/**	cpy(Data * dest, Data * source, Prime * bytes)
-	 *	Copies the data object at source to the location of dest. both must be
-	 *	l-values.
-	 */
-	i_cpy,
-	
 	/**	parm(Prime * parameter) ???
 	 *	
 	 */
 	i_parm,
 	
-	/*********** READ FROM MEMORY ***********/
+	/******** WRITE TO TEMP REGISTER ********/
 	
 	/**	dref(Data * object, Prime * reference)
 	 *	converts an l-value to its corresponding r-value
@@ -69,7 +59,6 @@ typedef enum {
 	 */
 	i_ref,
 	
-	/******* OPERANDS MAY BE IN MEMORY *******/
 	
 	i_neg ,
 	i_inv ,
@@ -89,6 +78,11 @@ typedef enum {
 	i_lte,
 	i_gte,
 	
+	// logical
+	i_not,
+	i_and,
+	i_or ,
+	
 	/**** OPERANDS MUST BE IN REGISTERS *****/
 	
 	i_mul,
@@ -99,12 +93,6 @@ typedef enum {
 	
 	i_sz,
 	
-
-	// logical
-	i_not,
-	i_and,
-	i_or ,
-
 	// flow control (6)
 	i_jmp,
 	i_jz ,

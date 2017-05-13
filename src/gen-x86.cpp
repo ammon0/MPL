@@ -86,8 +86,10 @@
 #define DWORD ((size_t) 4)
 #define QWORD ((size_t) 8)
 
+#define PTR (mode == xm_long? QWORD:DWORD)
+
 /// These are the x86 instructions that we are working with
-typedef enum {
+typedef enum x86_inst {
 	X_MOV,      ///< copy data to a new location
 	X_MOVSX,   ///< copy 8, or 16-bit data to a larger location and sign extend
 	X_MOVSXD, ///< copy 32-bit data to a 64-bit register and sign extend
@@ -188,8 +190,6 @@ static size_t       frame_sz    ; ///< the size of the current stack frame
 /**	the register descriptor.
  *	keeps track of what value is in each register at any time
  *
- *	TODO: needs a marker to indicate whether the register contains the value or
- *	the reference of the object.
  */
 //static obj_pt reg_d[NUM_reg];
 
@@ -222,7 +222,13 @@ static const char * str_reg(size_t width, reg_t reg){
 			"Internal str_reg(): qword only availible in long mode");
 		return "!!Bad width!!";
 	}
-
+	
+	if(mode != xm_long && reg > SP){
+		msg_print(NULL, V_ERROR,
+			"Internal str_reg(): R8-R15 only available in long mode");
+		return "!!Bad register!!";
+	}
+	
 	switch (width){
 	case BYTE : array[0] = ' '; array[2] = ' '; break;
 	case WORD : array[0] = ' '; array[2] = 'x'; break;
@@ -271,9 +277,9 @@ put_str(const char * format, ...){
 	va_end(ap);
 }
 
-#define FORM_2   "\t%s\t      ;%s\n"
-#define FORM_3   "\t%s\t%s    ;%s\n"
-#define FORM_4   "\t%s\t%s, %s;%s\n"
+#define FORM_2   "\t%6s                                           ;%s\n"
+#define FORM_3   "\t%6s %20s                      ;%s\n"
+#define FORM_4   "\t%6s %20s, %20s;%s\n"
 #define FORM_LBL "%s:\n"
 
 
@@ -336,13 +342,20 @@ static void resolve_prime(Prime * obj){
 	next++;
 	next%=BUFFER_CNT;
 	
-	// first check if it's already in a registers
+	// first check if it's already in a register
 	if(( reg=reg_d.find_val(obj) )){
 		buffers[next]= str_reg(obj->get_size(), reg);
 		return;
 	}
 	
-	// generate its memory location
+	// then check if there is a reference in a register
+	if(( reg=reg_d.find_ref(obj) )){
+		buffers[next]= str_reg(PTR, reg);
+		reftoval(buffers[next]);
+		return;
+	}
+	
+	// then generate its memory location
 	switch(obj->get_sclass()){
 	case sc_private:
 	case sc_public :
@@ -350,14 +363,20 @@ static void resolve_prime(Prime * obj){
 	case sc_stack  : ref_auto  (buffers[next], obj); break;
 	case sc_param  : ref_param (buffers[next], obj); break;
 	
-	case sc_member:/* FIXME */ break;
+	case sc_member:
+		msg_print(NULL, V_ERROR,
+			"Internal resolve_prime(): got a member object with no ref in any reg");
+		throw;
 	
 	//error
 	case sc_temp :
 	case sc_const:
 	case sc_none :
 	case sc_NUM  :
-	default: throw;
+	default      :
+		msg_print(NULL, V_ERROR,
+			"Internal resolve_prime(): got a non-memory object");
+		throw;
 	}
 	
 	reftoval(buffers[next]);
@@ -375,7 +394,7 @@ static void resolve_addr(obj_pt obj){
 	
 	// generate its memory location
 	switch(obj->get_sclass()){
-	case sc_member : // member labels are equal to the offset value
+	case sc_member : // member labels are their offset within a struct
 	case sc_private:
 	case sc_public :
 	case sc_extern : ref_static(buffers[next], obj); break;
@@ -387,69 +406,58 @@ static void resolve_addr(obj_pt obj){
 	case sc_const:
 	case sc_none :
 	case sc_NUM  :
-	default: throw;
+	default      :
+		msg_print(NULL, V_ERROR,
+			"Internal resolve_addr(): got a non-memory object");
+		throw;
 	}
 }
 
 
-/***************************** HELPER FUNCTIONS *******************************/
+/******************************************************************************/
+//                       LOAD R-VALUES AND STORE TEMPS
+/******************************************************************************/
 
 
-/** Store data in register to its appropriate memory location.
+// assume D is used internal to an instruction no value is ever left there
+// these functions c
+static void Clear_A(void){
+	// cascades to B, C, R8-R15, the to storage temps
+}
+static void Clear_DI(void){
+	// cascades to SI then to the GPs
+
+}
+
+static void Stash(reg_t reg){
+	// already empty
+	if(reg_d.is_clear(reg)) return;
+	
+	// already in memory
+	if(reg_d.get_obj(reg)->get_sclass() != sc_temp) return;
+	
+	
+}
+
+/**	load the r-value of an object into a register making that register
+ *	available if necessary
  */
-//static void store(reg_t reg){
-//	Prime * prime;
+static void Load_prime(reg_t reg, Prime * source){
+	
+	// determine if source is already in a register and XCHG reg
+	
+	// ELSE Stash(reg)
+	
+	// Determine if a ref of source is already in a register dref
+	
+	// ELSE MOV resolve etc.
+}
 
-//	if(!reg_d[reg]->is_mem()) return;
 
-//	if(reg_d[reg] == NULL){
-//		msg_print(NULL, V_ERROR,
-//			"store(): there is no memory location associated with register %u",
-//			reg
-//		);
-//		throw;
-//	}
+/******************************************************************************/
+//                       HELPERS FOR GETTING REFERENCES
+/******************************************************************************/
 
-//	prime = dynamic_cast<Prime*>(reg_d[reg]);
-
-//	put_str("\t%s\t[%s]\t%s",
-//		str_instruction(X_MOV),
-//		str_prime(prime),
-//		str_reg(set_width(prime), reg)
-//	);
-//}
-
-///** Load data from memory to a register.
-// */
-//static void load(reg_t reg, Prime * mem){
-//	reg_t test_reg;
-
-//	// check if it's already in a register
-//	test_reg = check_reg(mem);
-
-//	if(test_reg == reg) // if it's already where it needs to be
-//		;
-//	else if(test_reg != NUM_reg){ // if it's in another register
-//		put_str("%s\t%s,\t%s\n",
-//			str_instruction(X_MOV),
-//			str_reg(set_width(mem), reg),
-//			str_reg(set_width(mem), test_reg)
-//		);
-//		reg_d[test_reg] = NULL;
-//	}
-//	else // if it's in memory
-//		put_str("\t%s\t%s,\t[%s]\n",
-//			str_instruction(X_MOV),
-//			str_reg(set_width(mem), reg),
-//			str_prime(mem)
-//		);
-
-//	reg_d[reg] = mem;
-//}
-
-static void Store_prime(reg_t reg){}
-
-static void Load_prime(reg_t reg, Prime * source){}
 
 static inline void idx_array(Prime * si, Array * array, Prime * index){
 	size_t step_size;
@@ -475,7 +483,7 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 			inst_array[X_LEA],
 			str_reg(si->get_size(), reg),
 			str_reg(si->get_size(), reg),
-			str_reg(mode==xm_long? QWORD:DWORD, A)
+			str_reg(PTR, A)
 		);
 	}
 	else{
@@ -483,7 +491,7 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 			inst_array[X_LEA],
 			str_reg(si->get_size(), reg), // target
 			str_reg(si->get_size(), reg), // base
-			str_reg(mode==xm_long? QWORD:DWORD, A), // index
+			str_reg(PTR, A), // index
 			str_num(step_size)
 		);
 	}
@@ -521,56 +529,7 @@ static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
 /******************************************************************************/
 
 
-///// most binary operations
-//static inline void
-//binary(Prime * result, Prime * left, Prime * right, x86_inst op){
-//	load(A, left);
-//	load(C, right);
-//
-//	put_str("\t%s\t%s,\t%s\n",
-//		str_instruction(op),
-//		str_reg(set_width(left), A),
-//		str_reg(set_width(right), C)
-//	);
-//
-//	reg_d[A] = result;
-//}
-
-
-///// signed and unsigned division
-//static void div(Prime * result, Prime * left, Prime * right){
-//	load(A, left);
-//	load(C, right);
-//
-//	if(left->is_signed() || right->is_signed()){
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_IDIV),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//	else{
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_DIV),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//
-//	reg_d[A] = result;
-//}
-
-///// dereference a pointer
-//static inline void dref(obj_pt result, Prime * pointer){
-//	load(A, pointer);
-////	put_str("%s\t%s,\t[%s]\n",
-////		str_instruction(X_MOV),
-////		str_reg(set_width(result), A),
-////		str_reg(set_width(w_ptr),A)
-////	);
-//
-//
-//	//FIXME
-//	reg_d[A] = result;
-//}
+// functions that write to memory
 
 static inline void ass(Prime * dest, Prime * source){
 	resolve_prime(dest);
@@ -580,7 +539,13 @@ static inline void ass(Prime * dest, Prime * source){
 		msg_print(NULL, V_WARN, "Assignment may cause overflow");
 	
 	if(dest->is_signed() != source->is_signed())
-		msg_print(NULL, V_WARN, "Mismatched sign in assignment");
+		msg_print(NULL, V_WARN, "Mismatched signedness in assignment");
+	
+	// FIXME both operands cannot be in memory
+	
+	// TODO handle objects larger than prime
+	
+	// check if operands are refs to the object
 	
 	put_str(FORM_4,
 		inst_array[X_MOV],
@@ -589,6 +554,24 @@ static inline void ass(Prime * dest, Prime * source){
 		"An assignment"
 	);
 }
+
+static inline void dec(Prime* arg){
+	resolve_prime(arg);
+	
+	put_str(FORM_3, inst_array[X_DEC], "FIXME", "");
+}
+
+
+static inline void inc(Prime * arg){
+	resolve_prime(arg);
+	
+	put_str(FORM_3, inst_array[X_INC], "FIXME", "");
+}
+
+
+
+
+
 
 /// call a procedure
 static inline void call(Prime * result, Routine * proc){
@@ -601,11 +584,6 @@ static inline void call(Prime * result, Routine * proc){
 	reg_d.set_val(A, result);
 }
 
-static inline void dec(Prime* arg){
-	resolve_prime(arg);
-	
-	put_str("\t%s\t%s\n", inst_array[X_DEC], "FIXME");
-}
 
 
 static inline void ref(Prime * si, Data * data, Data * index){
@@ -621,7 +599,7 @@ static inline void ref(Prime * si, Data * data, Data * index){
 		resolve_addr(data);
 		put_str("\t%s\t%s, [%s] ;%s\n",
 			inst_array[X_LEA],
-			str_reg(si->get_size(), SI),
+			str_reg(PTR, SI),
 			"FIXME",
 			"idx()"
 		);
@@ -637,120 +615,12 @@ static inline void ref(Prime * si, Data * data, Data * index){
 }
 
 
-static inline void inc(Prime * arg){
-	resolve_prime(arg);
-	
-	put_str(FORM_3, inst_array[X_INC], "FIXME", "");
-}
+
 
 /// place a label in the assembler file
 static inline void lbl(obj_pt op){
 	put_str(FORM_LBL, op->get_label());
 }
-
-///// signed and unsigned modulus division
-//static void mod(Prime * result, Prime * left, Prime * right){
-//	load(A, left);
-//	load(C, right);
-//
-//	if(left->is_signed() || right->is_signed()){
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_IDIV),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//	else{
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_DIV),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//
-//	put_str("%s\t%s,\t%s\n",
-//		str_instruction(X_MOV),
-//		str_reg(set_width(result), A),
-//		str_reg(set_width(result), D)
-//	);
-//
-//	reg_d[A] = result;
-//}
-
-///// signed and unsigned multiplication
-//static void mul(Prime * result, Prime * left, Prime * right){
-//	load(A, left);
-//	load(C, right);
-//
-//	if(left->is_signed() || right->is_signed()){
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_IMUL),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//	else{
-//		put_str("\t%s\t%s\n",
-//			str_instruction(X_MUL),
-//			str_reg(set_width(right), C)
-//		);
-//	}
-//	// sets the carry and overflow flags if D is non-zero
-//
-//	reg_d[A] = result;
-//}
-
-///// gets the address of an object
-//static void ref(Prime * result, obj_pt arg){
-//
-//	switch(arg->get_sclass()){
-//	case sc_private:
-//	case sc_public:
-//	case sc_extern:
-//	case sc_stack :
-//	case sc_param: break;
-//
-//	case sc_none :
-//	case sc_temp :
-//	case sc_const:
-//	case sc_NUM  :
-//	default      :
-//		msg_print(NULL, V_ERROR,
-//			"Internal dref(): arg is not a memory location");
-//		throw;
-//	}
-//
-//	if(result->get_width() != w_ptr){
-//		msg_print(NULL, V_ERROR, "Internal dref(): result is not w_ptr");
-//		throw;
-//	}
-//
-//	// FIXME
-////	put_str("\t%s\t%s\n%s\n",
-////		str_instruction(X_MOVZX),
-////		str_reg(set_width(w_ptr), A),
-////		str_obj(arg)
-////	);
-//
-//	reg_d[A] = result;
-//}
-
-///// return from a function
-//static inline void ret(obj_pt value){
-//	// load the return value if present
-//	//if(value) load(A, value);
-//	// TODO: jump to the return statement
-//}
-
-///// most unary operations
-//static inline void unary(Prime * result, Prime * arg, x86_inst op){
-//	// load the accumulator
-//	load(A, arg);
-//
-//	put_str("\t%s\t%s\n",
-//		str_instruction(op),
-//		str_reg(set_width(arg->get_width()), A)
-//	);
-//
-//	//FIXME: reg_d[A] = result;
-//}
 
 
 /******************************************************************************/
@@ -758,11 +628,23 @@ static inline void lbl(obj_pt op){
 /******************************************************************************/
 
 
+/*	if(right){
+ *		Load_prime(A, left);
+ *		resolve_prime(right);
+ *	}
+ *	else resolve_prime(left);
+ *	generate the instruction.
+ *	change the reg_d of A
+ */
+
 /** Generate code for a single intermediate instruction
  *	The vast majority of x86 instructions have only a source and destination
  */
 static void Gen_inst(inst_pt inst){
 	
+	
+	
+	// all instructions with two arguments will produce a temporary result, and some unaries.
 	
 	switch (inst->op){
 	case i_nop : 
@@ -777,6 +659,7 @@ static void Gen_inst(inst_pt inst){
 		dynamic_cast<Prime*>(inst->left)
 	); break;
 	
+	// this function uses A and leaves a result in SI
 	case i_ref: ref(
 		dynamic_cast<Prime*>(inst->result),
 		dynamic_cast<Data*> (inst->left),
@@ -785,6 +668,16 @@ static void Gen_inst(inst_pt inst){
 	
 	//case i_dref: dref(inst->result, dynamic_cast<Prime*>(inst->left)); break;
 	
+	
+	case i_call: call(
+		dynamic_cast<Prime*>(inst->result),
+		dynamic_cast<Routine*>(inst->left)
+	); break;
+	
+	//	case i_sz  : break;
+	
+//	case i_ret: ret(inst->left); break;
+	
 //	case i_neg : unary(
 //		dynamic_cast<Prime*>(inst->result),
 //		dynamic_cast<Prime*>(inst->left),
@@ -792,12 +685,7 @@ static void Gen_inst(inst_pt inst){
 //	); break;
 //		case i_inv : break;
 //	
-//	
-//	
-//	
-	
-//	
-//	case i_sz  : break;
+
 //	
 	
 //	case i_lsh : binary(
@@ -893,28 +781,11 @@ static void Gen_inst(inst_pt inst){
 //	case i_parm: stack_manager.push_parm(
 //		dynamic_cast<Prime*>(inst->left)
 //	); break;
-	case i_call: call(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Routine*>(inst->left)
-	); break;
-
-//	case i_rtrn: ret(inst->left); break;
+	
 
 	case i_NUM:
 	default: msg_print(NULL, V_ERROR, "Gen_inst(): got a bad inst_code");
 	}
-
-	/* Since temporaries are single use they can be completely covered by the
-	 * accumulator unless they are not immediately used. In which case we have
-	 * to find a place to stash them.
-	 */
-//	if(!inst->used_next){
-//		if(inst->result->get_sclass() == sc_temp){
-//			msg_print(NULL, V_INFO, "We're setting a stack temp");
-//			stack_manager.push_temp(A);
-//		}
-//		else Store(A);
-//	}
 }
 
 /** Generate code for a single basic block
@@ -931,16 +802,6 @@ static void Gen_blk(blk_pt blk){
 
 	do Gen_inst(inst);
 	while(( inst=blk->next() ));
-
-	// flush the registers at the end of the block
-//	for(uint i=0; i<R8; i++){
-//		if(reg_d[i] != NULL) Store_prime((reg_t)i);
-//	}
-	
-	while(reg_d.check() != NUM_reg){
-		Store_prime(reg_d.check());
-		reg_d.clear(reg_d.check());
-	}
 
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
 }
@@ -1280,7 +1141,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	msg_print(NULL, V_INFO, "x86(): start");
 	
 	if(proccessor_mode != xm_long && proccessor_mode != xm_protected){
-		msg_print(NULL, V_ERROR, "x86: Invalid mode");
+		msg_print(NULL, V_ERROR, "x86: Invalid processor mode");
 		throw;
 	}
 	
@@ -1302,6 +1163,8 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	}
 	
 	/***** SET SIZES AND STRUCTURE OFFSETS *****/
+	
+	put_str("\n; Declaring record offsets\n");
 	
 	do{
 		set_size(obj);
@@ -1340,10 +1203,11 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 	
 	obj=prog->objects.first();
 	
-	put_str("\nsection .data\t; Static data\n");
+	put_str("\nsection .data\t; Declaring static data\n");
 	
-	if (mode == xm_long) put_str("align 8\n");
-	else put_str("align 4\n");
+	if (mode == xm_long) put_str("align 8");
+	else put_str("align 4");
+	put_str(" ; this probably does nothing\n");
 	
 	do{
 		switch(obj->get_sclass()){
@@ -1378,6 +1242,10 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 		if(obj->get_type() == ot_routine)
 			Gen_routine(dynamic_cast<Routine*>(obj));
 	}while(( obj=prog->objects.next() ));
+	
+	put_str("\n; End of MPL generated file\n")
+	
+	// TODO: if this is not stand-alone generate an Object Interface Description
 	
 	msg_print(NULL, V_INFO, "x86(): stop");
 }

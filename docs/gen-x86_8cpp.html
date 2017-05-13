@@ -67,6 +67,7 @@
 <code>#include &lt;string.h&gt;</code><br />
 <code>#include &lt;stdarg.h&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &quot;x86_reg.hpp&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -83,14 +84,17 @@ Macros</h2></td></tr>
 <tr class="memitem:a43d9cdc629b161072de9e63067a28b39"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a43d9cdc629b161072de9e63067a28b39"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>QWORD</b>&#160;&#160;&#160;((size_t) 8)</td></tr>
 <tr class="separator:a43d9cdc629b161072de9e63067a28b39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a305ac30d4d19c172893251fa7aa936b9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a305ac30d4d19c172893251fa7aa936b9"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PTR</b>&#160;&#160;&#160;(<a class="el" href="gen-x86_8cpp.html#af49375726c781e09cb1467f34ad7cccb">mode</a> == <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92aba3930a6aa05dc7d75f6d8bfd228718c">xm_long</a>? QWORD:DWORD)</td></tr>
+<tr class="separator:a305ac30d4d19c172893251fa7aa936b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a4714372ce719ca3105bfb707a9b5e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4a4714372ce719ca3105bfb707a9b5e9"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_2</b>&#160;&#160;&#160;&quot;\t%s\t      ;%s\n&quot;</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_2</b>&#160;&#160;&#160;&quot;\t%6s                                           ;%s\n&quot;</td></tr>
 <tr class="separator:a4a4714372ce719ca3105bfb707a9b5e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1126a0168d8fce123be3cdbfdee954a1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1126a0168d8fce123be3cdbfdee954a1"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_3</b>&#160;&#160;&#160;&quot;\t%s\t%s    ;%s\n&quot;</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_3</b>&#160;&#160;&#160;&quot;\t%6s %20s                      ;%s\n&quot;</td></tr>
 <tr class="separator:a1126a0168d8fce123be3cdbfdee954a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdb2dedd799969dd71bc6efba3365479"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acdb2dedd799969dd71bc6efba3365479"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_4</b>&#160;&#160;&#160;&quot;\t%s\t%s, %s;%s\n&quot;</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_4</b>&#160;&#160;&#160;&quot;\t%6s %20s, %20s;%s\n&quot;</td></tr>
 <tr class="separator:acdb2dedd799969dd71bc6efba3365479"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac59050a7242c82bc577f06a22a39476f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac59050a7242c82bc577f06a22a39476f"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FORM_LBL</b>&#160;&#160;&#160;&quot;%s:\n&quot;</td></tr>
@@ -110,32 +114,6 @@ typedef umax&#160;</td><td class="memItemRight" valign="bottom"><b>index_t</b></
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ae3ec72e16e35ff8e4df421ab2b7f14b7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> { <br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a42a4ade1acd55a49164099104990e09f">A</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a3f2a77ecd272aa6d6b5902faa5e5fc68">B</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a739ce3f516592d245d16fd8a3893472c">C</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a77a6b11f9898c052926f1d49765861e8">D</a>, 
-<br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a6cbe5ff42f143903e1c67abf94613791">SI</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a527f7ffe8e4e1d4cd85dd9e61eed9795">DI</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7af5a5119c2b95cc7f4f3e20f56576ee3e">BP</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a77c32937cb56776e7d96ed4b5e43e06b">SP</a>, 
-<br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7adaf41609f8eadc7d15918adacc662c59">R8</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a550ff95070e1f18bc610107aaf8e0c2b">R9</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7aef1c3e581bbab81e38c6d53357760b3c">R10</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7aecda251967ab2413a2db85530a2a8429">R11</a>, 
-<br />
-&#160;&#160;<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a49ea06ace91cf41ec29751a4a1d5a7de">R12</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a1dd4349b8ea1e5be418ff8b01a25f37a">R13</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7abf6a5b5a0555c07e65f73e789e5238ca">R14</a>, 
-<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7a17eeff2eb97b3d4877126bc24f4adf5b">R15</a>, 
-<br />
-&#160;&#160;<b>NUM_reg</b>
-<br />
- }<tr class="memdesc:ae3ec72e16e35ff8e4df421ab2b7f14b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">These are all the x86 "general purpose" registers.  <a href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:ae3ec72e16e35ff8e4df421ab2b7f14b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1551b9e10500fdb7875a3aadde9a4504"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504">x86_inst</a> { <br />
 &#160;&#160;<a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a2e5a855a9bcd6e61d31576262e21991f">X_MOV</a>, 
 <a class="el" href="gen-x86_8cpp.html#a1551b9e10500fdb7875a3aadde9a4504a4b0133652fe42cd0e0dc381c60e646a1">X_MOVSX</a>, 
@@ -214,7 +192,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a25cf5e545c724bd4471fec9670c39ad2"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a25cf5e545c724bd4471fec9670c39ad2">str_num</a> (umax num)</td></tr>
 <tr class="memdesc:a25cf5e545c724bd4471fec9670c39ad2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a string representation of a number.  <a href="#a25cf5e545c724bd4471fec9670c39ad2">More...</a><br /></td></tr>
 <tr class="separator:a25cf5e545c724bd4471fec9670c39ad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42c012e993fede8bece2cfa43201d73c"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a42c012e993fede8bece2cfa43201d73c">str_reg</a> (size_t width, <a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg)</td></tr>
+<tr class="memitem:a42c012e993fede8bece2cfa43201d73c"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a42c012e993fede8bece2cfa43201d73c">str_reg</a> (size_t width, reg_t reg)</td></tr>
 <tr class="memdesc:a42c012e993fede8bece2cfa43201d73c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the appropriate string to use the given x86 register.  <a href="#a42c012e993fede8bece2cfa43201d73c">More...</a><br /></td></tr>
 <tr class="separator:a42c012e993fede8bece2cfa43201d73c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77fd39e4fde7d918755c49218eb1285b"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a77fd39e4fde7d918755c49218eb1285b">put_str</a> (const char *format,...)</td></tr>
@@ -235,21 +213,24 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>reftoval</b> (
 <tr class="memitem:a8b52cc56db09c94ade32c8a60654daa0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8b52cc56db09c94ade32c8a60654daa0"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>op_size</b> (std::string &amp;s, <a class="el" href="classData.html">Data</a> *var)</td></tr>
 <tr class="separator:a8b52cc56db09c94ade32c8a60654daa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36c1553a8ab6238e56972b10f7fe9502"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a36c1553a8ab6238e56972b10f7fe9502"></a>
-static <a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a36c1553a8ab6238e56972b10f7fe9502">check_reg</a> (<a class="el" href="classObject.html">obj_pt</a> operand)</td></tr>
-<tr class="memdesc:a36c1553a8ab6238e56972b10f7fe9502"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine whether an operand is already present in a register. <br /></td></tr>
-<tr class="separator:a36c1553a8ab6238e56972b10f7fe9502"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7fd84c6c0662f9249fbfa55fb629edf1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7fd84c6c0662f9249fbfa55fb629edf1"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>resolve_prime</b> (<a class="el" href="classPrime.html">Prime</a> *obj)</td></tr>
 <tr class="separator:a7fd84c6c0662f9249fbfa55fb629edf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a29344a4f3f1b2ec1b6990fed198c9e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a29344a4f3f1b2ec1b6990fed198c9e"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>resolve_addr</b> (<a class="el" href="classObject.html">obj_pt</a> obj)</td></tr>
 <tr class="separator:a1a29344a4f3f1b2ec1b6990fed198c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7ff05970db604c8ffa1cb10c7cd86c0"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#ab7ff05970db604c8ffa1cb10c7cd86c0">Store_prime</a> (<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg)</td></tr>
-<tr class="memdesc:ab7ff05970db604c8ffa1cb10c7cd86c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store data in register to its appropriate memory location.  <a href="#ab7ff05970db604c8ffa1cb10c7cd86c0">More...</a><br /></td></tr>
-<tr class="separator:ab7ff05970db604c8ffa1cb10c7cd86c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcbce8f87358a762892aca0b58c5f733"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abcbce8f87358a762892aca0b58c5f733"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>Clear_A</b> (void)</td></tr>
+<tr class="separator:abcbce8f87358a762892aca0b58c5f733"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbf8f1c7e036c7cc31af78e8a69f68a5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbf8f1c7e036c7cc31af78e8a69f68a5"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>Clear_DI</b> (void)</td></tr>
+<tr class="separator:acbf8f1c7e036c7cc31af78e8a69f68a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab82b7ef8d9c0bbfd2374b65b4e63589a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab82b7ef8d9c0bbfd2374b65b4e63589a"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>Stash</b> (reg_t reg)</td></tr>
+<tr class="separator:ab82b7ef8d9c0bbfd2374b65b4e63589a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91b1e95f67fcf2b8ab6551d1e439968b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a91b1e95f67fcf2b8ab6551d1e439968b"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Load_prime</b> (<a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a> reg, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a91b1e95f67fcf2b8ab6551d1e439968b">Load_prime</a> (reg_t reg, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="memdesc:a91b1e95f67fcf2b8ab6551d1e439968b"><td class="mdescLeft">&#160;</td><td class="mdescRight">load the r-value of an object into a register making that register available if necessary <br /></td></tr>
 <tr class="separator:a91b1e95f67fcf2b8ab6551d1e439968b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a439349b01f6d87a7060b42486cebe62e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a439349b01f6d87a7060b42486cebe62e"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>idx_array</b> (<a class="el" href="classPrime.html">Prime</a> *si, <a class="el" href="classArray.html">Array</a> *array, <a class="el" href="classPrime.html">Prime</a> *index)</td></tr>
@@ -260,19 +241,19 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>idx_struct</b>
 <tr class="memitem:a5dcd50e7018924e4fb2bb02c62d01491"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5dcd50e7018924e4fb2bb02c62d01491"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>ass</b> (<a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
 <tr class="separator:a5dcd50e7018924e4fb2bb02c62d01491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2570ba75451607496fa62296f9e5f39e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2570ba75451607496fa62296f9e5f39e"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>dec</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:a2570ba75451607496fa62296f9e5f39e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a733fa32de513ec3355d0f7fbc6196c68"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a733fa32de513ec3355d0f7fbc6196c68"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>inc</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:a733fa32de513ec3355d0f7fbc6196c68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6793f4a89b29fc93115c5b9d2add0f13"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6793f4a89b29fc93115c5b9d2add0f13"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a6793f4a89b29fc93115c5b9d2add0f13">call</a> (<a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classRoutine.html">Routine</a> *proc)</td></tr>
 <tr class="memdesc:a6793f4a89b29fc93115c5b9d2add0f13"><td class="mdescLeft">&#160;</td><td class="mdescRight">call a procedure <br /></td></tr>
 <tr class="separator:a6793f4a89b29fc93115c5b9d2add0f13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2570ba75451607496fa62296f9e5f39e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2570ba75451607496fa62296f9e5f39e"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>dec</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
-<tr class="separator:a2570ba75451607496fa62296f9e5f39e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9661e4016256e784cc8469d0c53a52c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9661e4016256e784cc8469d0c53a52c4"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>ref</b> (<a class="el" href="classPrime.html">Prime</a> *si, <a class="el" href="classData.html">Data</a> *data, <a class="el" href="classData.html">Data</a> *index)</td></tr>
 <tr class="separator:a9661e4016256e784cc8469d0c53a52c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a733fa32de513ec3355d0f7fbc6196c68"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a733fa32de513ec3355d0f7fbc6196c68"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>inc</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
-<tr class="separator:a733fa32de513ec3355d0f7fbc6196c68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84b7b5b73336311e76a6dbb97e03738f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a84b7b5b73336311e76a6dbb97e03738f"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a84b7b5b73336311e76a6dbb97e03738f">lbl</a> (<a class="el" href="classObject.html">obj_pt</a> op)</td></tr>
 <tr class="memdesc:a84b7b5b73336311e76a6dbb97e03738f"><td class="mdescLeft">&#160;</td><td class="mdescRight">place a label in the assembler file <br /></td></tr>
@@ -340,9 +321,9 @@ static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_
 static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a47c4609ab58d9cd0f6418ec9de6af357">frame_sz</a></td></tr>
 <tr class="memdesc:a47c4609ab58d9cd0f6418ec9de6af357"><td class="mdescLeft">&#160;</td><td class="mdescRight">the size of the current stack frame <br /></td></tr>
 <tr class="separator:a47c4609ab58d9cd0f6418ec9de6af357"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa48780491d3f5401f569f0af01708e8"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classObject.html">obj_pt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#aaa48780491d3f5401f569f0af01708e8">reg_d</a> [NUM_reg]</td></tr>
-<tr class="memdesc:aaa48780491d3f5401f569f0af01708e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">the register descriptor.  <a href="#aaa48780491d3f5401f569f0af01708e8">More...</a><br /></td></tr>
-<tr class="separator:aaa48780491d3f5401f569f0af01708e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91296bfd4f4622694129eaa974281c8e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classReg__man.html">Reg_man</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a91296bfd4f4622694129eaa974281c8e">reg_d</a></td></tr>
+<tr class="memdesc:a91296bfd4f4622694129eaa974281c8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">the register descriptor.  <a href="#a91296bfd4f4622694129eaa974281c8e">More...</a><br /></td></tr>
+<tr class="separator:a91296bfd4f4622694129eaa974281c8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>generates x86 assembler code from the portable program data. </p>
@@ -368,70 +349,6 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 <p>Stack variables are accessed as [BP-frame_size+offset]</p>
 <p>The ENTER instruction has a feature that allows up to 32 access links to be added the the current stack frame </p>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>These are all the x86 "general purpose" registers. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a42a4ade1acd55a49164099104990e09f"></a>A&#160;</td><td class="fielddoc">
-<p>Accumulator. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a3f2a77ecd272aa6d6b5902faa5e5fc68"></a>B&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a739ce3f516592d245d16fd8a3893472c"></a>C&#160;</td><td class="fielddoc">
-<p>Counter. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a77a6b11f9898c052926f1d49765861e8"></a>D&#160;</td><td class="fielddoc">
-<p><a class="el" href="classData.html">Data</a>. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a6cbe5ff42f143903e1c67abf94613791"></a>SI&#160;</td><td class="fielddoc">
-<p>Source Index. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a527f7ffe8e4e1d4cd85dd9e61eed9795"></a>DI&#160;</td><td class="fielddoc">
-<p>Destination Index. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7af5a5119c2b95cc7f4f3e20f56576ee3e"></a>BP&#160;</td><td class="fielddoc">
-<p>Base Pointer. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a77c32937cb56776e7d96ed4b5e43e06b"></a>SP&#160;</td><td class="fielddoc">
-<p>Stack Pointer. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7adaf41609f8eadc7d15918adacc662c59"></a>R8&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a550ff95070e1f18bc610107aaf8e0c2b"></a>R9&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7aef1c3e581bbab81e38c6d53357760b3c"></a>R10&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7aecda251967ab2413a2db85530a2a8429"></a>R11&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a49ea06ace91cf41ec29751a4a1d5a7de"></a>R12&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a1dd4349b8ea1e5be418ff8b01a25f37a"></a>R13&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7abf6a5b5a0555c07e65f73e789e5238ca"></a>R14&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ae3ec72e16e35ff8e4df421ab2b7f14b7a17eeff2eb97b3d4877126bc24f4adf5b"></a>R15&#160;</td><td class="fielddoc">
-<p>General Purpose. </p>
-</td></tr>
-</table>
-
-</div>
-</div>
 <a class="anchor" id="a1551b9e10500fdb7875a3aadde9a4504"></a>
 <div class="memitem">
 <div class="memproto">
@@ -639,33 +556,6 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 
 </div>
 </div>
-<a class="anchor" id="ab7ff05970db604c8ffa1cb10c7cd86c0"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void Store_prime </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a>&#160;</td>
-          <td class="paramname"><em>reg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Store data in register to its appropriate memory location. </p>
-<p>Load data from memory to a register. </p>
-
-</div>
-</div>
 <a class="anchor" id="a915230414dfd4acc2f8a50f869911e88"></a>
 <div class="memitem">
 <div class="memproto">
@@ -734,7 +624,7 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="gen-x86_8cpp.html#ae3ec72e16e35ff8e4df421ab2b7f14b7">reg_t</a>&#160;</td>
+          <td class="paramtype">reg_t&#160;</td>
           <td class="paramname"><em>reg</em>&#160;</td>
         </tr>
         <tr>
@@ -812,7 +702,7 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 
 </div>
 </div>
-<a class="anchor" id="aaa48780491d3f5401f569f0af01708e8"></a>
+<a class="anchor" id="a91296bfd4f4622694129eaa974281c8e"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -820,7 +710,7 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classObject.html">obj_pt</a> reg_d[NUM_reg]</td>
+          <td class="memname"><a class="el" href="classReg__man.html">Reg_man</a> reg_d</td>
         </tr>
       </table>
   </td>
@@ -831,8 +721,7 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 </div><div class="memdoc">
 
 <p>the register descriptor. </p>
-<p>keeps track of what value is in each register at any time</p>
-<p>TODO: needs a marker to indicate whether the register contains the value or the reference of the object. </p>
+<p>keeps track of what value is in each register at any time </p>
 
 </div>
 </div>

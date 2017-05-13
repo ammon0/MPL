@@ -93,48 +93,47 @@ Enumerations</h2></td></tr>
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a0cf4bddeb38a40ece2d687e99f0de49e">i_inc</a>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ace50708fcbb6bdfb06a5ae38475eb8e9">i_dec</a>, 
 <br />
-&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c">i_cpy</a>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096">i_parm</a>, 
+&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096">i_parm</a>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ad12f5abb59ee590b060092c757359764">i_dref</a>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a3ccd946a489332395b207cc55b4c03ac">i_ref</a>, 
+<b>i_neg</b>, 
 <br />
-&#160;&#160;<b>i_neg</b>, 
-<b>i_inv</b>, 
+&#160;&#160;<b>i_inv</b>, 
 <b>i_add</b>, 
 <b>i_sub</b>, 
+<b>i_band</b>, 
 <br />
-&#160;&#160;<b>i_band</b>, 
-<b>i_bor</b>, 
+&#160;&#160;<b>i_bor</b>, 
 <b>i_xor</b>, 
 <b>i_shl</b>, 
+<b>i_shr</b>, 
 <br />
-&#160;&#160;<b>i_shr</b>, 
-<b>i_rol</b>, 
+&#160;&#160;<b>i_rol</b>, 
 <b>i_ror</b>, 
 <b>i_eq</b>, 
+<b>i_neq</b>, 
 <br />
-&#160;&#160;<b>i_neq</b>, 
-<b>i_lt</b>, 
+&#160;&#160;<b>i_lt</b>, 
 <b>i_gt</b>, 
 <b>i_lte</b>, 
+<b>i_gte</b>, 
 <br />
-&#160;&#160;<b>i_gte</b>, 
-<b>i_mul</b>, 
-<b>i_div</b>, 
-<b>i_mod</b>, 
-<br />
-&#160;&#160;<b>i_sz</b>, 
-<b>i_not</b>, 
+&#160;&#160;<b>i_not</b>, 
 <b>i_and</b>, 
 <b>i_or</b>, 
+<b>i_mul</b>, 
 <br />
-&#160;&#160;<b>i_jmp</b>, 
-<b>i_jz</b>, 
+&#160;&#160;<b>i_div</b>, 
+<b>i_mod</b>, 
+<b>i_sz</b>, 
+<b>i_jmp</b>, 
+<br />
+&#160;&#160;<b>i_jz</b>, 
 <b>i_lbl</b>, 
 <b>i_loop</b>, 
+<b>i_call</b>, 
 <br />
-&#160;&#160;<b>i_call</b>, 
-<b>i_ret</b>, 
+&#160;&#160;<b>i_ret</b>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9">i_proc</a>, 
 <b>i_NUM</b>
 <br />
@@ -205,18 +204,13 @@ used_next</td>
 <p>intermediate op codes </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a75a986e7cc66f1dfbe8f153f3ebd0fdb"></a>i_ass&#160;</td><td class="fielddoc">
-<p>ass(Prime * dest, Prime * source, NULL) The r-value source will be stored at the location indicated by the l-value dest. </p>
-<p>If dest is a temp, the contents of the register will be taken as the address to store at. </p>
+<p>ass(Data * dest, Data * source, NULL) </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a0cf4bddeb38a40ece2d687e99f0de49e"></a>i_inc&#160;</td><td class="fielddoc">
 <p>Same as dec. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ace50708fcbb6bdfb06a5ae38475eb8e9"></a>i_dec&#160;</td><td class="fielddoc">
 <p>dec(Prime * arg, NULL, NULL) Increments data at the location indicated by the l-value arg. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a0551b852ecf252c42a9f5df45f6da85c"></a>i_cpy&#160;</td><td class="fielddoc">
-<p>cpy(Data * dest, Data * source, Prime * bytes) Copies the data object at source to the location of dest. </p>
-<p>both must be l-values. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096"></a>i_parm&#160;</td><td class="fielddoc">
 <p>parm(Prime * parameter) ??? </p>

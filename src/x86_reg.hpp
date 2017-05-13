@@ -58,7 +58,9 @@ public:
 		return (reg_t)i;
 	}
 	bool  is_ref(reg_t);
+	bool  is_clear(reg_t);
 	reg_t check(void);
+	obj_pt get_obj(reg_t);
 	
 	/******************************* MUTATORS *********************************/
 	

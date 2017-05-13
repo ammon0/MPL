@@ -1,38 +1,22 @@
 # MPL : Minimum Portable Language
 
-This is a retargetable back-end for a machine language translator. The goal here is to create the portable program data format as a common intermediate language for compilers. Then we will create one or more machine language generators to translate it for specific hardware.
+## Project Goal
+This is a retargetable back-end for a machine language translator. The goal here is to create the portable program data format as an intermediate language. Then create one or more machine language generators to translate it for specific hardware. I'm specifically interested in x86 and arm as my back end targets.
+
+## Project Components
+*	PPD: Portable Program Data would be a machine independent format for programs. It is currently made up of an index of generic objects that can represent register data, arrays, records, or program routines. Instructions are stored in the "quad" format. This should facilitate optimization in the future.
+*	MPL: Minimum Portable Language would be a text format that closely resembles the PPD's internal format. It should be fairly easy to "dump" a PPD object into an MPL file and then parse it back into PPD.
+*	PEXE: Portable Executable would be a binary serialization of PPD allowing partially compiled machine independent programs to be shared and distributed. A PEXE file forms PPD when it is read into memory. It should then be easy to either execute the PPD directly in a virtual machine, or complete its compilation to native machine code. PEXE files should have a built-in file signing method to ensure validity.
+*	OID: An Object Interface Description would be a binary file that should be produced when any PPD that doesn't contain a `start` routine is compiled to native code. the OID file contains the necessary information to link against the compiled library.
+*	gen-XXX: code generators that convert PPD into various serialized formats. I am currently developing gen-x86 that will convert PPD into NASM assembly code. there are place holders for gen-arm, and gen-pexe.
+*	opt-XXX: PPD optimizers read through the quad instructions and apply transformations that should improve size and speed. opt-dead is intended to remove dead code and temp variables although it will have to be reworked since there has been extensive modifications to PPD.
 
 ## Project Pages
 *	[Latest Release](https://github.com/ammon0/MPL/releases/latest)
 *	[Documentation](https://ammon0.github.io/MPL/)
 *	[github](https://github.com/ammon0/MPL)
 
-## Minimum Portable Language
-Minimum Portable Language is a type of machine independent assembler language.
-
-mpl.l: Lexer for the Minimum Portable Language
-
-## Portable Program Data
-This is the internal data structure that is directly representative of the Minimum Portable Language.
-
-Portable Program Data must contain all the necessary information of a machine independent assembly language. It will have to record labels and sequences of instructions acting on them. It will have to keep track of the width of each data field. It will have to keep track of static memory labels as well as stack offsets for automatic allocations. Just as an assembly language PPD is typeless.
-
-ppd.hpp: brings together classes defining the various parts of the Portable Program Data. will pull in string_array.hpp to contain the various labels. It will need some sort of instruction queue. It will need an indexed container for labels. It will need a data structure to contain the properties of each label.
-
-ppd.cpp: Instantiates the portable program data
-
-## Portable Executable
-This is a serialization of the Portable Program Data that should allow software to be distributed in a partially compiled format that could be accepted by virtual machines or installation programs that finish the compilation.
-
-## I need:
-*	An internal data structure that holds Portable Program Data
-*	A front end that lexes/parses Minimum Portable Language and converts it to Portable Program Data
-*	A library interface that accepts Portable Program Data
-*	A front end that accepts pexe and converts it into Portable Program Data
-*	The code generators
-
 ## MIT License
-
 Copyright (c) 2016-2017 Ammon Dodson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
