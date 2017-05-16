@@ -855,6 +855,13 @@ static void Gen_routine(Routine * routine){
 	
 	/**************** PROLOGUE ******************/
 	
+	/*	A static link, or access link, is a pointer to the stack frame of the most recent activation of the lexically enclosing function.
+		A dynamic ling is a pointer to the stack frame of the caller.
+		The ENTER function automatically creates dynamic links but could easily become overwhelmed by large recursive functions.
+		
+		A `display` is an array of static links. the size of the display is a constant based on the lexical nesting of its definition.
+	*/
+	
 	// Initialize the register descriptor
 	//memset(reg_d, 0, sizeof(obj_pt)*NUM_reg);
 	reg_d.clear();
@@ -871,8 +878,7 @@ static void Gen_routine(Routine * routine){
 		throw;
 	}
 	
-	do Gen_blk(blk);
-	while(( blk=routine->get_next_blk() ));
+	do Gen_blk(blk); while(( blk=routine->get_next_blk() ));
 	
 	/***************** RETURN *****************/
 	
