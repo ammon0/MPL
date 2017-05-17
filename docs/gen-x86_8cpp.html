@@ -143,12 +143,6 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>resolve_prime<
 <tr class="memitem:a1a29344a4f3f1b2ec1b6990fed198c9e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a29344a4f3f1b2ec1b6990fed198c9e"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>resolve_addr</b> (<a class="el" href="classObject.html">obj_pt</a> obj)</td></tr>
 <tr class="separator:a1a29344a4f3f1b2ec1b6990fed198c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abcbce8f87358a762892aca0b58c5f733"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abcbce8f87358a762892aca0b58c5f733"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Clear_A</b> (void)</td></tr>
-<tr class="separator:abcbce8f87358a762892aca0b58c5f733"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acbf8f1c7e036c7cc31af78e8a69f68a5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbf8f1c7e036c7cc31af78e8a69f68a5"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>Clear_DI</b> (void)</td></tr>
-<tr class="separator:acbf8f1c7e036c7cc31af78e8a69f68a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab82b7ef8d9c0bbfd2374b65b4e63589a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab82b7ef8d9c0bbfd2374b65b4e63589a"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>Stash</b> (reg_t reg)</td></tr>
 <tr class="separator:ab82b7ef8d9c0bbfd2374b65b4e63589a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,29 +156,72 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>idx_array</b> 
 <tr class="memitem:af387d316227a3c0c6178f2aec531622c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af387d316227a3c0c6178f2aec531622c"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>idx_struct</b> (<a class="el" href="classPrime.html">Prime</a> *si, <a class="el" href="classStruct__inst.html">Struct_inst</a> *s, <a class="el" href="classData.html">Data</a> *member)</td></tr>
 <tr class="separator:af387d316227a3c0c6178f2aec531622c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5dcd50e7018924e4fb2bb02c62d01491"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5dcd50e7018924e4fb2bb02c62d01491"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>ass</b> (<a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
-<tr class="separator:a5dcd50e7018924e4fb2bb02c62d01491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9688ee27b5a8e839e2b11eba3448dbe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af9688ee27b5a8e839e2b11eba3448dbe"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>mem_cpy</b> (<a class="el" href="classData.html">Data</a> *dest, <a class="el" href="classData.html">Data</a> *source)</td></tr>
+<tr class="separator:af9688ee27b5a8e839e2b11eba3448dbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9216fa655428a12d61bbf9721b5d6017"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9216fa655428a12d61bbf9721b5d6017"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>prime_ass</b> (<a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="separator:a9216fa655428a12d61bbf9721b5d6017"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60de8dc008095116ad748501a4b5581e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60de8dc008095116ad748501a4b5581e"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>ass</b> (<a class="el" href="classData.html">Data</a> *dest, <a class="el" href="classData.html">Data</a> *source)</td></tr>
+<tr class="separator:a60de8dc008095116ad748501a4b5581e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2570ba75451607496fa62296f9e5f39e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2570ba75451607496fa62296f9e5f39e"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>dec</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
 <tr class="separator:a2570ba75451607496fa62296f9e5f39e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a733fa32de513ec3355d0f7fbc6196c68"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a733fa32de513ec3355d0f7fbc6196c68"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>inc</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
 <tr class="separator:a733fa32de513ec3355d0f7fbc6196c68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73e8c77e34a8f8c920ba639324ee3eff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a73e8c77e34a8f8c920ba639324ee3eff"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>neg_r</b> (<a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:a73e8c77e34a8f8c920ba639324ee3eff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac70c1237b9dfeb971bae1897c2800ff3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac70c1237b9dfeb971bae1897c2800ff3"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>inv_r</b> (<a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:ac70c1237b9dfeb971bae1897c2800ff3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ca3e031d603204b90f04e056bc7b32b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ca3e031d603204b90f04e056bc7b32b"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>neg_l</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:a9ca3e031d603204b90f04e056bc7b32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad52e00e26fa68e8b3a2dea48f7d5fe47"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad52e00e26fa68e8b3a2dea48f7d5fe47"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>inv_l</b> (<a class="el" href="classPrime.html">Prime</a> *arg)</td></tr>
+<tr class="separator:ad52e00e26fa68e8b3a2dea48f7d5fe47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad55390e752171f1ba02c3d13beb83e46"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad55390e752171f1ba02c3d13beb83e46"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>shift_r</b> (<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> op, <a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *count)</td></tr>
+<tr class="separator:ad55390e752171f1ba02c3d13beb83e46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab37e841aa23931e35930333a48ef6ede"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab37e841aa23931e35930333a48ef6ede"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>shift_l</b> (<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> op, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *count)</td></tr>
+<tr class="separator:ab37e841aa23931e35930333a48ef6ede"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ec62aee19242619aaf582be9b608d4a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ec62aee19242619aaf582be9b608d4a"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>binary_r</b> (<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> op, <a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="separator:a4ec62aee19242619aaf582be9b608d4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e9f96f8ae9c1e6e608e72179bfd8284"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2e9f96f8ae9c1e6e608e72179bfd8284"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>binary_l</b> (<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> op, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="separator:a2e9f96f8ae9c1e6e608e72179bfd8284"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6ffcf869c3eeb5eddebeca2ed492c98"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae6ffcf869c3eeb5eddebeca2ed492c98"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>div</b> (<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> op, <a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="separator:ae6ffcf869c3eeb5eddebeca2ed492c98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb743a56183063b0c4a301030220b7e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb743a56183063b0c4a301030220b7e0"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>mul</b> (<a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classPrime.html">Prime</a> *dest, <a class="el" href="classPrime.html">Prime</a> *source)</td></tr>
+<tr class="separator:acb743a56183063b0c4a301030220b7e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6ee0657d494c38c1adee6f5447de131"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa6ee0657d494c38c1adee6f5447de131"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>dref</b> (<a class="el" href="classData.html">Data</a> *result, <a class="el" href="classPrime.html">Prime</a> *pointer)</td></tr>
+<tr class="separator:aa6ee0657d494c38c1adee6f5447de131"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9661e4016256e784cc8469d0c53a52c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9661e4016256e784cc8469d0c53a52c4"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>ref</b> (<a class="el" href="classPrime.html">Prime</a> *si, <a class="el" href="classData.html">Data</a> *data, <a class="el" href="classData.html">Data</a> *index)</td></tr>
+<tr class="separator:a9661e4016256e784cc8469d0c53a52c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6793f4a89b29fc93115c5b9d2add0f13"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6793f4a89b29fc93115c5b9d2add0f13"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a6793f4a89b29fc93115c5b9d2add0f13">call</a> (<a class="el" href="classPrime.html">Prime</a> *result, <a class="el" href="classRoutine.html">Routine</a> *proc)</td></tr>
 <tr class="memdesc:a6793f4a89b29fc93115c5b9d2add0f13"><td class="mdescLeft">&#160;</td><td class="mdescRight">call a procedure <br /></td></tr>
 <tr class="separator:a6793f4a89b29fc93115c5b9d2add0f13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9661e4016256e784cc8469d0c53a52c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9661e4016256e784cc8469d0c53a52c4"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>ref</b> (<a class="el" href="classPrime.html">Prime</a> *si, <a class="el" href="classData.html">Data</a> *data, <a class="el" href="classData.html">Data</a> *index)</td></tr>
-<tr class="separator:a9661e4016256e784cc8469d0c53a52c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84b7b5b73336311e76a6dbb97e03738f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a84b7b5b73336311e76a6dbb97e03738f"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a84b7b5b73336311e76a6dbb97e03738f">lbl</a> (<a class="el" href="classObject.html">obj_pt</a> op)</td></tr>
-<tr class="memdesc:a84b7b5b73336311e76a6dbb97e03738f"><td class="mdescLeft">&#160;</td><td class="mdescRight">place a label in the assembler file <br /></td></tr>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>lbl</b> (<a class="el" href="classObject.html">obj_pt</a> op)</td></tr>
 <tr class="separator:a84b7b5b73336311e76a6dbb97e03738f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaf902e79dd35890ccce18e931059d49"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaaf902e79dd35890ccce18e931059d49"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>ret</b> (<a class="el" href="classPrime.html">Prime</a> *val)</td></tr>
+<tr class="separator:aaaf902e79dd35890ccce18e931059d49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e059cf0a9f296d1963716ea108c1b7e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e059cf0a9f296d1963716ea108c1b7e"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>sz</b> (<a class="el" href="classPrime.html">Prime</a> *size, <a class="el" href="classData.html">Data</a> *object)</td></tr>
+<tr class="separator:a1e059cf0a9f296d1963716ea108c1b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbc3b4bb1c47f2befd0419a57406f36f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afbc3b4bb1c47f2befd0419a57406f36f"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#afbc3b4bb1c47f2befd0419a57406f36f">Gen_inst</a> (<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> inst)</td></tr>
-<tr class="memdesc:afbc3b4bb1c47f2befd0419a57406f36f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate code for a single intermediate instruction The vast majority of x86 instructions have only a source and destination. <br /></td></tr>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>Gen_inst</b> (<a class="el" href="instructions_8hpp.html#a896753d46b1664588ef2b2241dc713e3">inst_pt</a> inst)</td></tr>
 <tr class="separator:afbc3b4bb1c47f2befd0419a57406f36f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a07fd49ec2cb3824856c2df246ff019"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a07fd49ec2cb3824856c2df246ff019"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a1a07fd49ec2cb3824856c2df246ff019">Gen_blk</a> (<a class="el" href="instructions_8hpp.html#a864ef92861b06cfa55866cacebb75bb5">blk_pt</a> blk)</td></tr>
@@ -238,9 +275,11 @@ static FILE *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 static <a class="el" href="gen_8hpp.html#af5e435900db288a59f4d59d307d88a92">x86_mode_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#af49375726c781e09cb1467f34ad7cccb">mode</a></td></tr>
 <tr class="memdesc:af49375726c781e09cb1467f34ad7cccb"><td class="mdescLeft">&#160;</td><td class="mdescRight">the processor mode we are building for <br /></td></tr>
 <tr class="separator:af49375726c781e09cb1467f34ad7cccb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03617d2973e08f3b9d764262b76b7a5d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a03617d2973e08f3b9d764262b76b7a5d"></a>
+static size_t&#160;</td><td class="memItemRight" valign="bottom"><b>param_sz</b></td></tr>
+<tr class="separator:a03617d2973e08f3b9d764262b76b7a5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47c4609ab58d9cd0f6418ec9de6af357"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47c4609ab58d9cd0f6418ec9de6af357"></a>
-static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a47c4609ab58d9cd0f6418ec9de6af357">frame_sz</a></td></tr>
-<tr class="memdesc:a47c4609ab58d9cd0f6418ec9de6af357"><td class="mdescLeft">&#160;</td><td class="mdescRight">the size of the current stack frame <br /></td></tr>
+static size_t&#160;</td><td class="memItemRight" valign="bottom"><b>frame_sz</b></td></tr>
 <tr class="separator:a47c4609ab58d9cd0f6418ec9de6af357"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91296bfd4f4622694129eaa974281c8e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classReg__man.html">Reg_man</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a91296bfd4f4622694129eaa974281c8e">reg_d</a></td></tr>
 <tr class="memdesc:a91296bfd4f4622694129eaa974281c8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">the register descriptor.  <a href="#a91296bfd4f4622694129eaa974281c8e">More...</a><br /></td></tr>

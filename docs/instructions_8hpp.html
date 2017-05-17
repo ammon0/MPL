@@ -89,51 +89,53 @@ typedef <a class="el" href="classBlock.html">Block</a> *&#160;</td><td class="me
 Enumerations</h2></td></tr>
 <tr class="memitem:a8e1f49c4010316f81ceff7f77e03b597"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">inst_code</a> { <br />
 &#160;&#160;<b>i_nop</b>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a75a986e7cc66f1dfbe8f153f3ebd0fdb">i_ass</a>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a0cf4bddeb38a40ece2d687e99f0de49e">i_inc</a>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ace50708fcbb6bdfb06a5ae38475eb8e9">i_dec</a>, 
-<br />
-&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096">i_parm</a>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a281307278f2b165cdac6c06af9132fcd">l_ass</a>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096">i_parm</a>, 
 <a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597ad12f5abb59ee590b060092c757359764">i_dref</a>, 
-<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597a3ccd946a489332395b207cc55b4c03ac">i_ref</a>, 
-<b>i_neg</b>, 
 <br />
-&#160;&#160;<b>i_inv</b>, 
-<b>i_add</b>, 
-<b>i_sub</b>, 
-<b>i_band</b>, 
+&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597af45dcb33e15c076b19bf8e0aaa9b2faa">r_ref</a>, 
+<b>l_neg</b>, 
+<b>l_not</b>, 
+<b>l_add</b>, 
 <br />
-&#160;&#160;<b>i_bor</b>, 
-<b>i_xor</b>, 
-<b>i_shl</b>, 
-<b>i_shr</b>, 
+&#160;&#160;<b>l_sub</b>, 
+<b>l_and</b>, 
+<b>l_or</b>, 
+<b>l_xor</b>, 
 <br />
-&#160;&#160;<b>i_rol</b>, 
-<b>i_ror</b>, 
-<b>i_eq</b>, 
-<b>i_neq</b>, 
+&#160;&#160;<b>l_shl</b>, 
+<b>l_shr</b>, 
+<b>l_rol</b>, 
+<b>l_ror</b>, 
 <br />
-&#160;&#160;<b>i_lt</b>, 
-<b>i_gt</b>, 
-<b>i_lte</b>, 
-<b>i_gte</b>, 
+&#160;&#160;<b>l_inc</b>, 
+<b>l_dec</b>, 
+<b>r_neg</b>, 
+<b>r_not</b>, 
 <br />
-&#160;&#160;<b>i_not</b>, 
-<b>i_and</b>, 
-<b>i_or</b>, 
-<b>i_mul</b>, 
+&#160;&#160;<b>r_add</b>, 
+<b>r_sub</b>, 
+<b>r_and</b>, 
+<b>r_or</b>, 
 <br />
-&#160;&#160;<b>i_div</b>, 
-<b>i_mod</b>, 
-<b>i_sz</b>, 
+&#160;&#160;<b>r_xor</b>, 
+<b>r_shl</b>, 
+<b>r_shr</b>, 
+<b>r_rol</b>, 
+<br />
+&#160;&#160;<b>r_ror</b>, 
+<b>r_mul</b>, 
+<b>r_div</b>, 
+<b>r_mod</b>, 
+<br />
+&#160;&#160;<b>i_sz</b>, 
 <b>i_jmp</b>, 
-<br />
-&#160;&#160;<b>i_jz</b>, 
+<b>i_jz</b>, 
 <b>i_lbl</b>, 
-<b>i_call</b>, 
-<b>i_ret</b>, 
 <br />
-&#160;&#160;<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9">i_proc</a>, 
+&#160;&#160;<b>i_call</b>, 
+<b>i_ret</b>, 
+<a class="el" href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9">i_proc</a>, 
 <b>i_NUM</b>
 <br />
  }<tr class="memdesc:a8e1f49c4010316f81ceff7f77e03b597"><td class="mdescLeft">&#160;</td><td class="mdescRight">intermediate op codes  <a href="instructions_8hpp.html#a8e1f49c4010316f81ceff7f77e03b597">More...</a><br /></td></tr>
@@ -202,14 +204,8 @@ used_next</td>
 
 <p>intermediate op codes </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a75a986e7cc66f1dfbe8f153f3ebd0fdb"></a>i_ass&#160;</td><td class="fielddoc">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a281307278f2b165cdac6c06af9132fcd"></a>l_ass&#160;</td><td class="fielddoc">
 <p>ass(Data * dest, Data * source, NULL) </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a0cf4bddeb38a40ece2d687e99f0de49e"></a>i_inc&#160;</td><td class="fielddoc">
-<p>Same as dec. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ace50708fcbb6bdfb06a5ae38475eb8e9"></a>i_dec&#160;</td><td class="fielddoc">
-<p>dec(Prime * arg, NULL, NULL) Increments data at the location indicated by the l-value arg. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ac8da824f43d6b005e42785ccf04d5096"></a>i_parm&#160;</td><td class="fielddoc">
 <p>parm(Prime * parameter) ??? </p>
@@ -217,9 +213,9 @@ used_next</td>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597ad12f5abb59ee590b060092c757359764"></a>i_dref&#160;</td><td class="fielddoc">
 <p>dref(Data * object, Prime * reference) converts an l-value to its corresponding r-value </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597a3ccd946a489332395b207cc55b4c03ac"></a>i_ref&#160;</td><td class="fielddoc">
+<tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597af45dcb33e15c076b19bf8e0aaa9b2faa"></a>r_ref&#160;</td><td class="fielddoc">
 <p>ref(Data * field, Array * array, Prime * index) returns a reference (l-value) to the field indicated by the index. </p>
-<p>By returning the reference no memory access is made, and we can do another ref. We will have to do some kind of load operation. refs are used to resolve offsets </p>
+<p>By returning the reference no memory access is made, and we can do another ref. We will have to do some kind of load operation after. refs are used to resolve offsets </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="a8e1f49c4010316f81ceff7f77e03b597afc06fc805b9be16778eaf40eda0629e9"></a>i_proc&#160;</td><td class="fielddoc">
 <p>declare the begining of a procedure takes a lbl and count of operands as arguments </p>
