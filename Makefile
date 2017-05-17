@@ -68,12 +68,12 @@ CXXWARNINGS:=-Wall -Wextra -pedantic \
 	-Wpointer-arith -Wcast-align \
 	-Wuninitialized -Wmaybe-uninitialized -Werror=uninitialized \
 	-Winline -Wno-long-long \
-	-Wswitch -Wswitch-default -Wswitch-enum \
 	-Wsuggest-attribute=pure -Wsuggest-attribute=const \
 	-Wsuggest-attribute=noreturn -Wsuggest-attribute=format \
 	-Wtrampolines -Wstack-protector \
 	-Wwrite-strings \
-	-Wconversion -Wdisabled-optimization
+	-Wconversion -Wdisabled-optimization -Wno-switch
+#	-Wswitch -Wswitch-default -Wswitch-enum
 
 DEBUG_OPT:=
 

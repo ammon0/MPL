@@ -30,14 +30,7 @@ typedef enum {
 	/************ WRITE TO MEMORY ************/
 	
 	/**	ass(Data * dest, Data * source, NULL) */
-	i_ass,
-	
-	/// Same as dec
-	i_inc,
-	/**	dec(Prime * arg, NULL, NULL)
-	 *	Increments data at the location indicated by the l-value arg.
-	 */
-	i_dec,
+	l_ass,
 	
 	/**	parm(Prime * parameter) ???
 	 *	
@@ -54,40 +47,44 @@ typedef enum {
 	/**	ref(Data * field, Array * array, Prime * index)
 	 *	returns a reference (l-value) to the field indicated by the index. By
 	 *	returning the reference no memory access is made, and we can do another
-	 *	ref. We will have to do some kind of load operation.
+	 *	ref. We will have to do some kind of load operation after.
 	 *	refs are used to resolve offsets
 	 */
-	i_ref,
+	r_ref,
 	
+	// destructive (l-values)
+	l_neg,
+	l_not,
+	l_add,
+	l_sub,
+	l_and,
+	l_or ,
+	l_xor,
+	l_shl,
+	l_shr,
+	l_rol,
+	l_ror,
+	l_inc,
+	l_dec,
 	
-	i_neg ,
-	i_inv ,
-	i_add ,
-	i_sub ,
-	i_band,
-	i_bor ,
-	i_xor ,
-	i_shl,
-	i_shr,
-	i_rol,
-	i_ror,
-	i_eq ,
-	i_neq,
-	i_lt ,
-	i_gt ,
-	i_lte,
-	i_gte,
-	
-	// logical
-	i_not,
-	i_and,
-	i_or ,
+	// non-destructive (r-values)
+	r_neg,
+	r_not,
+	r_add,
+	r_sub,
+	r_and,
+	r_or ,
+	r_xor,
+	r_shl,
+	r_shr,
+	r_rol,
+	r_ror,
 	
 	/**** OPERANDS MUST BE IN REGISTERS *****/
 	
-	i_mul,
-	i_div,
-	i_mod,
+	r_mul,
+	r_div,
+	r_mod,
 	
 	/********* REDUCE TO IMMEDIATE **********/
 	
@@ -109,8 +106,8 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	obj_pt     result;
-	obj_pt     left;
+	obj_pt     result; // typically an r-value
+	obj_pt     left;   // typically an l-value
 	obj_pt     right;
 	inst_code op;
 	bool      used_next;
