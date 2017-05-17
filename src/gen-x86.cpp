@@ -88,72 +88,6 @@
 
 #define PTR (mode == xm_long? QWORD:DWORD)
 
-/// These are the x86 instructions that we are working with
-typedef enum x86_inst {
-	X_MOV,      ///< copy data to a new location
-	X_MOVSX,   ///< copy 8, or 16-bit data to a larger location and sign extend
-	X_MOVSXD, ///< copy 32-bit data to a 64-bit register and sign extend
-	X_MOVZX, ///< copy 8, or 16-bit data to a larger location and zero extend
-	X_MOVBE, ///< copy and swap byte order
-	X_LEA,  ///< load effective address multipliers are 2, 4, 8, 3, 5, and 9
-
-	X_CLD, ///< clear DF
-	X_STD, ///< set DF
-	X_STOS, ///< store string. uses A, DI, ES, and DF flag
-	X_LODS, ///< load string. uses A, SI, DS, and DF flag
-	X_MOVS, ///< copy from memory to memory. uses DI, SI, DS, and DF flag
-	X_OUTS, ///< write a string to IO. uses DS, SI, D, and DF flag
-	X_INS,  ///< read a string from IO.
-	X_CMPS, ///< compare arrays
-	X_SCAS, ///< scan an array in DI
-
-	X_IN,  ///< read from an IO port
-	X_OUT, ///< write to an IO port
-
-	X_PUSH,   ///< push data onto the stack
-	X_POP,    ///< pop data from the stack
-
-	X_INC, ///< Increment
-	X_DEC, ///< decrement
-	X_ADD,
-	X_XADD, ///< exchange then add
-	X_SUB,
-	X_NEG,
-	X_CMP,  ///< sets the status flags as if subtraction had occurred
-	// X_SETcc sets a register based on flag conditions
-
-	X_MUL,  ///< unsigned multiplication
-	X_IMUL, ///< signed multiplication
-	X_DIV,  ///< unsigned division
-	X_IDIV, ///< Signed division
-
-	X_AND,
-	X_ANDN, ///< AND NOT
-	X_OR,
-	X_XOR,
-	X_NOT,
-	X_TEST, ///< sets the status flags as if AND had occurred
-
-	X_SHR, ///< bit shift right unsigned
-	X_SAR, ///< bit shift right signed (behavior is not the same as idiv)
-	X_SHL, ///< bit shift left
-	X_ROR, ///< bit rotate right
-	X_ROL, ///< bit rotate left
-
-	X_JMP,   ///< jump
-	X_JZ,    ///< jump if zero
-	X_JNZ,   ///< jump if non-zero
-	X_LOOP,  ///< loop with RCX counter
-	X_CALL,  ///< call a procedure
-	X_RET,   ///< return from a procedure
-	X_INT,   ///< software interrupt
-	X_BOUND, ///< check an index is within array bounds
-	X_ENTER,
-	X_LEAVE,
-
-	NUM_inst
-} x86_inst;
-
 typedef imax offset_t;
 typedef umax index_t;
 
@@ -163,18 +97,6 @@ typedef umax index_t;
 /******************************************************************************/
 
 
-/// the assembler strings for each x86 instruction
-static const char * inst_array[NUM_inst] = {
-	"mov", "movsx", "movsxd", "movzx", "movbe", "lea",
-	"cld", "std", "stos", "lods", "movs", "outs", "ins", "cmps", "scas",
-	"in", "out",
-	"push", "pop",
-	"inc", "dec", "add", "xadd", "sub", "neg", "cmp",
-	"mul", "imul", "div", "idiv",
-	"and", "andn", "or", "xor", "not", "test",
-	"shr", "sar", "shl", "ror", "rol",
-	"jmp", "jz", "jnz", "loop", "call", "ret", "int", "bound", "enter", "leave"
-};
 
 
 /******************************************************************************/
@@ -200,11 +122,6 @@ static Reg_man reg_d;
 //                          STRING WRITING FUNCTIONS
 /******************************************************************************/
 
-
-/** Return the correct assembler string for the given x86 instruction. */
-static inline const char * str_instruction(x86_inst instruction){
-	return inst_array[instruction];
-}
 
 /** Return a string representation of a number. */
 static inline const char * str_num(umax num){
@@ -277,8 +194,8 @@ put_str(const char * format, ...){
 	va_end(ap);
 }
 
-#define FORM_2   "\t%6s                                           ;%s\n"
-#define FORM_3   "\t%6s %20s                      ;%s\n"
+#define FORM_2   "\t%6s                     ;                     ;%s\n"
+#define FORM_3   "\t%6s %20s;                     ;%s\n"
 #define FORM_4   "\t%6s %20s, %20s;%s\n"
 #define FORM_LBL "%s:\n"
 
@@ -476,11 +393,11 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 	Load_prime(A, index);
 	
 	if(step_size > QWORD){
-		put_str(FORM_3, inst_array[X_MUL], str_num(step_size), "idx()");
+		put_str(FORM_3, "mul", str_num(step_size), "idx()");
 	
 		// A now contains the offset
 		put_str("\t%s\t%s, [%s+%s]\n",
-			inst_array[X_LEA],
+			"lea",
 			str_reg(si->get_size(), reg),
 			str_reg(si->get_size(), reg),
 			str_reg(PTR, A)
@@ -488,7 +405,7 @@ static inline void idx_array(Prime * si, Array * array, Prime * index){
 	}
 	else{
 		put_str("\t%s\t%s, [%s+%s*%s]\n",
-			inst_array[X_LEA],
+			"lea",
 			str_reg(si->get_size(), reg), // target
 			str_reg(si->get_size(), reg), // base
 			str_reg(PTR, A), // index
@@ -514,7 +431,7 @@ static inline void idx_struct(Prime * si, Struct_inst * s, Data * member){
 	if( (reg=reg_d.find_ref(s)) == NUM_reg ) throw;
 	
 	put_str("\t%s\t%s, [%s+%s]\n",
-		inst_array[X_LEA],
+		"lea",
 		str_reg(si->get_size(), reg),
 		str_reg(si->get_size(), reg),
 		member->get_label()
@@ -548,7 +465,7 @@ static inline void ass(Prime * dest, Prime * source){
 	// check if operands are refs to the object
 	
 	put_str(FORM_4,
-		inst_array[X_MOV],
+		"mov",
 		"FIXME",
 		"FIXME",
 		"An assignment"
@@ -558,14 +475,14 @@ static inline void ass(Prime * dest, Prime * source){
 static inline void dec(Prime* arg){
 	resolve_prime(arg);
 	
-	put_str(FORM_3, inst_array[X_DEC], "FIXME", "");
+	put_str(FORM_3, "dec", "FIXME", "");
 }
 
 
 static inline void inc(Prime * arg){
 	resolve_prime(arg);
 	
-	put_str(FORM_3, inst_array[X_INC], "FIXME", "");
+	put_str(FORM_3, "inc", "FIXME", "");
 }
 
 
@@ -576,9 +493,7 @@ static inline void inc(Prime * arg){
 /// call a procedure
 static inline void call(Prime * result, Routine * proc){
 	// parameters are already loaded
-	put_str(FORM_3, inst_array[X_CALL], proc->get_label(), "call()");
-
-	// TODO: unload parameters
+	put_str(FORM_3, "call", proc->get_label(), "call()");
 
 	//reg_d[A] = result;
 	reg_d.set_val(A, result);
@@ -598,7 +513,7 @@ static inline void ref(Prime * si, Data * data, Data * index){
 		// get the address of the compound
 		resolve_addr(data);
 		put_str("\t%s\t%s, [%s] ;%s\n",
-			inst_array[X_LEA],
+			"lea",
 			str_reg(PTR, SI),
 			"FIXME",
 			"idx()"
@@ -867,9 +782,10 @@ static void Gen_routine(Routine * routine){
 	reg_d.clear();
 	
 	// place the label
+	put_str("\n\n");
 	lbl(routine);
 	
-	put_str("\t%s %s\n", inst_array[X_ENTER], str_num(auto_size));
+	put_str(FORM_3, "enter", str_num(auto_size), "");
 	
 	/**************** MAIN LOOP ****************/
 	
@@ -883,9 +799,10 @@ static void Gen_routine(Routine * routine){
 	/***************** RETURN *****************/
 	
 	// pop the current activation record
-	put_str("\t%s\n", inst_array[X_LEAVE]);
+	put_str(FORM_2, "leave", "");
+	
 	// return
-	put_str("\t%s\n", inst_array[X_RET]);
+	put_str(FORM_3, "ret", str_num(formal_size), "");
 }
 
 
@@ -898,7 +815,11 @@ static void static_array(Array * array){
 	
 	// if the array is not initialized just do this
 	if(array->value.empty()){
-		put_str("\tresb\t%s\n", str_num(array->get_size()) );
+		put_str(FORM_3,
+			"resb",
+			str_num(array->get_size()),
+			"Uninitialized array"
+		);
 		return;
 	}
 	
@@ -1249,7 +1170,7 @@ void x86 (FILE * out_fd, PPD * prog, x86_mode_t proccessor_mode){
 			Gen_routine(dynamic_cast<Routine*>(obj));
 	}while(( obj=prog->objects.next() ));
 	
-	put_str("\n; End of MPL generated file\n")
+	put_str("\n; End of MPL generated file\n");
 	
 	// TODO: if this is not stand-alone generate an Object Interface Description
 	

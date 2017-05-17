@@ -97,8 +97,6 @@ typedef enum {
 	i_jmp,
 	i_jz ,
 	i_lbl,
-	i_loop,
-	
 	
 	i_call,
 	i_ret,

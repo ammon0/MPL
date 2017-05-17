@@ -88,13 +88,8 @@ inst_pt Routine::add_inst (inst_pt instruction){
 	inst = last_blk->enqueue(instruction);
 	
 	// if the instruction is a branch the next one is a leader
-	if(
-		instruction->op == i_jmp  ||
-		instruction->op == i_jz   ||
-		instruction->op == i_loop ||
-		instruction->op == i_ret  ||
-		instruction->op == i_call
-	) DS_nq(blocks, new Block);
+	if( instruction->op==i_jmp || instruction->op==i_jz )
+		DS_nq(blocks, new Block);
 	
 	
 	msg_print(NULL, V_TRACE, "Procedure::add(): stop");

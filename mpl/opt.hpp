@@ -29,17 +29,21 @@ void opt_dead(PPD * prog_data);
  */
 void opt_const(PPD * prog_data);
 
+/**	Unroll inner loops
+ *	If the loop contains branches and more than 16 iterations don't unroll.
+ */
+void opt_loop(PPD * prog_data);
+
+/**	Inline small functions & recursive tail call optimization
+ *	use inlining if it will reduce code size or if the function is small and
+ *	often used
+ */
+void opt_inline(PPD * prog_data);
 
 /**	## Optimization Strategies
  *	### Eliminate Branches
  *	* Rearrange and fuse basic blocks to be contiguous
- *	* use inlining if it will reduce code size or if the function is small and
- *	often used
  *	* do not put more that 3 branches in 16 bytes of code
- *
- *	### Unroll Loops
- *	* If the loop contains branches and more than 16 iterations don't unroll.
- *	* 
  *
  *	* make the fallthrough code the more likely jump
  *
@@ -47,6 +51,7 @@ void opt_const(PPD * prog_data);
  *
  *
  */
+
 
 #endif // _OPT_HPP
 
