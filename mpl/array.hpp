@@ -55,7 +55,7 @@ public:
 		str = "Array ";
 		str += get_label();
 		str += ": ";
-		str += get_count();
+		str += std::to_string(get_count());
 		str += " of ";
 		str += child->print_obj();
 		str += "\n";

@@ -107,8 +107,8 @@ typedef enum {
  */
 typedef struct{
 	obj_pt     result; // typically an r-value
-	obj_pt     left;   // typically an l-value
-	obj_pt     right;
+	obj_pt     dest;   // this operand is typically overwritten
+	obj_pt     source;
 	inst_code op;
 	bool      used_next;
 } Instruction;

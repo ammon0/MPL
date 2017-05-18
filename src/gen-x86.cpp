@@ -27,7 +27,7 @@
  *	instruction then it will have to be stored somewhere. Another register
  *	would be ideal.
  *
- *	values assigned to SI and DI are implicitly the reference to the object
+ *	values assigned to SI and DI contain references to the object
  *	even if the object is prime. This is because the results of the ref
  *	operation stores in these locations and it will often be necessary to store
  *	values at these locations.
@@ -45,7 +45,6 @@
  *	|___________________| <-BP
  *	|       Autos       |
  *	|_03_|_02_|_01_|_00_| <-SP
- *
  *	</PRE>
  *
  *	SP is always pointing to the top item on the stack, so
@@ -90,6 +89,12 @@
 
 typedef imax offset_t;
 typedef umax index_t;
+
+typedef struct loc{
+	bool ref;
+	reg_t reg;
+	std::string mem;
+} loc;
 
 
 /******************************************************************************/
@@ -138,7 +143,7 @@ static const char * str_reg(size_t width, reg_t reg){
 
 	if(mode != xm_long && width == QWORD){
 		msg_print(NULL, V_ERROR,
-			"Internal str_reg(): qword only availible in long mode");
+			"Internal str_reg(): qword only available in long mode");
 		return "!!Bad width!!";
 	}
 	
@@ -332,6 +337,9 @@ static void resolve_addr(obj_pt obj){
 	}
 }
 
+//void find(loc location, Data * data){}
+//const char * str_r(loc l){}
+
 
 /******************************************************************************/
 //                       LOAD R-VALUES AND STORE TEMPS
@@ -352,12 +360,38 @@ static void Stash(reg_t reg){
  *	available if necessary
  */
 static void Load_prime(reg_t reg, Prime * source){
+	reg_t  ex_reg;
+	size_t ex_sz;
+	
+	// check if it's already loaded
+	if(reg_d.get_obj(reg) == source && !reg_d.is_ref(reg)) return;
 	
 	// determine if source is already in a register and XCHG reg
+//	if((ex_reg=reg_d.find_val(source)) != NUM_reg){
+//		if(reg_d.get_obj(reg)->get_size() > source->get_size())
+//			ex_sz = reg_d.get_obj(reg)->get_size();
+//		else ex_sz = source->get_size();
+//		
+//		put_str(FORM_4,
+//			"xchg",
+//			str_reg(ex_sz, reg),
+//			str_reg(ex_sz, ex_reg),
+//			source->get_label()
+//		);
+//		return;
+//	}
+//	
+//	Stash(reg);
+//	
+//	// Determine if a ref of source is already in a register dref
+//	if((ex_reg=reg_d.find_ref(source)) != NUM_reg){
+//		put_str(FORM_4,
+//			"mov",
+//			str_reg(source->get_size(), reg),
+//			
+//		);
+//	}
 	
-	// ELSE Stash(reg)
-	
-	// Determine if a ref of source is already in a register dref
 	
 	// ELSE MOV resolve etc.
 }
@@ -454,10 +488,7 @@ static inline void prime_ass(Prime * dest, Prime * source){
 /******************************************************************************/
 
 
-// functions that write to memory
-
 static inline void ass(Data * dest, Data * source){
-	
 	if(dest->get_size() < source->get_size())
 		msg_print(NULL, V_WARN, "Assignment may cause overflow");
 	if(dest->get_type() != source->get_type())
@@ -466,109 +497,39 @@ static inline void ass(Data * dest, Data * source){
 	if(dest->get_type() == ot_prime && source->get_type() == ot_prime)
 		prime_ass(static_cast<Prime*>(dest), static_cast<Prime*>(source));
 	else mem_cpy(dest, source);
-
-	// check if operands are refs to the object
-	
 }
 
-static inline void dec(Prime* arg){
-	// TODO: these should probably Load_prime() for speed
-	resolve_prime(arg);
-	put_str(FORM_3, "dec", "FIXME", "");
-}
-static inline void inc(Prime * arg){
-	resolve_prime(arg);
-	put_str(FORM_3, "inc", "FIXME", "");
-}
-
-static inline void neg_r(Prime * result, Prime * arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "neg", "FIXME", "");
-	reg_d.set_val(A, result);
-}
-static inline void inv_r(Prime * result, Prime * arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "not", "FIXME", "");
-	reg_d.set_val(A, result);
-}
-static inline void neg_l(Prime * arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "neg", "FIXME", "");
-}
-static inline void inv_l(Prime * arg){
-	resolve_prime(arg);
-	put_str(FORM_3, "not", "FIXME", "");
-}
-
-
-
-static inline void
-shift_r(inst_code op, Prime * result, Prime * dest, Prime * count){
-	
-	if(result->get_size() != dest->get_size()) throw;
-	
-	if(count->get_sclass() != sc_const) Load_prime(C, count);
-	resolve_prime(count);
-	
-	Load_prime(A, dest);
-	
-	switch(op){
-	case r_shl: put_str(FORM_4,
-		"shl",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_shr: put_str(FORM_4,
-		"shr",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_rol: put_str(FORM_4,
-		"rol",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_ror: put_str(FORM_4,
-		"ror",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	}
-	
-	reg_d.set_val(A, result);
-}
-static inline void
-shift_l(inst_code op, Prime * dest, Prime * count){
-	
-	if(count->get_sclass() != sc_const) Load_prime(C, count);
-	resolve_prime(count);
+static inline void binary_l(inst_code op, Prime * dest, Prime * source){
 	resolve_prime(dest);
+	resolve_prime(source);
 	
 	switch(op){
-	case r_shl: put_str(FORM_4,
-		"shl",
+	case r_add: put_str(FORM_4,
+		"add",
 		"FIXME",
 		"FIXME",
 		""
 	); break;
-	case r_shr: put_str(FORM_4,
-		"shr",
+	case r_sub: put_str(FORM_4,
+		"sub",
 		"FIXME",
 		"FIXME",
 		""
 	); break;
-	case r_rol: put_str(FORM_4,
-		"rol",
+	case r_and: put_str(FORM_4,
+		"and",
 		"FIXME",
 		"FIXME",
 		""
 	); break;
-	case r_ror: put_str(FORM_4,
-		"ror",
+	case r_or : put_str(FORM_4,
+		"or",
+		"FIXME",
+		"FIXME",
+		""
+	); break;
+	case r_xor: put_str(FORM_4,
+		"xor",
 		"FIXME",
 		"FIXME",
 		""
@@ -616,47 +577,18 @@ binary_r(inst_code op, Prime * result, Prime * dest, Prime * source){
 	
 	reg_d.set_val(A, result);
 }
-static inline void
-binary_l(inst_code op, Prime * dest, Prime * source){
-	resolve_prime(dest);
-	resolve_prime(source);
-	
-	switch(op){
-	case r_add: put_str(FORM_4,
-		"add",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_sub: put_str(FORM_4,
-		"sub",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_and: put_str(FORM_4,
-		"and",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_or : put_str(FORM_4,
-		"or",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_xor: put_str(FORM_4,
-		"xor",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	}
+
+static inline void call(Prime * result, Routine * proc){
+	put_str(FORM_3, "call", proc->get_label(), "call()");
+	reg_d.set_val(A, result);
 }
 
+static inline void dec(Prime* arg){
+	// TODO: these should probably Load_prime() for speed
+	resolve_prime(arg);
+	put_str(FORM_3, "dec", "FIXME", "");
+}
 
-// these don't work with immediate values
 static inline void
 div(inst_code op, Prime * result, Prime * dest, Prime * source){
 	Load_prime(A, dest);
@@ -669,6 +601,26 @@ div(inst_code op, Prime * result, Prime * dest, Prime * source){
 	if(op == r_div) reg_d.set_val(A, result);
 	else reg_d.set_val(D, result);
 }
+
+static inline void dref(Data * result, Prime * pointer){}
+
+static inline void inc(Prime * arg){
+	resolve_prime(arg);
+	put_str(FORM_3, "inc", "FIXME", "");
+}
+
+static inline void inv_l(Prime * arg){
+	resolve_prime(arg);
+	put_str(FORM_3, "not", "FIXME", "");
+}
+
+static inline void inv_r(Prime * result, Prime * arg){
+	Load_prime(A, arg);
+	put_str(FORM_3, "not", "FIXME", "");
+	reg_d.set_val(A, result);
+}
+
+static inline void lbl(obj_pt op){ put_str(FORM_LBL, op->get_label()); }
 
 static inline void mul(Prime * result, Prime * dest, Prime * source){
 	Load_prime(A, dest);
@@ -683,8 +635,17 @@ static inline void mul(Prime * result, Prime * dest, Prime * source){
 	reg_d.set_val(D, result);
 }
 
+static inline void neg_l(Prime * arg){
+	Load_prime(A, arg);
+	put_str(FORM_3, "neg", "FIXME", "");
+}
 
-static inline void dref(Data * result, Prime * pointer){}
+static inline void neg_r(Prime * result, Prime * arg){
+	Load_prime(A, arg);
+	put_str(FORM_3, "neg", "FIXME", "");
+	reg_d.set_val(A, result);
+}
+
 static inline void ref(Prime * si, Data * data, Data * index){
 	// sanity check
 	if(!si || !data){
@@ -712,19 +673,85 @@ static inline void ref(Prime * si, Data * data, Data * index){
 		idx_struct(si, static_cast<Struct_inst*>(data), index);
 }
 
-
-/// call a procedure
-static inline void call(Prime * result, Routine * proc){
-	put_str(FORM_3, "call", proc->get_label(), "call()");
-	reg_d.set_val(A, result);
-}
-static inline void lbl(obj_pt op){ put_str(FORM_LBL, op->get_label()); }
 static inline void ret(Prime * val){
 	Load_prime(A, val);
 	put_str(FORM_2, "leave", "");
 	put_str(FORM_3, "ret", str_num(param_sz), "");
 }
 
+static inline void shift_l(inst_code op, Prime * dest, Prime * count){
+	
+	if(count->get_sclass() != sc_const) Load_prime(C, count);
+	resolve_prime(count);
+	resolve_prime(dest);
+	
+	switch(op){
+	case r_shl: put_str(FORM_4,
+		"shl",
+		"FIXME",
+		"FIXME",
+		""
+	); break;
+	case r_shr: put_str(FORM_4,
+		"shr",
+		"FIXME",
+		"FIXME",
+		""
+	); break;
+	case r_rol: put_str(FORM_4,
+		"rol",
+		"FIXME",
+		"FIXME",
+		""
+	); break;
+	case r_ror: put_str(FORM_4,
+		"ror",
+		"FIXME",
+		"FIXME",
+		""
+	); break;
+	}
+}
+
+static inline void
+shift_r(inst_code op, Prime * result, Prime * dest, Prime * count){
+	
+	if(result->get_size() != dest->get_size()) throw;
+	
+	if(count->get_sclass() != sc_const) Load_prime(C, count);
+	resolve_prime(count);
+	
+	Load_prime(A, dest);
+	
+	switch(op){
+	case r_shl: put_str(FORM_4,
+		"shl",
+		str_reg(dest->get_size(), A),
+		"FIXME",
+		""
+	); break;
+	case r_shr: put_str(FORM_4,
+		"shr",
+		str_reg(dest->get_size(), A),
+		"FIXME",
+		""
+	); break;
+	case r_rol: put_str(FORM_4,
+		"rol",
+		str_reg(dest->get_size(), A),
+		"FIXME",
+		""
+	); break;
+	case r_ror: put_str(FORM_4,
+		"ror",
+		str_reg(dest->get_size(), A),
+		"FIXME",
+		""
+	); break;
+	}
+	
+	reg_d.set_val(A, result);
+}
 
 static inline void sz(Prime * size, Data * object){
 	// nothing to load so we just stash
@@ -747,42 +774,40 @@ static void Gen_inst(inst_pt inst){
 	switch (inst->op){
 	
 	//inc and dec act on a single object and have no other result
-	case l_inc: inc(dynamic_cast<Prime*>(inst->left)); break;
-	case l_dec: dec(dynamic_cast<Prime*>(inst->left)); break;
+	case l_inc: inc(dynamic_cast<Prime*>(inst->dest)); break;
+	case l_dec: dec(dynamic_cast<Prime*>(inst->dest)); break;
 	
 	case l_ass: ass(
-		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	
 	case r_ref: ref( // this function uses A and leaves a result in SI
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Data*> (inst->left),
-		dynamic_cast<Data*> (inst->right)
+		dynamic_cast<Data*> (inst->dest),
+		dynamic_cast<Data*> (inst->source)
 	); break;
 	
 	case i_dref: dref(
 		dynamic_cast<Data*>(inst->result),
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest)
 	); break;
-	
 	
 	// regular unary ops
 	case r_neg: neg_r(
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest)
 	); break;
 	case r_not: inv_r(
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest)
 	); break;
 	case l_neg: neg_l(
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest)
 	); break;
 	case l_not: inv_l(
-		dynamic_cast<Prime*>(inst->left)
+		dynamic_cast<Prime*>(inst->dest)
 	); break;
-	
 	
 	// shift ops
 	case r_shl:
@@ -790,15 +815,15 @@ static void Gen_inst(inst_pt inst){
 	case r_rol:
 	case r_ror: shift_r(inst->op,
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	case l_shl:
 	case l_shr:
 	case l_rol:
 	case l_ror: shift_l(inst->op,
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	
 	// regular binary ops
@@ -808,40 +833,40 @@ static void Gen_inst(inst_pt inst){
 	case r_or :
 	case r_xor: binary_r(inst->op,
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	case l_add:
 	case l_sub:
 	case l_and:
 	case l_or :
 	case l_xor: binary_l(inst->op,
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	
 	// multiplication
 	case r_mul : mul(
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	case r_div:
 	case r_mod: div(inst->op,
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Prime*>(inst->left),
-		dynamic_cast<Prime*>(inst->right)
+		dynamic_cast<Prime*>(inst->dest),
+		dynamic_cast<Prime*>(inst->source)
 	); break;
 	
 	// flow control
 	case i_parm: break;
 	case i_call: call(
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Routine*>(inst->left)
+		dynamic_cast<Routine*>(inst->source)
 	); break;
-	case i_ret: ret(dynamic_cast<Prime*>(inst->left)); break;
+	case i_ret: ret(dynamic_cast<Prime*>(inst->source)); break;
 	
-	case i_lbl : lbl(inst->left); break;
+	case i_lbl : lbl(inst->source); break;
 	case i_jmp : break;
 	case i_jz  : break;
 	
@@ -852,7 +877,7 @@ static void Gen_inst(inst_pt inst){
 	// compile-time constant
 	case i_sz: sz(
 		dynamic_cast<Prime*>(inst->result),
-		dynamic_cast<Data*> (inst->left)
+		dynamic_cast<Data*> (inst->source)
 	); break;
 	
 	// errors
