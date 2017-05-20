@@ -32,6 +32,7 @@ class Routine: public Object{
 public:
 	Struct_def formal_params;
 	Struct_def auto_storage;
+	uint       concurrent_temps=0;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	

@@ -60,7 +60,7 @@ protected:
 		"pub   ",
 		"stack ",
 		"param ",
-		"membr ",
+		"member",
 		"extern",
 		"temp  ",
 		"const "

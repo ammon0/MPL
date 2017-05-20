@@ -90,7 +90,7 @@
 typedef imax offset_t;
 typedef umax index_t;
 
-typedef struct loc{
+typedef struct loc{ // can contain the location of an operand
 	bool ref;
 	reg_t reg;
 	std::string mem;
@@ -337,7 +337,9 @@ static void resolve_addr(obj_pt obj){
 	}
 }
 
-//void find(loc location, Data * data){}
+static void find_ref(loc& location, Data * data){}
+
+static void find(loc& location, Data * data){}
 //const char * str_r(loc l){}
 
 
@@ -346,14 +348,21 @@ static void resolve_addr(obj_pt obj){
 /******************************************************************************/
 
 
+
 static void Stash(reg_t reg){
 	// already empty
 	if(reg_d.is_clear(reg)) return;
 	
 	// already in memory
-	if(reg_d.get_obj(reg)->get_sclass() != sc_temp) return;
+	if(reg_d.get_obj(reg)->get_sclass() != sc_temp) /* store */ ;
 	
+	#define TREG_P 1 // B
+	#define TREG_L 9 // B, R8-R15
 	
+	/*	DI -> SI
+		A,SI -> B -> R8-R15 -> C,D -> spill
+	
+	*/
 }
 
 /**	load the r-value of an object into a register making that register
@@ -918,6 +927,7 @@ static void set_struct_size(Struct_def * structure);
 */
 static void Gen_routine(Routine * routine){
 	blk_pt blk;
+	int    stack_temps;
 	
 	/************** SANITY CHECKS *************/
 	
@@ -928,7 +938,14 @@ static void Gen_routine(Routine * routine){
 	
 	/************ SETUP STACK TEMPS ************/
 	
-	//FIXME determine how many temps are needed and add them to the autos
+	stack_temps = routine->concurrent_temps;
+	
+	if(mode == xm_protected) stack_temps -= TREG_P;
+	else stack_temps -= TREG_L;
+	
+	while(stack_temps > 0){
+		//FIXME add stack temps
+	}
 	
 	/******** TODO SORT AUTOS AND PARAMETERS ********/
 	
