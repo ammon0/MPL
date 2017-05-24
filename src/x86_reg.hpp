@@ -57,10 +57,10 @@ public:
 		}
 		return (reg_t)i;
 	}
-	bool  is_ref(reg_t);
-	bool  is_clear(reg_t);
-	reg_t check(void);
-	obj_pt get_obj(reg_t);
+	bool   is_ref(reg_t);
+	bool   is_clear(reg_t);
+	reg_t  check(void);
+	Data * get_obj(reg_t);
 	
 	/******************************* MUTATORS *********************************/
 	
@@ -71,7 +71,7 @@ public:
 		memset(ref, 0, sizeof(bool)*NUM_reg);
 	}
 	void clear(reg_t r){ reg[r] = NULL; }
-	
+	void xchg(reg_t a, reg_t b);
 	
 };
 

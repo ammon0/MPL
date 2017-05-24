@@ -56,8 +56,27 @@
  *
  *	Stack variables are accessed as [BP-frame_size+offset]
  *
- *	The ENTER instruction has a feature that allows up to 32 access links to be
- *	added the the current stack frame
+ *	## Addressing
+ *	### Effective Address
+ *	Effective Address = reg + (Scale x reg) + immediate
+ *	* Scale: A positive value of 1, 2, 4, or 8.
+ *	* Displacement: An 8-bit, 16-bit, or 32-bit two’s-complement value encoded
+ *	as part of the instruction.
+ *
+ *	### Logical Addresses
+ *	Logical Address = Segment Selector : Effective Address
+ *	A logical address  is a reference into a segmented-address space. It is
+ *	comprised of the segment selector and the effective address.
+ *
+ *	### Linear Address
+ *	Linear Address = Segment Base Address + Effective Address
+ *	The segment selector is a pointer to an entry in a descriptor table. That
+ *	entry contains the segment base address. In the flat memory model the
+ *	segment base address is always 0 and linear addresses are equivalent to
+ *	effective addresses
+ *
+ *	### Physical Address
+ *	physical addresses are translated from linear addresses through paging.
  */
 
 
@@ -208,7 +227,32 @@ put_str(const char * format, ...){
 
 
 /******************************************************************************/
-//                        RESOLVE DATA OBJECTS
+//                            ?????????????????
+/******************************************************************************/
+
+
+static inline void xchg(reg_t a, reg_t b){
+	size_t ex_sz;
+	
+	// what size
+	if(reg_d.get_obj(a)->get_size() > (ex_sz=reg_d.get_obj(b)->get_size()))
+		ex_sz=reg_d.get_obj(a)->get_size();
+	
+	// perform the exchange
+	put_str(FORM_4,
+		"xchg",
+		str_reg(ex_sz, a),
+		str_reg(ex_sz, b),
+		""
+	);
+	
+	// update the descriptor
+	reg_d.xchg(a,b);
+}
+
+
+/******************************************************************************/
+//                            RESOLVE DATA OBJECTS
 /******************************************************************************/
 
 
@@ -359,6 +403,9 @@ static void Stash(reg_t reg){
 	#define TREG_P 1 // B
 	#define TREG_L 9 // B, R8-R15
 	
+	
+	if(reg == A);
+	
 	/*	DI -> SI
 		A,SI -> B -> R8-R15 -> C,D -> spill
 	
@@ -369,8 +416,6 @@ static void Stash(reg_t reg){
  *	available if necessary
  */
 static void Load_prime(reg_t reg, Prime * source){
-	reg_t  ex_reg;
-	size_t ex_sz;
 	
 	// check if it's already loaded
 	if(reg_d.get_obj(reg) == source && !reg_d.is_ref(reg)) return;
@@ -797,11 +842,6 @@ static void Gen_inst(inst_pt inst){
 		dynamic_cast<Data*> (inst->source)
 	); break;
 	
-	case i_dref: dref(
-		dynamic_cast<Data*>(inst->result),
-		dynamic_cast<Prime*>(inst->dest)
-	); break;
-	
 	// regular unary ops
 	case r_neg: neg_r(
 		dynamic_cast<Prime*>(inst->result),
@@ -878,10 +918,6 @@ static void Gen_inst(inst_pt inst){
 	case i_lbl : lbl(inst->source); break;
 	case i_jmp : break;
 	case i_jz  : break;
-	
-	// nops
-	case i_nop :
-	case i_proc: return;
 	
 	// compile-time constant
 	case i_sz: sz(

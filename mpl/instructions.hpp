@@ -25,26 +25,51 @@ typedef struct _root* DS;
 
 /// intermediate op codes
 typedef enum {
-	i_nop,
+	/********************* ACT ON PRIMATIVE OPERANDS ONLY *********************/
 	
-	/************ WRITE TO MEMORY ************/
-	
-	/**	ass(Data * dest, Data * source, NULL) */
+	/// ass(NULL, Prime * dest, Prime * source)
 	l_ass,
 	
-	/**	parm(Prime * parameter) ???
-	 *	
-	 */
-	i_parm,
+	// destructive (l-values)
+	// xxx(NULL, Prime * dest, Prime * source)
+	l_neg, // a = -a
+	l_not, // a = ~a
+	l_add, // a += b
+	l_sub, // a -= b
+	l_and, // a &= b
+	l_or , // a |= b
+	l_xor, // a ^= b
+	l_shl, // a <<= b
+	l_shr, // a >>= b
+	l_rol,
+	l_ror,
+	l_inc, // ++
+	l_dec, // --
 	
-	/******** WRITE TO TEMP REGISTER ********/
+	// non-destructive (r-values)
+	// xxx(Prime * result, Prime * a, Prime * b)
+	r_neg, // r = -a
+	r_not, // r = ~a
+	r_add, // r = a + b
+	r_sub, // r = a - b
+	r_and, // r = a & b
+	r_or , // r = a | b
+	r_xor, // r = a ^ b
+	r_shl, // r = a << b
+	r_shr, // r = a >> b
+	r_rol,
+	r_ror,
 	
-	/**	dref(Data * object, Prime * reference)
-	 *	converts an l-value to its corresponding r-value
-	 */
-	i_dref,
+	r_mul, // r = a * b
+	r_div, // r = a / b
+	r_mod, // r = a % b
 	
-	/**	ref(Data * field, Array * array, Prime * index)
+	r_resz, ///< create a temp of a different size
+	
+	/*********************** ACT ON COMPOSITE OPERANDS ************************/
+	
+	/**	ref(Prime * ref, Data * data, Data * index)
+	 *	Used to calulate addresses
 	 *	returns a reference (l-value) to the field indicated by the index. By
 	 *	returning the reference no memory access is made, and we can do another
 	 *	ref. We will have to do some kind of load operation after.
@@ -52,53 +77,37 @@ typedef enum {
 	 */
 	r_ref,
 	
-	// destructive (l-values)
-	l_neg,
-	l_not,
-	l_add,
-	l_sub,
-	l_and,
-	l_or ,
-	l_xor,
-	l_shl,
-	l_shr,
-	l_rol,
-	l_ror,
-	l_inc,
-	l_dec,
+	/**	cpy(NULL, Data * dest, Data * source) */
+	l_cpy,
 	
-	// non-destructive (r-values)
-	r_neg,
-	r_not,
-	r_add,
-	r_sub,
-	r_and,
-	r_or ,
-	r_xor,
-	r_shl,
-	r_shr,
-	r_rol,
-	r_ror,
-	
-	/**** OPERANDS MUST BE IN REGISTERS *****/
-	
-	r_mul,
-	r_div,
-	r_mod,
-	
-	/********* REDUCE TO IMMEDIATE **********/
-	
+	/**	sz(Prime * size, NULL, Data * data)
+		Return the size of the data object in bytes
+	*/
 	i_sz,
 	
-	// flow control (6)
-	i_jmp,
-	i_jz ,
-	i_lbl,
+	/**	parm(NULL, Prime * parameter, arg)
+	 *	
+	 */
+	i_parm,
 	
-	i_call,
 	i_ret,
 	
-	i_proc, ///< declare the begining of a procedure takes a lbl and count of operands as arguments
+	/************************* ACT ON LABEL OPERANDS **************************/
+	
+	i_lbl,
+	i_jmp,
+	i_jz ,
+	i_jnz,
+	
+	/** setup(NULL, Routine * routine, NULL)
+	 *	push a parameter structure onto the stack
+	 */
+	i_setup,
+	
+	/** call(Data * ret_val, Routine * routine, NULL)
+	 *	push a parameter structure onto the stack
+	 */
+	i_call,
 	
 	i_NUM
 } inst_code;
@@ -106,9 +115,9 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	obj_pt     result; // typically an r-value
-	obj_pt     dest;   // this operand is typically overwritten
-	obj_pt     source;
+	obj_pt    result; // typically an r-value
+	obj_pt    dest;   // this operand is typically overwritten
+	obj_pt    source;
 	inst_code op;
 	bool      used_next;
 } Instruction;
