@@ -116,9 +116,6 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a1f639bba9ed4c9c69c6a8bdf604e1e1f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f639bba9ed4c9c69c6a8bdf604e1e1f"></a>
-typedef imax&#160;</td><td class="memItemRight" valign="bottom"><b>offset_t</b></td></tr>
-<tr class="separator:a1f639bba9ed4c9c69c6a8bdf604e1e1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1992f99095e4d300ccdf1a619f2b9db4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1992f99095e4d300ccdf1a619f2b9db4"></a>
 typedef umax&#160;</td><td class="memItemRight" valign="bottom"><b>index_t</b></td></tr>
 <tr class="separator:a1992f99095e4d300ccdf1a619f2b9db4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,6 +131,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a77fd39e4fde7d918755c49218eb1285b"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="gen-x86_8cpp.html#a77fd39e4fde7d918755c49218eb1285b">put_str</a> (const char *format,...)</td></tr>
 <tr class="memdesc:a77fd39e4fde7d918755c49218eb1285b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a command string to the output file.  <a href="#a77fd39e4fde7d918755c49218eb1285b">More...</a><br /></td></tr>
 <tr class="separator:a77fd39e4fde7d918755c49218eb1285b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ad967ad4ca5a7b858fb9064d3d0a4c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ad967ad4ca5a7b858fb9064d3d0a4c6"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>xchg</b> (reg_t a, reg_t b)</td></tr>
+<tr class="separator:a4ad967ad4ca5a7b858fb9064d3d0a4c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fd65239b17c4d35032dcafb48fa207b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1fd65239b17c4d35032dcafb48fa207b"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>ref_auto</b> (std::string &amp;s, <a class="el" href="classObject.html">obj_pt</a> var)</td></tr>
 <tr class="separator:a1fd65239b17c4d35032dcafb48fa207b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -325,7 +325,18 @@ static size_t&#160;</td><td class="memItemRight" valign="bottom"><b>frame_sz</b>
 <p>BP is always pointing to the stored BP of the caller</p>
 <p>Formal parameters are accessed as [BP+2*stack_width+index*stack_width]</p>
 <p>Stack variables are accessed as [BP-frame_size+offset]</p>
-<p>The ENTER instruction has a feature that allows up to 32 access links to be added the the current stack frame </p>
+<h2>Addressing</h2>
+<h3>Effective Address</h3>
+<p>Effective Address = reg + (Scale x reg) + immediate</p><ul>
+<li>Scale: A positive value of 1, 2, 4, or 8.</li>
+<li>Displacement: An 8-bit, 16-bit, or 32-bit two’s-complement value encoded as part of the instruction.</li>
+</ul>
+<h3>Logical Addresses</h3>
+<p>Logical Address = Segment Selector : Effective Address A logical address is a reference into a segmented-address space. It is comprised of the segment selector and the effective address.</p>
+<h3>Linear Address</h3>
+<p>Linear Address = Segment Base Address + Effective Address The segment selector is a pointer to an entry in a descriptor table. That entry contains the segment base address. In the flat memory model the segment base address is always 0 and linear addresses are equivalent to effective addresses</p>
+<h3>Physical Address</h3>
+<p>physical addresses are translated from linear addresses through paging. </p>
 </div><hr/><h2 class="groupheader">Data Structure Documentation</h2>
 <a name="structloc" id="structloc"></a>
 <div class="memitem">

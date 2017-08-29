@@ -1,0 +1,25 @@
+textual symbols in the source are macro replaced with a numerical expression such as a number for static variables, or a BP or SP relative offset. A temp symbol is also just some number that is in a register. All symbols must be explicitly dereferenced to get the "variable value". the dereference must specify the width.
+
+
+// this is the same thing
+load(temp val, sym ref, width)
+dref(temp val, sym ref, width)
+
+// this is the same thing
+assign(sym ref, temp val, width)
+store (sym ref, temp val, width)
+
+
+array[i] would be translated to:
+
+T1:= i		* array_step
+T2:= array	+ T1
+
+array_width would be a constant that would have to exist and be provided by the front-end.
+
+structure.field
+
+T1:= structure	+ field
+
+where field would have to be a predefined constant
+

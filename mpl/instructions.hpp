@@ -25,13 +25,16 @@ typedef struct _root* DS;
 
 /// intermediate op codes
 typedef enum {
-	/********************* ACT ON PRIMATIVE OPERANDS ONLY *********************/
+	/****************************** MEMORY WRITES *****************************/
+	// destructive (l-values)
 	
-	/// ass(NULL, Prime * dest, Prime * source)
+	/// ass(sym_pt dest, sym_pt temp, NULL)
 	l_ass,
 	
-	// destructive (l-values)
-	// xxx(NULL, Prime * dest, Prime * source)
+	/**	cpy(sym_pt dest, sym_pt source, sym_pt width) */
+	l_cpy,
+	
+	// xxx(sym_pt dest, sym_pt source, NULL)
 	l_neg, // a = -a
 	l_not, // a = ~a
 	l_add, // a += b
@@ -46,8 +49,13 @@ typedef enum {
 	l_inc, // ++
 	l_dec, // --
 	
+	/********************* READS AND REGISTER ARITHMETIC **********************/
+	
+	/// load(sym_pt temp, sym_pt addr, sym_pt width)
+	r_load,
+	
 	// non-destructive (r-values)
-	// xxx(Prime * result, Prime * a, Prime * b)
+	// xxx(sym_pt result, sym_pt a, sym_pt b)
 	r_neg, // r = -a
 	r_not, // r = ~a
 	r_add, // r = a + b
@@ -64,35 +72,15 @@ typedef enum {
 	r_div, // r = a / b
 	r_mod, // r = a % b
 	
+	/// resz(sym_pt temp, sym_pt width, NULL)
 	r_resz, ///< create a temp of a different size
 	
-	/*********************** ACT ON COMPOSITE OPERANDS ************************/
-	
-	/**	ref(Prime * ref, Data * data, Data * index)
-	 *	Used to calulate addresses
-	 *	returns a reference (l-value) to the field indicated by the index. By
-	 *	returning the reference no memory access is made, and we can do another
-	 *	ref. We will have to do some kind of load operation after.
-	 *	refs are used to resolve offsets
-	 */
-	r_ref,
-	
-	/**	cpy(NULL, Data * dest, Data * source) */
-	l_cpy,
-	
-	/**	sz(Prime * size, NULL, Data * data)
+	/**	sz(sym_pt temp, sym_pt data, NULL)
 		Return the size of the data object in bytes
 	*/
 	i_sz,
 	
-	/**	parm(NULL, Prime * parameter, arg)
-	 *	
-	 */
-	i_parm,
-	
-	i_ret,
-	
-	/************************* ACT ON LABEL OPERANDS **************************/
+	/****************************** FLOW CONTROL ******************************/
 	
 	i_lbl,
 	i_jmp,
@@ -109,15 +97,17 @@ typedef enum {
 	 */
 	i_call,
 	
+	i_ret,
+	
 	i_NUM
 } inst_code;
 
 /**	This is a Quad instruction
  */
 typedef struct{
-	obj_pt    result; // typically an r-value
-	obj_pt    dest;   // this operand is typically overwritten
-	obj_pt    source;
+	obj_pt    r;
+	obj_pt    a;
+	obj_pt    b;
 	inst_code op;
 	bool      used_next;
 } Instruction;
@@ -126,7 +116,7 @@ typedef struct{
 typedef Instruction * inst_pt;
 
 
-/**	A queue of  program instructions
+/**	A basic block
 */
 class Block{
 	DS q;

@@ -106,7 +106,7 @@
 
 #define PTR (mode == xm_long? QWORD:DWORD)
 
-typedef imax offset_t;
+
 typedef umax index_t;
 
 typedef struct loc{ // can contain the location of an operand
