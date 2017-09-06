@@ -14,27 +14,9 @@
 #include <util/msg.h>
 
 
-Object::Object(const char * full_name){
-	sclass = sc_none;
-	label = full_name;
-}
 
 /******************************* MUTATORS *********************************/
 
-void Object::set_name  (const char * name){
-	if(label.empty()) label = name;
-	else{
-		msg_print(NULL, V_ERROR, "Object::set_name(): name already set");
-		throw;
-	}
-}
-void Object::set_sclass(storage_class_t storage_class){
-	if(sclass == sc_none) sclass = storage_class;
-	else{
-		msg_print(NULL, V_ERROR,
-			"Object::set_sclass(): storage class already set");
-		throw;
-	}
-}
+
 
 

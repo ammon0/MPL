@@ -16,29 +16,41 @@
 #include <util/types.h>
 #include <string>
 
-#include "def.hpp"
+#include <mpl/def.hpp>
 
-typedef imax offset_t;
-
-typedef enum access_mode{
-	static_pub,    ///< label
-	static_priv,   ///< label
-	static_extern, ///< label
-	stack_fparam,  ///< BP+(2*stack_width)+label
-	stack_aparam,  ///< SP+label
-	stack_auto,    ///< BP-label
-	temp,          ///< register or spill
-	constant       ///< ??? includes offsets
-} access_m;
-
-/*	I need a way to know how much space to reserve at a symbol location
-	I need a way to calculate the value of a symbol if it is a constant offset
+/* A symbol is a name that represents a memory location or register. All program instructions act on symbols only. The amount of space to reserve at each symbol location is determined by querying the symbol's definition pointer.
 */
 
-class Symbol{
-	std::string label;
-	access_m    m;
+typedef enum{
+	am_none         , ///< This is just to catch errors; it is not used.
+	am_static_pub   , ///< label
+	am_static_priv  , ///< label
+	am_static_extern, ///< label
+	am_stack_fparam , ///< BP+(2*stack_width)+label
+	am_stack_aparam , ///< SP+label
+	am_stack_auto   , ///< BP-label
+	am_temp         , ///< register or spill
+	am_constant     , ///< ??? includes offsets
+	am_NUM            ///< This is the count of storage classes
+} access_mode;
+
+
+class Symbol: public Object{
+	access_mode mode;
 	def_pt      def;
+	
+protected:
+	constexpr static const char * str_sclass[am_NUM]= {
+		"none  ",
+		"pub   ",
+		"prv   ",
+		"extern",
+		"fparam",
+		"aparam",
+		"auto  ",
+		"temp  ",
+		"const "
+	}; ///< to facilitate the print funtions
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
@@ -46,9 +58,9 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
-	const char * lbl (void)const{ return label.c_str(); }
-	access_m     mode(void)const{ return m            ; }
-	
+	access_mode get_mode(void)const{ return mode  ; }
+	def_pt      get_def (void)const{ return def   ; }
+	obj_t       get_type(void)const{ return ot_sym; }
 	const char * print(void) const{}
 	
 	/******************************* MUTATORS *********************************/

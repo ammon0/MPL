@@ -37,7 +37,7 @@ typedef enum{
 
 
 class Reg_man{
-	obj_pt reg[NUM_reg];
+	sym_pt reg[NUM_reg];
 	bool   ref[NUM_reg];
 	
 public:

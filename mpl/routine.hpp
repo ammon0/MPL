@@ -13,12 +13,11 @@
 #ifndef _ROUTINE_HPP
 #define _ROUTINE_HPP
 
-#include <mpl/struct_def.hpp>
 #include <mpl/instructions.hpp>
+#include <mpl/def.hpp>
 
 typedef struct _root* DS;
 
-#define ot_routine ((obj_t) 1)
 
 
 /******************************************************************************/
@@ -26,13 +25,13 @@ typedef struct _root* DS;
 /******************************************************************************/
 
 
-class Routine: public Object{
+class Routine: public Definition{
 	DS blocks;
 	
 public:
-	Struct_def formal_params;
-	Struct_def auto_storage;
-	uint       concurrent_temps=0;
+	Structure formal_params;
+	Structure auto_storage;
+	uint      concurrent_temps=0;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -46,12 +45,10 @@ public:
 	blk_pt get_first_blk(void) const;
 	blk_pt get_next_blk (void) const;
 	
-	obj_t get_type (void) const{ return ot_routine; }
-	const char * print_obj (void) const;
+	obj_t        get_type(void)const{ return ot_routine; }
+	const char * print(void) const;
 	
 	/******************************* MUTATORS *********************************/
-	
-	void set_sclass(storage_class_t storage_class);
 	
 	inst_pt add_inst (inst_pt instruction);
 };

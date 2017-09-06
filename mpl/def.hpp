@@ -13,8 +13,9 @@
 #ifndef _DEF_HPP
 #define _DEF_HPP
 
-#include <util/types.h>
 
+#include <mpl/object.hpp>
+#include <util/data.h>
 #include <vector>
 
 /*
@@ -22,11 +23,12 @@ the code generator doesn't actually need to know anything about the structure of
 */
 
 
-class Definition{
+class Definition: public Object{
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
+	Definition(const char * full_name): Object(full_name){}
 	/******************************* ACCESSOR *********************************/
 	
 	/******************************* MUTATORS *********************************/
@@ -37,17 +39,20 @@ typedef Definition * def_pt;
 
 
 class Data: public Definition{
-	size_t sz;
+	size_t size;
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
+	Data(const char * full_name): Definition(full_name){}
+	
 	/******************************* ACCESSOR *********************************/
 	
-	size_t sz(void)const{ return sz; };
+	size_t get_size(void)const{ return size; }
 	
 	/******************************* MUTATORS *********************************/
 	
+	void set_size(size_t bytes){ size = bytes; }
 };
 
 
@@ -69,15 +74,18 @@ typedef enum width_t{
 	w_NUM
 } width_t;
 
+/* The way signedness is represented is machine dependent so the machine instructions for signed and unsigned arithmetic may be different.
+*/
+
 typedef enum{
 	pt_unsign,
 	pt_signed
-} prime_t;
+} signedness_t;
 
 class Primative: public Data{
-	width_t w;
-	prime_t sign;
-	umax    value;
+	width_t      width;
+	signedness_t sign ;
+	umax         value;
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
@@ -86,6 +94,11 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
+	umax    get_value(void)const{ return value; }
+	width_t get_width(void)const{ return width; }
+	
+	obj_t        get_type(void)const{ return ot_prime; }
+	const char * print(void) const{}
 	
 	/******************************* MUTATORS *********************************/
 	
@@ -99,11 +112,11 @@ public:
 
 
 class Array: public Data{
-	sym_pt member; // COLLISION_CHAR step
+	def_pt child;
 	umax   count;
 	
 public:
-	std::vector<uint8_t> value;
+	std::string string_lit;
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -111,6 +124,9 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
+	def_pt       get_child(void)const{ return child   ; }
+	obj_t        get_type (void)const{ return ot_array; }
+	const char * print(void) const{}
 	
 	/******************************* MUTATORS *********************************/
 	
@@ -124,46 +140,52 @@ public:
 
 
 class Structure: public Data{
-	
+	DS fields;
 	
 public:
-	Obj_List members; // list of constant symbols
+	
 	
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Structure();
+	Structure(void);
+	~Structure(void);
+	
 	
 	/******************************* ACCESSOR *********************************/
 	
+	bool isempty(void);
+	umax count  (void);
+	
+	Data * find   (const char * name) const;
+	Data * first  (void             ) const;
+	Data * next   (void             ) const;
+	
+	obj_t        get_type(void)const{ return ot_struct; }
+	const char * print(void) const{
+		std::string str;
+		Data * field;
+		
+		str = "Struct: ";
+		str += get_label();
+		str += "\n";
+		
+		if(( field = first() )){
+			do{
+				str += "\t";
+				str += field->print();
+				str += "\n";
+			}while(( field = next() ));
+		}
+		
+		str += "\n";
+		
+		return str.c_str();
+	}
 	
 	/******************************* MUTATORS *********************************/
 	
-	
-};
-
-
-/******************************************************************************/
-//                               ROUTINE TYPES
-/******************************************************************************/
-
-
-class Routine: public Definition{
-	DS blocks;
-	uint concurrent_temps;
-	
-public:
-	Structure params;
-	Structure autos;
-	
-	/****************************** CONSTRUCTOR *******************************/
-	
-	Routine();
-	
-	/******************************* ACCESSOR *********************************/
-	
-	
-	/******************************* MUTATORS *********************************/
-	
+	Data * remove(const char * name  ); ///< Remove an object by its name
+	Data * add   (      Data * object); ///< add a new object
 	
 };
 

@@ -14,7 +14,7 @@
 #define _OBJ_CONTAINER_HPP
 
 
-#include <mpl/object.hpp>
+#include <mpl/def.hpp>
 
 typedef struct _root* DS;
 
@@ -32,41 +32,35 @@ public:
 	
 	bool  isempty(void);
 	
-	Data * find (const char * name) const; ///< find an object by name
-	Data * first(      void       ) const; ///< Returns the first object
-	Data * next (      void       ) const; ///< Returns the next object
+	Object * find (const char * name) const; ///< find an object by name
+	Object * first(      void       ) const; ///< Returns the first object
+	Object * next (      void       ) const; ///< Returns the next object
 	
 	/******************************* MUTATORS *********************************/
 	
-	Data * remove(const char * name  ); ///< Remove an object by its name
-	Data * add   (      Data * object); ///< add a new object
+	Object * remove(const char   * name  ); ///< Remove an object by its name
+	Object * add   (      Object * object); ///< add a new object
 	
 };
 
 
-class Obj_List{
-	DS list;
-	
-public:
-	/****************************** CONSTRUCTOR *******************************/
-	
-	Obj_List(void);
-	
-	/******************************* ACCESSOR *********************************/
-	
-	bool isempty(void);
-	umax count  (void);
-	
-	Data * find   (const char * name) const;
-	Data * first  (void             ) const;
-	Data * next   (void             ) const;
-	
-	/******************************* MUTATORS *********************************/
-	
-	Data * remove(const char * name  ); ///< Remove an object by its name
-	Data * add   (      Data * object); ///< add a new object
-	
-};
+//class Obj_List{
+//	
+//	
+//public:
+//	/****************************** CONSTRUCTOR *******************************/
+//	
+//	Obj_List(void);
+//	
+//	/******************************* ACCESSOR *********************************/
+//	
+//	
+//	
+//	/******************************* MUTATORS *********************************/
+//	
+//	
+//	
+//};
 
 #endif // _OBJ_CONTAINER_HPP
 

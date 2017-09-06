@@ -29,8 +29,8 @@ prv_headers:=$(wildcard $(srcdir)/*.hpp)
 allfiles:= $(headers) $(cpp_sources) $(prv_headers)
 
 # Object files
-ppd_objects := obj_container.o object.o prime.o instructions.o routine.o
-gen_objects :=gen-arm.o gen-x86.o
+ppd_objects :=instructions.o obj_container.o routine.o
+gen_objects :=gen-arm.o x86_declarations.o gen-x86.o
 pexe_objects:=gen-pexe.o read-pexe.o
 opt_objects :=opt-dead.o
 

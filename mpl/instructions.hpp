@@ -19,7 +19,7 @@
 #define _INSTRUCTIONS_HPP
 
 
-#include <mpl/object.hpp>
+#include <mpl/sym.hpp>
 
 typedef struct _root* DS;
 
@@ -105,9 +105,9 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	obj_pt    r;
-	obj_pt    a;
-	obj_pt    b;
+	sym_pt    r;
+	sym_pt    a;
+	sym_pt    b;
 	inst_code op;
 	bool      used_next;
 } Instruction;
