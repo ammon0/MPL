@@ -71,10 +71,7 @@ static void static_structure(Structure * structure){
 }
 
 /// Generate a static data object
-static void static_data(Data * data){
-	// dynamic_cast will pass a null if not data
-	if(!data) return;
-	
+static void static_data(lbl_pt data){
 	// set padding if needed
 	if(mode == xm_long && data->get_size() > QWORD){
 		put_str("\talign %s\n", str_num(QWORD));
@@ -86,13 +83,19 @@ static void static_data(Data * data){
 	else put_str("\talign %s\n", str_num(data->get_size()));
 	
 	// place the label
-	lbl(data);
+	put_lbl(data);
 
-	switch(data->get_type()){
+	switch(data->get_def()->get_type()){
 	// data
-	case ot_prime : static_prime    (dynamic_cast<Primative*>(data)); break;
-	case ot_array : static_array    (dynamic_cast<Array*    >(data)); break;
-	case ot_struct: static_structure(dynamic_cast<Structure*>(data)); break;
+	case st_prime:
+		static_prime(dynamic_cast<Primative*>(data->get_def()));
+		break;
+	case st_array:
+		static_array(dynamic_cast<Array*>(data->get_def()));
+		break;
+	case st_struct:
+		static_structure(dynamic_cast<Structure*>(data->get_def()));
+		break;
 
 	// not data
 	default        :
@@ -108,7 +111,7 @@ static void static_data(Data * data){
 
 
 // forward declaration here
-static void set_size(obj_pt);
+static void set_size(sym_pt);
 
 /// calculate the size of a prime
 static void set_prime_size(Primative * prime){
@@ -146,7 +149,7 @@ static void set_array_size(Array * array){
 	if(!array->get_child()){
 		msg_print(NULL, V_ERROR,
 			"set_array_size(): found array %s with no child",
-			array->get_label()
+			array->get_name()
 		);
 		throw;
 	}
@@ -160,13 +163,13 @@ static void set_array_size(Array * array){
  */
 void set_struct_size(Structure * structure){
 	size_t bytes=0, pad;
-	Data * field;
+	lbl_pt field;
 	
 	// make sure all field sizes are available first
 	field = structure->first();
 	do{
 		if(!field->get_size()){
-			if(field->get_type() == ot_struct)
+			if(field->get_type() == st_struct)
 				set_struct_size(dynamic_cast<Structure*>(field));
 			else set_size(field);
 		}
@@ -174,14 +177,14 @@ void set_struct_size(Structure * structure){
 	
 	
 	// calculate offsets and padding
-	put_str("\nstruc %s\n", structure->get_label());
+	put_str("\nstruc %s\n", structure->get_name());
 	
 	// get the first field
 	field = structure->first();
 	
 	// print the first field
 	put_str("\t%s\t: resb %s\n",
-		field->get_label(),
+		field->get_name(),
 		str_num(field->get_size())
 	);
 	
@@ -193,30 +196,30 @@ void set_struct_size(Structure * structure){
 		// decide whether any padding is needed
 		if(mode == xm_long && field->get_size() > QWORD){
 			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
-				field->get_label(),
-				structure->get_label()
+				field->get_name(),
+				structure->get_name()
 			);
 			put_str("\talign %s\n", str_num(QWORD));
 		}
 		else if(mode == xm_protected && field->get_size() > DWORD){
 			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
-				field->get_label(),
-				structure->get_label()
+				field->get_name(),
+				structure->get_name()
 			);
 			put_str("\talign %s\n", str_num(DWORD));
 		}
 		// if we are here the field cannot be bigger than the mode alignment
 		else if(( pad=bytes%field->get_size() )){
 			msg_print(NULL, V_WARN, "Padding before field %s in structure %s",
-				field->get_label(),
-				structure->get_label()
+				field->get_name(),
+				structure->get_name()
 			);
 			put_str("\talign %s\n", str_num(field->get_size()));
 		}
 		
 		// print the field
 		put_str("\t%s\t: resb %s\n",
-			field->get_label(),
+			field->get_name(),
 			str_num(field->get_size())
 		);
 		// store any necessary alignment info
@@ -232,20 +235,20 @@ void set_struct_size(Structure * structure){
 		\t%%error \"Internal, struct size mismatch\"\n\
 		%%endif\n\n",
 		str_num(structure->get_size()),
-		structure->get_label()
+		structure->get_name()
 	
 	);
 }
 
-static void set_size(obj_pt obj){
-	switch( obj->get_type() ){
-	case ot_prime : set_prime_size ( dynamic_cast<Primative*>(obj) ); break;
-	case ot_array : set_array_size ( dynamic_cast<Array*    >(obj) ); break;
-	case ot_struct: set_struct_size( dynamic_cast<Structure*>(obj) ); break;
+static void set_size(sym_pt sym){
+	switch( sym->get_type() ){
+	case st_prime : set_prime_size ( dynamic_cast<Primative*>(sym) ); break;
+	case st_array : set_array_size ( dynamic_cast<Array*    >(sym) ); break;
+	case st_struct: set_struct_size( dynamic_cast<Structure*>(sym) ); break;
 	
 	// ignore
-	case ot_routine:
-	case ot_sym    : break;
+	case st_routine:
+	case st_label  : break;
 	
 	// error
 	default     :
@@ -257,14 +260,12 @@ static void set_size(obj_pt obj){
 
 
 
-
 void x86_declarations(void){
-	obj_pt obj;
 	sym_pt sym;
-	def_pt def;
+	lbl_pt lbl;
 	
-	if(!( obj=program_data->objects.first() )){
-		msg_print(NULL, V_ERROR, "x86(): Program contains no objects");
+	if(!( sym=program_data->symbols.first() )){
+		msg_print(NULL, V_ERROR, "x86(): Program is empty");
 		return;
 	}
 	
@@ -273,23 +274,23 @@ void x86_declarations(void){
 	put_str("\n; Declaring record offsets\n");
 	
 	do{
-		set_size(obj);
-	}while(( obj=program_data->objects.next() ));
+		set_size(sym);
+	}while(( sym=program_data->symbols.next() ));
 	
 	/*********** DECLARE VISIBILITY ***********/
 	
 	put_str("\n; Declaring Visibility\n");
 	
-	sym=dynamic_cast<Symbol*>(program_data->objects.first());
+	lbl=dynamic_cast<lbl_pt>(program_data->symbols.first());
 	
 	do{
-		if(sym)
-			switch(sym->get_mode()){
+		if(lbl)
+			switch(lbl->get_mode()){
 			case am_static_pub:
-				put_str("global %s\n", obj->get_label());
+				put_str("global %s\n", lbl->get_name());
 				break;
 			case am_static_extern:
-				put_str("extern %s\n", obj->get_label());
+				put_str("extern %s\n", lbl->get_name());
 				break;
 		
 			// Do nothing
@@ -308,11 +309,11 @@ void x86_declarations(void){
 					"x86(): got an object with an invalid storage class");
 				throw;
 			}
-	}while(( sym=dynamic_cast<Symbol*>(program_data->objects.next()) ));
+	}while(( lbl=dynamic_cast<lbl_pt>(program_data->symbols.next()) ));
 	
 	/************ STATIC VARIABLES ************/
 	
-	sym=dynamic_cast<Symbol*>(program_data->objects.first());
+	lbl=dynamic_cast<lbl_pt>(program_data->symbols.first());
 	
 	put_str("\nsection .data\t; Declaring static data\n");
 	
@@ -321,14 +322,13 @@ void x86_declarations(void){
 	put_str(" ; this probably does nothing\n");
 	
 	do{
-		if(sym){
-			def = sym->get_def();
-			if(sym->get_type() == ot_routine) break;
+		if(lbl){
+			if(lbl->get_def()->get_type() == st_routine) break;
 			
-			switch(sym->get_mode()){
+			switch(lbl->get_mode()){
 			case am_static_priv:
 			case am_static_pub :
-				static_data(dynamic_cast<Data*>(def));
+				static_data(lbl);
 				break;
 	
 			// ignore
@@ -345,7 +345,7 @@ void x86_declarations(void){
 			default: throw;
 			}
 		}
-	}while(( sym=dynamic_cast<Symbol*>(program_data->objects.next()) ));
+	}while(( lbl=dynamic_cast<lbl_pt>(program_data->symbols.next()) ));
 }
 
 

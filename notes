@@ -15,7 +15,7 @@ array[i] would be translated to:
 T1:= i		* array_step
 T2:= array	+ T1
 
-array_width would be a constant that would have to exist and be provided by the front-end.
+array_step would be a constant that would have to exist and be provided by the front-end.
 
 structure.field
 

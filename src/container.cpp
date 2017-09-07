@@ -9,59 +9,59 @@
  *
  ******************************************************************************/
 
-#include <mpl/obj_container.hpp>
+#include <mpl/sym.hpp>
 #include <util/data.h>
 #include <util/msg.h>
 
 #include <string.h>
 
-static inline const void * obj_label(const void * obj){
-	return (*(Object **)obj)->get_label();
+static inline const void * sym_name(const void * obj){
+	return (*(sym_pt*)obj)->get_name();
 }
 static inline imax lbl_cmp(const void * left, const void * right){
 	return strcmp((char*) left, (char*) right);
 }
 
 
-Obj_Index::Obj_Index(void){
+Sym_index::Sym_index(void){
 	index = DS_new_bst(
-		sizeof(Object *),
+		sizeof(sym_pt),
 		false,
-		&obj_label,
+		&sym_name,
 		&lbl_cmp
 	);
 }
-Obj_Index::~Obj_Index(void){ DS_delete(index); }
+Sym_index::~Sym_index(void){ DS_delete(index); }
 
 /******************************* ACCESSOR *********************************/
 
-Object * Obj_Index::find(const char * name) const{
-	return *(Object **)DS_find(index, name);
+sym_pt Sym_index::find(const char * name) const{
+	return *(sym_pt*)DS_find(index, name);
 }
-Object * Obj_Index::first(void)const{
-	return *(Object **)DS_first(index);
+sym_pt Sym_index::first(void)const{
+	return *(sym_pt*)DS_first(index);
 }
-Object * Obj_Index::next (void)const{
-	return *(Object **)DS_next(index);
+sym_pt Sym_index::next (void)const{
+	return *(sym_pt*)DS_next(index);
 }
 
 /******************************* MUTATORS *********************************/
 
-Object * Obj_Index::remove(const char * name){
-	if(DS_find(index, name)) return *(Object **)DS_remove(index);
+sym_pt Sym_index::remove(const char * name){
+	if(DS_find(index, name)) return *(sym_pt*)DS_remove(index);
 	else{
 		msg_print(NULL, V_ERROR, "Internal PPD::remove(): no such object");
 		throw;
 	}
 }
 
-Object * Obj_Index::add(Object * object){
+sym_pt Sym_index::add(sym_pt object){
 //	if(!object->named()){
 //		msg_print(NULL, V_ERROR, "Internal PPD::add(): object has no name");
 //		throw;
 //	}
 	
-	return *(Object **)DS_insert(index, object);
+	return *(sym_pt*)DS_insert(index, object);
 }
 
 

@@ -19,22 +19,24 @@
 #define _INSTRUCTIONS_HPP
 
 
-#include <mpl/sym.hpp>
+typedef class  Label * lbl_pt;
+typedef struct _root * DS;
 
-typedef struct _root* DS;
+#include <util/types.h>
+
 
 /// intermediate op codes
 typedef enum {
 	/****************************** MEMORY WRITES *****************************/
 	// destructive (l-values)
 	
-	/// ass(sym_pt dest, sym_pt temp, NULL)
+	/// ass(lbl_pt dest, lbl_pt temp, NULL)
 	l_ass,
 	
-	/**	cpy(sym_pt dest, sym_pt source, sym_pt width) */
+	/**	cpy(lbl_pt dest, lbl_pt source, lbl_pt width) */
 	l_cpy,
 	
-	// xxx(sym_pt dest, sym_pt source, NULL)
+	// xxx(lbl_pt dest, lbl_pt source, NULL)
 	l_neg, // a = -a
 	l_not, // a = ~a
 	l_add, // a += b
@@ -51,11 +53,11 @@ typedef enum {
 	
 	/********************* READS AND REGISTER ARITHMETIC **********************/
 	
-	/// load(sym_pt temp, sym_pt addr, sym_pt width)
+	/// load(lbl_pt temp, lbl_pt addr, lbl_pt width)
 	r_load,
 	
 	// non-destructive (r-values)
-	// xxx(sym_pt result, sym_pt a, sym_pt b)
+	// xxx(lbl_pt result, lbl_pt a, lbl_pt b)
 	r_neg, // r = -a
 	r_not, // r = ~a
 	r_add, // r = a + b
@@ -72,10 +74,10 @@ typedef enum {
 	r_div, // r = a / b
 	r_mod, // r = a % b
 	
-	/// resz(sym_pt temp, sym_pt width, NULL)
+	/// resz(lbl_pt temp, lbl_pt width, NULL)
 	r_resz, ///< create a temp of a different size
 	
-	/**	sz(sym_pt temp, sym_pt data, NULL)
+	/**	sz(lbl_pt temp, lbl_pt data, NULL)
 		Return the size of the data object in bytes
 	*/
 	i_sz,
@@ -105,9 +107,9 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	sym_pt    r;
-	sym_pt    a;
-	sym_pt    b;
+	lbl_pt    result;
+	lbl_pt    dest;
+	lbl_pt    source;
 	inst_code op;
 	bool      used_next;
 } Instruction;

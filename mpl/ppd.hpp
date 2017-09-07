@@ -19,12 +19,7 @@
 #define _PPD_HPP
 
 
-#include <mpl/obj_container.hpp>
-#include <mpl/def.hpp>
-#include <mpl/routine.hpp>
 #include <mpl/sym.hpp>
-
-
 
 
 /** This is a container for all the components of the portable program data.
@@ -35,7 +30,7 @@ class PPD{
 	bool constants; ///< indicates whether this PPD has passed opt_const
 	
 public:
-	Obj_Index objects;
+	Sym_index symbols;
 	
 	PPD(void){ dead = constants = false; }
 };

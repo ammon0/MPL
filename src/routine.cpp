@@ -10,7 +10,7 @@
  ******************************************************************************/
 
 
-#include <mpl/routine.hpp>
+#include <mpl/sym.hpp>
 
 #include <util/data.h>
 #include <util/msg.h>
@@ -48,7 +48,7 @@ const char * Routine::print(void) const{
 	std::string str;
 	
 	str = "Routine: ";
-	str += get_label();
+	str += get_name();
 	
 	str += "\n\tParameters:";
 	str += formal_params.print();
