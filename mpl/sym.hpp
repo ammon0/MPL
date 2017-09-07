@@ -121,61 +121,7 @@ public:
 };
 
 
-/******************************************************************************/
-//                              MEMORY LABELS
-/******************************************************************************/
 
-
-/* A label is a name that represents a memory location or register. All program instructions act on labels only. The amount of space to reserve at each labeled location is determined by querying the label's definition pointer.
-*/
-
-typedef enum{
-	am_none         , ///< This is just to catch errors; it is not used.
-	am_static_pub   , ///< label
-	am_static_priv  , ///< label
-	am_static_extern, ///< label
-	am_stack_fparam , ///< BP+(2*stack_width)+label
-	am_stack_aparam , ///< SP+label
-	am_stack_auto   , ///< BP-label
-	am_temp         , ///< register or spill
-	am_constant     , ///< ??? includes offsets
-	am_NUM            ///< This is the count of storage classes
-} access_mode;
-
-
-class Label: public Symbol{
-	access_mode mode;
-	def_pt      def;
-	
-protected:
-	constexpr static const char * str_sclass[am_NUM]= {
-		"none  ",
-		"pub   ",
-		"prv   ",
-		"extern",
-		"fparam",
-		"aparam",
-		"auto  ",
-		"temp  ",
-		"const "
-	}; ///< to facilitate the print funtions
-	
-public:
-	/****************************** CONSTRUCTOR *******************************/
-	
-	
-	/******************************* ACCESSOR *********************************/
-	
-	access_mode get_mode(void)const{ return mode  ; }
-	def_pt      get_def (void)const{ return def   ; }
-	sym_t       get_type(void)const{ return st_label; }
-	size_t      get_size(void)const{ return def->get_size(); }
-	const char * print(void) const{}
-	
-	/******************************* MUTATORS *********************************/
-	
-	
-};
 
 
 /******************************************************************************/
@@ -227,6 +173,66 @@ public:
 	
 };
 
+
+/******************************************************************************/
+//                              MEMORY LABELS
+/******************************************************************************/
+
+
+/* A label is a name that represents a memory location or register. All program instructions act on labels only. The amount of space to reserve at each labeled location is determined by querying the label's definition pointer.
+*/
+
+typedef enum{
+	am_none         , ///< This is just to catch errors; it is not used.
+	am_static_pub   , ///< label
+	am_static_priv  , ///< label
+	am_static_extern, ///< label
+	am_stack_fparam , ///< BP+(2*stack_width)+label
+	am_stack_aparam , ///< SP+label
+	am_stack_auto   , ///< BP-label
+	am_temp         , ///< register or spill
+	am_constant     , ///< ??? includes offsets
+	am_NUM            ///< This is the count of storage classes
+} access_mode;
+
+
+class Label: public Symbol{
+	access_mode mode;
+	def_pt      def;
+	
+protected:
+	constexpr static const char * str_sclass[am_NUM]= {
+		"none  ",
+		"pub   ",
+		"prv   ",
+		"extern",
+		"fparam",
+		"aparam",
+		"auto  ",
+		"temp  ",
+		"const "
+	}; ///< to facilitate the print funtions
+	
+public:
+	/****************************** CONSTRUCTOR *******************************/
+	
+	
+	/******************************* ACCESSOR *********************************/
+	
+	access_mode get_mode(void)const{ return mode  ; }
+	def_pt      get_def (void)const{ return def   ; }
+	sym_t       get_type(void)const{ return st_label; }
+	size_t      get_size(void)const{ return def->get_size(); }
+	umax        get_value(void)const{
+		if(mode != am_constant) throw;
+		return static_cast<Primative*>(def)->get_value();
+	}
+	const char * print(void) const{}
+	
+	/******************************* MUTATORS *********************************/
+	
+	
+};
 
 
 class Array: public Definition{

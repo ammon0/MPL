@@ -125,6 +125,7 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
+	reg_t find(lbl_pt);
 //	reg_t find_ref(obj_pt);
 //	reg_t find_val(obj_pt obj){
 //		uint i;
@@ -136,14 +137,15 @@ public:
 //		return (reg_t)i;
 //	}
 //	bool   is_ref(reg_t);
-//	bool   is_clear(reg_t);
+	bool   is_clear(reg_t);
 //	reg_t  check(void);
-//	Data * get_obj(reg_t);
+	lbl_pt get_lbl(reg_t);
 //	
 //	/******************************* MUTATORS *********************************/
 //	
 //	void set_ref(reg_t r, sym_pt o){ reg[r] = o; ref[r] = true ; }
 //	void set_val(reg_t r, sym_pt o){ reg[r] = o; ref[r] = false; }
+	void set(reg_t r, lbl_pt l);
 	void clear(void){
 		memset(reg, 0, sizeof(lbl_pt)*NUM_reg);
 		memset(ref, 0, sizeof(bool)*NUM_reg);
@@ -152,6 +154,8 @@ public:
 //	void xchg(reg_t a, reg_t b);
 	
 };
+
+static Reg_man reg_d;
 
 /** Return the appropriate string to use the given x86 register. */
 static const char * str_reg(size_t width, reg_t reg){
@@ -265,22 +269,22 @@ static const char * str_reg(size_t width, reg_t reg){
 //	s=var->get_label();
 //}
 
-//static inline void reftoval(std::string &s){
-//	s.insert(0, "[");
-//	s += "]";
-//}
+static inline void reftoval(std::string &s){
+	s.insert(0, "[");
+	s += "]";
+}
 
-//static inline void op_size(std::string &s, Data * var){
-//	switch(var->get_size()){
-//	case BYTE : s.insert(0, "byte "); break;
-//	case WORD : s.insert(0, "word "); break;
-//	case DWORD: s.insert(0, "dword "); break;
-//	case QWORD: s.insert(0, "qword "); break;
-//	default:
-//		msg_print(NULL, V_ERROR, "op_size(): bad");
-//		throw;
-//	}
-//}
+static inline void op_size(std::string &s, lbl_pt var){
+	switch(var->get_size()){
+	case BYTE : s.insert(0, "byte "); break;
+	case WORD : s.insert(0, "word "); break;
+	case DWORD: s.insert(0, "dword "); break;
+	case QWORD: s.insert(0, "qword "); break;
+	default:
+		msg_print(NULL, V_ERROR, "op_size(): bad");
+		throw;
+	}
+}
 
 //#define BUFFER_CNT 3
 
@@ -335,6 +339,44 @@ static const char * str_reg(size_t width, reg_t reg){
 ////	return;
 ////}
 
+
+
+static void str_lbl(std::string &s, lbl_pt lbl){
+	switch(lbl->get_mode()){
+	case am_static_priv  :
+	case am_static_pub   :
+	case am_static_extern:
+	case am_constant     : // constants are declared using EQU
+		s = lbl->get_name();
+		break;
+	
+	case am_stack_aparam:
+		break;
+	
+	case am_stack_fparam:
+		break;
+	
+	case am_stack_auto:
+		s = "BP-";
+		s += str_num(frame_sz);
+		s += "+";
+		s += lbl->get_name();
+		break;
+	
+	case am_temp:
+		s = str_reg(lbl->get_size(),reg_d.find(lbl));
+		break;
+	
+	
+	
+	//error
+	case am_none:
+	case am_NUM:
+	default: throw;
+	}
+}
+
+
 ////static void resolve_addr(obj_pt obj){
 ////	static std::string buffers[BUFFER_CNT];
 ////	static uint        next;
@@ -376,24 +418,28 @@ static const char * str_reg(size_t width, reg_t reg){
 
 
 
-//static void Stash(reg_t reg){
-//	// already empty
-//	if(reg_d.is_clear(reg)) return;
-//	
-//	// already in memory
-//	if(reg_d.get_obj(reg)->get_sclass() != sc_temp) /* store */ ;
-//	
-	#define TREG_P 1 // B
-	#define TREG_L 9 // B, R8-R15
-//	
-//	
-//	if(reg == A);
-//	
-//	/*	DI -> SI
-//		A,SI -> B -> R8-R15 -> C,D -> spill
-//	
-//	*/
-//}
+static void Stash(reg_t reg){
+	// already empty
+	if(reg_d.is_clear(reg)) return;
+	
+	// already in memory
+	if(reg_d.get_lbl(reg)->get_mode() != am_temp) /* store */ ;
+	
+	#define TREG_P 1  //B
+	#define TREG_L 9  //B, R8-R15
+	
+	
+	if(reg == A);
+	
+	/*	DI -> SI
+		A,SI -> B -> R8-R15 -> C,D -> spill
+	
+	*/
+}
+
+static void Load(reg_t reg, lbl_pt lbl){
+	
+}
 
 ///**	load the r-value of an object into a register making that register
 // *	available if necessary
@@ -510,18 +556,11 @@ static const char * str_reg(size_t width, reg_t reg){
 ///******************************************************************************/
 
 
-//static inline void mem_cpy(Data * dest, Data * source){
-//	
-//}
-
-//static inline void prime_ass(Primative * dest, Primative * source){
-//	if(dest->is_signed() != source->is_signed())
-//		msg_print(NULL, V_WARN, "Mismatched signedness in assignment");
-//}
 
 
-static const char * str_sym(sym_pt sym){}
-static void stash(reg_t reg){}
+
+
+
 
 
 
@@ -538,86 +577,104 @@ static void stash(reg_t reg){}
 
 
 
-static inline void ass(sym_pt dest, sym_pt source){
+static inline void ass(lbl_pt dest, lbl_pt source){
+	std::string dest_s, source_s;
+	
 	if(dest->get_size() < source->get_size())
 		msg_print(NULL, V_WARN, "Assignment may cause overflow");
-	if(dest->get_type() != source->get_type())
-		msg_print(NULL, V_WARN, "Mismatched object type");
 	
-	if(dest->get_type() == ot_prime && source->get_type() == ot_prime)
-		prime_ass(static_cast<Primative*>(dest), static_cast<Primative*>(source));
-	else mem_cpy(dest, source);
+	str_lbl(dest_s, dest);
+	str_lbl(source_s, source);
+	
+	reftoval(dest_s);
+	
+	op_size(dest_s, dest);
+	op_size(source_s, source);
+	
+	put_str(FORM_4,
+		"mov",   // FIXME: zero or sign extend?
+		dest_s.c_str(),
+		source_s.c_str(),
+		"ass()"
+	);
 }
 
-static inline void binary_l(inst_code op, sym_pt dest, sym_pt source){
-	resolve_prime(dest);
-	resolve_prime(source);
+static inline void binary_l(inst_code op, lbl_pt dest, lbl_pt source){
+	std::string dest_s, source_s;
+	
+	str_lbl(dest_s, dest);
+	str_lbl(source_s, source);
+	
+	
 	
 	switch(op){
-	case r_add: put_str(FORM_4,
+	case i_add: put_str(FORM_4,
 		"add",
-		"FIXME",
-		"FIXME",
+		dest_s.c_str(),
+		source_s.c_str(),
 		""
 	); break;
-	case r_sub: put_str(FORM_4,
+	case i_sub: put_str(FORM_4,
 		"sub",
-		"FIXME",
-		"FIXME",
+		dest_s.c_str(),
+		source_s.c_str(),
 		""
 	); break;
-	case r_and: put_str(FORM_4,
+	case i_and: put_str(FORM_4,
 		"and",
-		"FIXME",
-		"FIXME",
+		dest_s.c_str(),
+		source_s.c_str(),
 		""
 	); break;
-	case r_or : put_str(FORM_4,
+	case i_or : put_str(FORM_4,
 		"or",
-		"FIXME",
-		"FIXME",
+		dest_s.c_str(),
+		source_s.c_str(),
 		""
 	); break;
-	case r_xor: put_str(FORM_4,
+	case i_xor: put_str(FORM_4,
 		"xor",
-		"FIXME",
-		"FIXME",
+		dest_s.c_str(),
+		source_s.c_str(),
 		""
 	); break;
 	}
 }
 
 static inline void
-binary_r(inst_code op, sym_pt result, sym_pt dest, sym_pt source){
-	Load_prime(A, dest);
-	resolve_prime(source);
+binary_r(inst_code op, lbl_pt dest, lbl_pt left, lbl_pt right){
+	std::string right_s;
+	
+	str_lbl(right_s, right);
+	
+	Load(A, left);
 	
 	switch(op){
-	case r_add: put_str(FORM_4,
+	case i_add: put_str(FORM_4,
 		"add",
 		str_reg(dest->get_size(), A),
 		"FIXME",
 		""
 	); break;
-	case r_sub: put_str(FORM_4,
+	case i_sub: put_str(FORM_4,
 		"sub",
 		str_reg(dest->get_size(), A),
 		"FIXME",
 		""
 	); break;
-	case r_and: put_str(FORM_4,
+	case i_and: put_str(FORM_4,
 		"and",
 		str_reg(dest->get_size(), A),
 		"FIXME",
 		""
 	); break;
-	case r_or : put_str(FORM_4,
+	case i_or : put_str(FORM_4,
 		"or",
 		str_reg(dest->get_size(), A),
 		"FIXME",
 		""
 	); break;
-	case r_xor: put_str(FORM_4,
+	case i_xor: put_str(FORM_4,
 		"xor",
 		str_reg(dest->get_size(), A),
 		"FIXME",
@@ -625,185 +682,218 @@ binary_r(inst_code op, sym_pt result, sym_pt dest, sym_pt source){
 	); break;
 	}
 	
-	reg_d.set_val(A, result);
+	reg_d.set(A, dest);
 }
 
-static inline void call(sym_pt result, sym_pt proc){
-	put_str(FORM_3, "call", proc->get_label(), "call()");
-	reg_d.set_val(A, result);
-}
-
-static inline void dec(sym_pt arg){
-	// TODO: these should probably Load_prime() for speed
-	resolve_prime(arg);
-	put_str(FORM_3, "dec", "FIXME", "");
-}
-
-static inline void
-div(inst_code op, sym_pt result, sym_pt dest, sym_pt source){
-	Load_prime(A, dest);
-	Load_prime(D, source);
+static inline void cpy(lbl_pt dest, lbl_pt source, lbl_pt cnt){
 	
-	if(dest->is_signed() || source->is_signed())
-		put_str(FORM_3, "idiv", str_reg(source->get_size(), D), "");
-	else put_str(FORM_3, "div", str_reg(source->get_size(), D), "");
+}
+
+static inline void dec(lbl_pt target){
+	std::string target_s;
 	
-	if(op == r_div) reg_d.set_val(A, result);
-	else reg_d.set_val(D, result);
+	str_lbl(target_s, target);
+	
+	reftoval(target_s);
+	
+	put_str(FORM_3,
+		"dec",
+		target_s.c_str(),
+		"dec()"
+	);
 }
 
-static inline void dref(sym_pt result, sym_pt pointer){}
 
-static inline void inc(sym_pt arg){
-	resolve_prime(arg);
-	put_str(FORM_3, "inc", "FIXME", "");
-}
-
-static inline void inv_l(sym_pt arg){
-	resolve_prime(arg);
-	put_str(FORM_3, "not", "FIXME", "");
-}
-
-static inline void inv_r(sym_pt result, sym_pt arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "not", "FIXME", "");
-	reg_d.set_val(A, result);
+static inline void inc(lbl_pt target){
+	std::string target_s;
+	
+	str_lbl(target_s, target);
+	
+	reftoval(target_s);
+	
+	put_str(FORM_3,
+		"inc",
+		target_s.c_str(),
+		"dec()"
+	);
 }
 
 
 
-static inline void mul(sym_pt result, sym_pt dest, sym_pt source){
-	Load_prime(A, dest);
-	Load_prime(D, source);
-	
-	if(dest->is_signed() || source->is_signed())
-		put_str(FORM_3, "imul", str_reg(source->get_size(), D), "");
-	else put_str(FORM_3, "mul", str_reg(source->get_size(), D), "");
-	
-	// TODO: check for overflow
-	
-	reg_d.set_val(D, result);
-}
 
-static inline void neg_l(sym_pt arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "neg", "FIXME", "");
-}
 
-static inline void neg_r(sym_pt result, sym_pt arg){
-	Load_prime(A, arg);
-	put_str(FORM_3, "neg", "FIXME", "");
-	reg_d.set_val(A, result);
-}
+//static inline void call(sym_pt result, sym_pt proc){
+//	put_str(FORM_3, "call", proc->get_label(), "call()");
+//	reg_d.set_val(A, result);
+//}
 
-static inline void ref(sym_pt si, sym_pt data, sym_pt index){
-	// sanity check
-	if(!si || !data){
-		msg_print(NULL, V_ERROR, "ref(): got a NULL");
-		throw;
-	}
-	
-	// load the reference if it is not already there
-	if( reg_d.find_ref(data) == NUM_reg){
-		// get the address of the compound
-		resolve_addr(data);
-		put_str("\t%s\t%s, [%s] ;%s\n",
-			"lea",
-			str_reg(PTR, SI),
-			"FIXME",
-			"idx()"
-		);
-		
-		reg_d.set_ref(SI, data);
-	}
-	
-	if     (index && data->get_type() == ot_array)
-		idx_array(si, static_cast<Array*>(data), dynamic_cast<Prime*>(index));
-	else if(index && data->get_type() == ot_struct_inst)
-		idx_struct(si, static_cast<Struct_inst*>(data), index);
-}
 
-static inline void ret(sym_pt val){
-	Load_prime(A, val);
-	put_str(FORM_2, "leave", "");
-	put_str(FORM_3, "ret", str_num(param_sz), "");
-}
 
-static inline void shift_l(inst_code op, sym_pt dest, sym_pt count){
-	
-	if(count->get_sclass() != sc_const) Load_prime(C, count);
-	resolve_prime(count);
-	resolve_prime(dest);
-	
-	switch(op){
-	case r_shl: put_str(FORM_4,
-		"shl",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_shr: put_str(FORM_4,
-		"shr",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_rol: put_str(FORM_4,
-		"rol",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	case r_ror: put_str(FORM_4,
-		"ror",
-		"FIXME",
-		"FIXME",
-		""
-	); break;
-	}
-}
+//static inline void
+//div(inst_code op, sym_pt result, sym_pt dest, sym_pt source){
+//	Load_prime(A, dest);
+//	Load_prime(D, source);
+//	
+//	if(dest->is_signed() || source->is_signed())
+//		put_str(FORM_3, "idiv", str_reg(source->get_size(), D), "");
+//	else put_str(FORM_3, "div", str_reg(source->get_size(), D), "");
+//	
+//	if(op == r_div) reg_d.set_val(A, result);
+//	else reg_d.set_val(D, result);
+//}
 
-static inline void
-shift_r(inst_code op, sym_pt result, sym_pt dest, sym_pt count){
-	
-	if(result->get_size() != dest->get_size()) throw;
-	
-	if(count->get_sclass() != sc_const) Load_prime(C, count);
-	resolve_prime(count);
-	
-	Load_prime(A, dest);
-	
-	switch(op){
-	case r_shl: put_str(FORM_4,
-		"shl",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_shr: put_str(FORM_4,
-		"shr",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_rol: put_str(FORM_4,
-		"rol",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	case r_ror: put_str(FORM_4,
-		"ror",
-		str_reg(dest->get_size(), A),
-		"FIXME",
-		""
-	); break;
-	}
-	
-	reg_d.set_val(A, result);
-}
+//static inline void dref(sym_pt result, sym_pt pointer){}
 
-static inline void sz(sym_pt size, sym_pt object){
+//static inline void inc(sym_pt arg){
+//	resolve_prime(arg);
+//	put_str(FORM_3, "inc", "FIXME", "");
+//}
+
+//static inline void inv_l(sym_pt arg){
+//	resolve_prime(arg);
+//	put_str(FORM_3, "not", "FIXME", "");
+//}
+
+//static inline void inv_r(sym_pt result, sym_pt arg){
+//	Load_prime(A, arg);
+//	put_str(FORM_3, "not", "FIXME", "");
+//	reg_d.set_val(A, result);
+//}
+
+
+
+//static inline void mul(sym_pt result, sym_pt dest, sym_pt source){
+//	Load_prime(A, dest);
+//	Load_prime(D, source);
+//	
+//	if(dest->is_signed() || source->is_signed())
+//		put_str(FORM_3, "imul", str_reg(source->get_size(), D), "");
+//	else put_str(FORM_3, "mul", str_reg(source->get_size(), D), "");
+//	
+//	// TODO: check for overflow
+//	
+//	reg_d.set_val(D, result);
+//}
+
+//static inline void neg_l(sym_pt arg){
+//	Load_prime(A, arg);
+//	put_str(FORM_3, "neg", "FIXME", "");
+//}
+
+//static inline void neg_r(sym_pt result, sym_pt arg){
+//	Load_prime(A, arg);
+//	put_str(FORM_3, "neg", "FIXME", "");
+//	reg_d.set_val(A, result);
+//}
+
+//static inline void ref(sym_pt si, sym_pt data, sym_pt index){
+//	// sanity check
+//	if(!si || !data){
+//		msg_print(NULL, V_ERROR, "ref(): got a NULL");
+//		throw;
+//	}
+//	
+//	// load the reference if it is not already there
+//	if( reg_d.find_ref(data) == NUM_reg){
+//		// get the address of the compound
+//		resolve_addr(data);
+//		put_str("\t%s\t%s, [%s] ;%s\n",
+//			"lea",
+//			str_reg(PTR, SI),
+//			"FIXME",
+//			"idx()"
+//		);
+//		
+//		reg_d.set_ref(SI, data);
+//	}
+//	
+//	if     (index && data->get_type() == ot_array)
+//		idx_array(si, static_cast<Array*>(data), dynamic_cast<Prime*>(index));
+//	else if(index && data->get_type() == ot_struct_inst)
+//		idx_struct(si, static_cast<Struct_inst*>(data), index);
+//}
+
+//static inline void ret(sym_pt val){
+//	Load_prime(A, val);
+//	put_str(FORM_2, "leave", "");
+//	put_str(FORM_3, "ret", str_num(param_sz), "");
+//}
+
+//static inline void shift_l(inst_code op, sym_pt dest, sym_pt count){
+//	
+//	if(count->get_sclass() != sc_const) Load_prime(C, count);
+//	resolve_prime(count);
+//	resolve_prime(dest);
+//	
+//	switch(op){
+//	case r_shl: put_str(FORM_4,
+//		"shl",
+//		"FIXME",
+//		"FIXME",
+//		""
+//	); break;
+//	case r_shr: put_str(FORM_4,
+//		"shr",
+//		"FIXME",
+//		"FIXME",
+//		""
+//	); break;
+//	case r_rol: put_str(FORM_4,
+//		"rol",
+//		"FIXME",
+//		"FIXME",
+//		""
+//	); break;
+//	case r_ror: put_str(FORM_4,
+//		"ror",
+//		"FIXME",
+//		"FIXME",
+//		""
+//	); break;
+//	}
+//}
+
+//static inline void
+//shift_r(inst_code op, sym_pt result, sym_pt dest, sym_pt count){
+//	
+//	if(result->get_size() != dest->get_size()) throw;
+//	
+//	if(count->get_sclass() != sc_const) Load_prime(C, count);
+//	resolve_prime(count);
+//	
+//	Load_prime(A, dest);
+//	
+//	switch(op){
+//	case r_shl: put_str(FORM_4,
+//		"shl",
+//		str_reg(dest->get_size(), A),
+//		"FIXME",
+//		""
+//	); break;
+//	case r_shr: put_str(FORM_4,
+//		"shr",
+//		str_reg(dest->get_size(), A),
+//		"FIXME",
+//		""
+//	); break;
+//	case r_rol: put_str(FORM_4,
+//		"rol",
+//		str_reg(dest->get_size(), A),
+//		"FIXME",
+//		""
+//	); break;
+//	case r_ror: put_str(FORM_4,
+//		"ror",
+//		str_reg(dest->get_size(), A),
+//		"FIXME",
+//		""
+//	); break;
+//	}
+//	
+//	reg_d.set_val(A, result);
+//}
+
+static inline void sz(lbl_pt size, lbl_pt object){
 	// nothing to load so we just stash
 	Stash(A);
 	put_str(FORM_4,
@@ -822,98 +912,19 @@ static inline void sz(sym_pt size, sym_pt object){
 
 static void Gen_inst(inst_pt inst){
 	switch (inst->op){
+	case i_ass: ass(inst->dest, inst->left             ); break;
+	case i_cpy: cpy(inst->dest, inst->left, inst->right); break;
+	case i_inc: inc(inst->dest                         ); break;
+	case i_dec: dec(inst->dest                         ); break;
 	
-	//inc and dec act on a single symbol and have no other result
-	case l_inc: inc(inst->dest); break;
-	case l_dec: dec(inst->dest); break;
-	
-	case l_ass: ass(inst->dest, inst->source); break;
-	
-//	case r_ref: ref( // this function uses A and leaves a result in SI
-//		inst->result, inst->dest, inst->source); break;
-	
-	// regular unary ops
-	case r_neg: neg_r(
-		inst->result,
-		inst->dest
-	); break;
-	case r_not: inv_r(
-		inst->result,
-		inst->dest
-	); break;
-	case l_neg: neg_l(
-		inst->dest
-	); break;
-	case l_not: inv_l(
-		inst->dest
-	); break;
-	
-	// shift ops
-	case r_shl:
-	case r_shr:
-	case r_rol:
-	case r_ror: shift_r(inst->op,
-		inst->result,
-		inst->dest,
-		inst->source
-	); break;
-	case l_shl:
-	case l_shr:
-	case l_rol:
-	case l_ror: shift_l(inst->op,
-		inst->dest,
-		inst->source
-	); break;
-	
-	// regular binary ops
-	case r_add:
-	case r_sub:
-	case r_and:
-	case r_or :
-	case r_xor: binary_r(inst->op,
-		inst->result,
-		inst->dest,
-		inst->source
-	); break;
-	case l_add:
-	case l_sub:
-	case l_and:
-	case l_or :
-	case l_xor: binary_l(inst->op,
-		inst->dest,
-		inst->source
-	); break;
-	
-	// multiplication
-	case r_mul : mul(
-		inst->result,
-		inst->dest,
-		inst->source
-	); break;
-	case r_div:
-	case r_mod: div(inst->op,
-		inst->result,
-		inst->dest,
-		inst->source
-	); break;
-	
-	// flow control
-	//case i_parm: break;
-	case i_call: call(
-		inst->result,
-		inst->source
-	); break;
-	case i_ret: ret(inst->source); break;
-	
-	case i_lbl : put_lbl(inst->source); break;
-	case i_jmp : break;
-	case i_jz  : break;
-	
-	// compile-time constant
-	case i_sz: sz(
-		inst->result,
-		inst->source
-	); break;
+	case i_add:
+	case i_sub:
+	case i_and:
+	case i_or :
+	case i_xor:
+		if(inst->right) binary_r(inst->op, inst->dest, inst->left, inst->right);
+		else            binary_l(inst->op, inst->dest, inst->left             );
+		break;
 	
 	// errors
 	case i_NUM:

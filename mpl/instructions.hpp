@@ -24,70 +24,112 @@ typedef struct _root * DS;
 
 #include <util/types.h>
 
+/*
+
+textual symbols in the source are macro replaced with a numerical expression such as a number for static variables, or a BP or SP relative offset. A temp symbol is also just some number that is in a register. All symbols must be explicitly dereferenced to get the "variable value". the dereference must specify the width.
+
+Part of the problem is the inconsistent behavior of the assembler. temp labels (registers) are always l-values and so are their dereferences, while all other labels are r-values, but their dereferences are still l-values.
+
+the `result` of most instructions will be a temp label (register). But there will be plenty of occasions where intermediate results are not necessary and the instruction could store its result in memory. It follows that any label in the `result` field must be an l-value: if it is not a temp label then it will have to be dereferenced.
+
+LABEL TYPES
+temporary label	l-value		[l-value]
+constant label	r-value		[l-value]
+memory label	r-value		[l-value]
+
+INSTRUCTION FORMS
+OP		DEST	LEFT	RIGHT
+ass		dest	source
+copy	dest	source	bytes
+l_unary	arg
+jmp				lbl
+call	ret_val	lbl
+sz		size	sym????
+l_bin	dest	arg
+r_unary	dest	arg
+r_bin	dest	left	right
+
+
+// this is the same thing
+load(lbl val, lbl ref, width)
+dref(lbl val, lbl ref, width)
+
+// this is the same thing
+assign(lbl ref, lbl val, width)
+store (lbl ref, lbl val, width)
+
+
+array[i]++ would be translated to:
+
+T1:= i		* array_step
+T2:= array	+ T1
+inc [T2]
+
+structure.field
+
+T1:= structure	+ field
+
+where field would have to be a predefined constant
+
+*/
+
 
 /// intermediate op codes
 typedef enum {
-	/****************************** MEMORY WRITES *****************************/
-	// destructive (l-values)
 	
-	/// ass(lbl_pt dest, lbl_pt temp, NULL)
-	l_ass,
+	/********************* MEMORY WRITES **********************/
 	
-	/**	cpy(lbl_pt dest, lbl_pt source, lbl_pt width) */
-	l_cpy,
+	/** ass(lbl_pt dest, lbl_pt temp, NULL)
+	the assignment instruction is a special case where the destination is always dereferenced.
+	*/
+	i_ass,
+	/**	cpy(lbl_pt dest, lbl_pt source, lbl_pt width) 
+	The copy instruction is special in that both the source and destination are always dereferenced.
+	*/
+	i_cpy,
 	
-	// xxx(lbl_pt dest, lbl_pt source, NULL)
-	l_neg, // a = -a
-	l_not, // a = ~a
-	l_add, // a += b
-	l_sub, // a -= b
-	l_and, // a &= b
-	l_or , // a |= b
-	l_xor, // a ^= b
-	l_shl, // a <<= b
-	l_shr, // a >>= b
-	l_rol,
-	l_ror,
-	l_inc, // ++
-	l_dec, // --
+	i_inc, // r++
+	i_dec, // r--
+	// inc and dec, much like ass, always dereference
 	
-	/********************* READS AND REGISTER ARITHMETIC **********************/
+	/******************************  ******************************/
 	
 	/// load(lbl_pt temp, lbl_pt addr, lbl_pt width)
-	r_load,
+	i_load,
 	
 	// non-destructive (r-values)
 	// xxx(lbl_pt result, lbl_pt a, lbl_pt b)
-	r_neg, // r = -a
-	r_not, // r = ~a
-	r_add, // r = a + b
-	r_sub, // r = a - b
-	r_and, // r = a & b
-	r_or , // r = a | b
-	r_xor, // r = a ^ b
-	r_shl, // r = a << b
-	r_shr, // r = a >> b
-	r_rol,
-	r_ror,
+	i_neg, // r = -a or r = -r
+	i_not, // r = ~a or r = ~r
 	
-	r_mul, // r = a * b
-	r_div, // r = a / b
-	r_mod, // r = a % b
+	i_add, // r = a + b or	r += l
+	i_sub, // r = a - b or	r -= l
+	i_and, // r = a & b or	r &= l
+	i_or , // r = a | b or	r |= l
+	i_xor, // r = a ^ b or	r ^= l
+	i_shl, // r = a << b or	r <<= l
+	i_shr, // r = a >> b or	r >>= l
+	i_rol,
+	i_ror,
+	
+	i_mul, // r = a * b
+	i_div, // r = a / b
+	i_mod, // r = a % b
 	
 	/// resz(lbl_pt temp, lbl_pt width, NULL)
-	r_resz, ///< create a temp of a different size
+	i_resz, ///< create a temp of a different size
 	
 	/**	sz(lbl_pt temp, lbl_pt data, NULL)
 		Return the size of the data object in bytes
 	*/
 	i_sz,
 	
-	/****************************** FLOW CONTROL ******************************/
+	/******************************  ******************************/
 	
 	i_lbl,
 	i_jmp,
-	i_jz ,
-	i_jnz,
+	i_jf ,
+	i_jt,
 	
 	/** setup(NULL, Routine * routine, NULL)
 	 *	push a parameter structure onto the stack
@@ -107,9 +149,9 @@ typedef enum {
 /**	This is a Quad instruction
  */
 typedef struct{
-	lbl_pt    result;
-	lbl_pt    dest;
-	lbl_pt    source;
+	lbl_pt    dest; // the destination must always be an l-value.
+	lbl_pt    left;
+	lbl_pt    right;
 	inst_code op;
 	bool      used_next;
 } Instruction;

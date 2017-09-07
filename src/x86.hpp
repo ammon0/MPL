@@ -72,7 +72,7 @@ static x86_mode_t   mode        ; ///< the processor mode we are building for
  */
 //static obj_pt reg_d[NUM_reg];
 
-static Reg_man reg_d;
+
 
 
 /******************************************************************************/

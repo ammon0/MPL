@@ -156,6 +156,8 @@ static void set_array_size(Array * array){
 	
 	// recursively set member sizes
 	if(!array->get_size()) set_size(array->get_child());
+	
+	//FIXME: need to define a constant label equal to the step size.
 }
 
 /** calculate the size of structure and its member offsets
@@ -268,6 +270,8 @@ void x86_declarations(void){
 		msg_print(NULL, V_ERROR, "x86(): Program is empty");
 		return;
 	}
+	
+	// FIXME: declare constants with `equ`
 	
 	/***** SET SIZES AND STRUCTURE OFFSETS *****/
 	

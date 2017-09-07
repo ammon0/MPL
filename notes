@@ -2,12 +2,12 @@ textual symbols in the source are macro replaced with a numerical expression suc
 
 
 // this is the same thing
-load(temp val, sym ref, width)
-dref(temp val, sym ref, width)
+load(temp val, lbl ref, width)
+dref(temp val, lbl ref, width)
 
 // this is the same thing
-assign(sym ref, temp val, width)
-store (sym ref, temp val, width)
+assign(lbl ref, temp val, width)
+store (lbl ref, temp val, width)
 
 
 array[i] would be translated to:
