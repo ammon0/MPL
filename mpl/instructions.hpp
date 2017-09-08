@@ -107,6 +107,7 @@ typedef enum {
 	i_and, // r = a & b or	r &= l
 	i_or , // r = a | b or	r |= l
 	i_xor, // r = a ^ b or	r ^= l
+	
 	i_shl, // r = a << b or	r <<= l
 	i_shr, // r = a >> b or	r >>= l
 	i_rol,

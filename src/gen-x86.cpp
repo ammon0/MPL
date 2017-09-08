@@ -116,7 +116,6 @@ typedef enum{
 
 class Reg_man{
 	lbl_pt reg[NUM_reg];
-	bool   ref[NUM_reg];
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
@@ -125,34 +124,14 @@ public:
 	
 	/******************************* ACCESSOR *********************************/
 	
-	reg_t find(lbl_pt);
-//	reg_t find_ref(obj_pt);
-//	reg_t find_val(obj_pt obj){
-//		uint i;
-//		
-//		for(i=A; i!=NUM_reg; i++){
-//			reg_t j = static_cast<reg_t>(i);
-//			if(reg[j] == obj) break;
-//		}
-//		return (reg_t)i;
-//	}
-//	bool   is_ref(reg_t);
-	bool   is_clear(reg_t);
-//	reg_t  check(void);
-	lbl_pt get_lbl(reg_t);
-//	
-//	/******************************* MUTATORS *********************************/
-//	
-//	void set_ref(reg_t r, sym_pt o){ reg[r] = o; ref[r] = true ; }
-//	void set_val(reg_t r, sym_pt o){ reg[r] = o; ref[r] = false; }
-	void set(reg_t r, lbl_pt l);
-	void clear(void){
-		memset(reg, 0, sizeof(lbl_pt)*NUM_reg);
-		memset(ref, 0, sizeof(bool)*NUM_reg);
-	}
-//	void clear(reg_t r){ reg[r] = NULL; }
-//	void xchg(reg_t a, reg_t b);
+	reg_t  find(lbl_pt);
+	lbl_pt get (reg_t r){ return reg[r]; }
 	
+	/******************************* MUTATORS *********************************/
+	
+	void set  (reg_t r, lbl_pt l){ reg[r] = l                            ; }
+	void clear(reg_t r          ){ reg[r] = NULL                         ; }
+	void clear(void             ){ memset(reg, 0, sizeof(lbl_pt)*NUM_reg); }
 };
 
 static Reg_man reg_d;
@@ -238,36 +217,10 @@ static const char * str_reg(size_t width, reg_t reg){
 //}
 
 
-///******************************************************************************/
-////                            RESOLVE DATA OBJECTS
-///******************************************************************************/
+/******************************************************************************/
+//                            RESOLVE DATA OBJECTS
+/******************************************************************************/
 
-
-//// Stack variables are accessed as [BP-frame_size+offset]
-//static inline void ref_auto(std::string& s, obj_pt var){
-//	s = "BP-";
-//	s += str_num(frame_sz);
-//	s += "+";
-//	s += var->get_label();
-//}
-
-//// Formal parameters are accessed as [BP+2*stack_width+index*stack_width]
-//static inline void ref_param(std::string& s, obj_pt var){
-//	if(mode == xm_long){
-//		s = "BP+16+";         // 2*stack_width
-//		s +=var->get_label();
-//		s += "*8";            // *stack_width
-//	}
-//	else{
-//		s = "BP+8+";
-//		s +=var->get_label();
-//		s += "*4";
-//	}
-//}
-
-//static inline void ref_static(std::string &s, obj_pt var){
-//	s=var->get_label();
-//}
 
 static inline void reftoval(std::string &s){
 	s.insert(0, "[");
@@ -285,61 +238,6 @@ static inline void op_size(std::string &s, lbl_pt var){
 		throw;
 	}
 }
-
-//#define BUFFER_CNT 3
-
-////static void resolve_prime(Primative * obj){
-////	static std::string buffers[BUFFER_CNT];
-////	static uint        next;
-////	reg_t reg;
-////	
-////	// pick a buffer
-////	next++;
-////	next%=BUFFER_CNT;
-////	
-////	// first check if it's already in a register
-////	if(( reg=reg_d.find_val(obj) )){
-////		buffers[next]= str_reg(obj->get_size(), reg);
-////		return;
-////	}
-////	
-////	// then check if there is a reference in a register
-////	if(( reg=reg_d.find_ref(obj) )){
-////		buffers[next]= str_reg(PTR, reg);
-////		reftoval(buffers[next]);
-////		return;
-////	}
-////	
-////	// then generate its memory location
-////	switch(obj->get_sclass()){
-////	case sc_private:
-////	case sc_public :
-////	case sc_extern : ref_static(buffers[next], obj); break;
-////	case sc_stack  : ref_auto  (buffers[next], obj); break;
-////	case sc_param  : ref_param (buffers[next], obj); break;
-////	
-////	case sc_member:
-////		msg_print(NULL, V_ERROR,
-////			"Internal resolve_prime(): got a member object with no ref in any reg");
-////		throw;
-////	
-////	//error
-////	case sc_temp :
-////	case sc_const:
-////	case sc_none :
-////	case sc_NUM  :
-////	default      :
-////		msg_print(NULL, V_ERROR,
-////			"Internal resolve_prime(): got a non-memory object");
-////		throw;
-////	}
-////	
-////	reftoval(buffers[next]);
-////	op_size (buffers[next], obj);
-////	return;
-////}
-
-
 
 static void str_lbl(std::string &s, lbl_pt lbl){
 	switch(lbl->get_mode()){
@@ -377,53 +275,18 @@ static void str_lbl(std::string &s, lbl_pt lbl){
 }
 
 
-////static void resolve_addr(obj_pt obj){
-////	static std::string buffers[BUFFER_CNT];
-////	static uint        next;
-////	
-////	// pick a buffer
-////	next++;
-////	next%=BUFFER_CNT;
-////	
-////	// generate its memory location
-////	switch(obj->get_sclass()){
-////	case sc_member : // member labels are their offset within a struct
-////	case sc_private:
-////	case sc_public :
-////	case sc_extern : ref_static(buffers[next], obj); break;
-////	case sc_stack  : ref_auto  (buffers[next], obj); break;
-////	case sc_param  : ref_param (buffers[next], obj); break;
-////	
-////	//error
-////	case sc_temp :
-////	case sc_const:
-////	case sc_none :
-////	case sc_NUM  :
-////	default      :
-////		msg_print(NULL, V_ERROR,
-////			"Internal resolve_addr(): got a non-memory object");
-////		throw;
-////	}
-////}
-
-//static void find_ref(loc& location, Data * data){}
-
-//static void find(loc& location, Data * data){}
-////const char * str_r(loc l){}
-
-
-///******************************************************************************/
-////                       LOAD R-VALUES AND STORE TEMPS
-///******************************************************************************/
+/******************************************************************************/
+//                       LOAD R-VALUES AND STORE TEMPS
+/******************************************************************************/
 
 
 
 static void Stash(reg_t reg){
 	// already empty
-	if(reg_d.is_clear(reg)) return;
+	if(!reg_d.get(reg)) return;
 	
 	// already in memory
-	if(reg_d.get_lbl(reg)->get_mode() != am_temp) /* store */ ;
+	if(reg_d.get(reg)->get_mode() != am_temp) /* store */ ;
 	
 	#define TREG_P 1  //B
 	#define TREG_L 9  //B, R8-R15
@@ -437,7 +300,46 @@ static void Stash(reg_t reg){
 	*/
 }
 
-static void Load(reg_t reg, lbl_pt lbl){
+/** Load(reg_t reg, lbl_pt lbl)
+ *	loads a label value into a register first clearing the register.
+*/
+static void Load(reg_t target, lbl_pt source){
+	reg_t  ex_reg;
+	size_t ex_sz;
+	std::string source_s;
+	
+	// check if it's already loaded
+	if(reg_d.get(target) == source) return;
+	
+	
+	// if lbl is already in a register we can use it
+	if((ex_reg=reg_d.find(source)) != NUM_reg){
+		
+		// if the destination is occupied then we can XCHG
+		if(reg_d.get(target)){
+			if(reg_d.get(target)->get_size() > source->get_size())
+				ex_sz = reg_d.get(target)->get_size();
+			else ex_sz = source->get_size();
+			
+			put_str(FORM_4,
+				"xchg",
+				str_reg(ex_sz, target),
+				str_reg(ex_sz, ex_reg),
+				source->get_name()
+			);
+		}
+		
+		// else we just move it
+		else{
+			put_str(FORM_4,
+				"mov",
+				str_reg(source->get_size(), target),
+				str_reg(source->get_size(), ex_reg),
+				source->get_name()
+			);
+		}
+		return;
+	}
 	
 }
 
@@ -480,92 +382,6 @@ static void Load(reg_t reg, lbl_pt lbl){
 //}
 
 
-///******************************************************************************/
-////                       HELPERS FOR GETTING REFERENCES
-///******************************************************************************/
-
-
-//static inline void idx_array(Primative * si, Array * array, Primative * index){
-//	size_t step_size;
-//	reg_t  reg;
-//	
-//	// sanity check
-//	if(!si || !array || !index){
-//		msg_print(NULL, V_ERROR, "idx(): got a NULL");
-//		throw;
-//	}
-//	
-//	//if( (reg=check_reg(array)) == NUM_reg ) throw;
-//	if( (reg=reg_d.find_ref(array)) == NUM_reg ) throw;
-//	
-//	step_size= array->get_child()->get_size();
-//	Load_prime(A, index);
-//	
-//	if(step_size > QWORD){
-//		put_str(FORM_3, "mul", str_num(step_size), "idx()");
-//		// FIXME: mul cannot be used this way
-//	
-//		// A now contains the offset
-//		put_str("\t%s\t%s, [%s+%s]\n",
-//			"lea",
-//			str_reg(si->get_size(), reg),
-//			str_reg(si->get_size(), reg),
-//			str_reg(PTR, A)
-//		);
-//	}
-//	else{
-//		put_str("\t%s\t%s, [%s+%s*%s]\n",
-//			"lea",
-//			str_reg(si->get_size(), reg), // target
-//			str_reg(si->get_size(), reg), // base
-//			str_reg(PTR, A), // index
-//			str_num(step_size)
-//		);
-//	}
-//	
-//	// this is necessary if we want to later index the child
-//	//reg_d[SI] = array->get_child();
-//	reg_d.set_ref(reg, array->get_child());
-//}
-
-//static inline void idx_struct(Primative * si, Struct_inst * s, Data * member){
-//	reg_t reg;
-//	
-//	// sanity check
-//	if(!si || !s || !member){
-//		msg_print(NULL, V_ERROR, "idx(): got a NULL");
-//		throw;
-//	}
-//	
-//	//if( (reg=check_reg(s)) == NUM_reg ) throw;
-//	if( (reg=reg_d.find_ref(s)) == NUM_reg ) throw;
-//	
-//	put_str("\t%s\t%s, [%s+%s]\n",
-//		"lea",
-//		str_reg(si->get_size(), reg),
-//		str_reg(si->get_size(), reg),
-//		member->get_label()
-//	);
-//	
-//	reg_d.set_ref(reg, member);
-//}
-
-
-///******************************************************************************/
-////                             HELPERS ASSIGNMENTS
-///******************************************************************************/
-
-
-
-
-
-
-
-
-
-
-
-
 
 /******************************************************************************/
 //                            INSTRUCTION MACROS
@@ -604,8 +420,6 @@ static inline void binary_l(inst_code op, lbl_pt dest, lbl_pt source){
 	
 	str_lbl(dest_s, dest);
 	str_lbl(source_s, source);
-	
-	
 	
 	switch(op){
 	case i_add: put_str(FORM_4,
@@ -685,8 +499,13 @@ binary_r(inst_code op, lbl_pt dest, lbl_pt left, lbl_pt right){
 	reg_d.set(A, dest);
 }
 
+static inline void call(lbl_pt result, lbl_pt proc){
+	put_str(FORM_3, "call", proc->get_name(), "call()");
+	reg_d.set(A, result);
+}
+
 static inline void cpy(lbl_pt dest, lbl_pt source, lbl_pt cnt){
-	
+	//FIXME: cpy()
 }
 
 static inline void dec(lbl_pt target){
@@ -703,6 +522,21 @@ static inline void dec(lbl_pt target){
 	);
 }
 
+static inline void
+div(inst_code op, lbl_pt dest, lbl_pt dividend, lbl_pt divisor){
+	Load(A, dividend);
+	Load(D, divisor);
+	
+	if(
+		static_cast<Primative*>(dividend->get_def())->is_signed() ||
+		static_cast<Primative*>(divisor ->get_def())->is_signed()
+	)
+		 put_str(FORM_3, "idiv", str_reg(divisor->get_size(), D), "");
+	else put_str(FORM_3, "div" , str_reg(divisor->get_size(), D), "");
+	
+	if(op == i_div) reg_d.set(A, dest);
+	else            reg_d.set(D, dest);
+}
 
 static inline void inc(lbl_pt target){
 	std::string target_s;
@@ -719,35 +553,6 @@ static inline void inc(lbl_pt target){
 }
 
 
-
-
-
-//static inline void call(sym_pt result, sym_pt proc){
-//	put_str(FORM_3, "call", proc->get_label(), "call()");
-//	reg_d.set_val(A, result);
-//}
-
-
-
-//static inline void
-//div(inst_code op, sym_pt result, sym_pt dest, sym_pt source){
-//	Load_prime(A, dest);
-//	Load_prime(D, source);
-//	
-//	if(dest->is_signed() || source->is_signed())
-//		put_str(FORM_3, "idiv", str_reg(source->get_size(), D), "");
-//	else put_str(FORM_3, "div", str_reg(source->get_size(), D), "");
-//	
-//	if(op == r_div) reg_d.set_val(A, result);
-//	else reg_d.set_val(D, result);
-//}
-
-//static inline void dref(sym_pt result, sym_pt pointer){}
-
-//static inline void inc(sym_pt arg){
-//	resolve_prime(arg);
-//	put_str(FORM_3, "inc", "FIXME", "");
-//}
 
 //static inline void inv_l(sym_pt arg){
 //	resolve_prime(arg);
@@ -786,115 +591,103 @@ static inline void inc(lbl_pt target){
 //	reg_d.set_val(A, result);
 //}
 
-//static inline void ref(sym_pt si, sym_pt data, sym_pt index){
-//	// sanity check
-//	if(!si || !data){
-//		msg_print(NULL, V_ERROR, "ref(): got a NULL");
-//		throw;
-//	}
-//	
-//	// load the reference if it is not already there
-//	if( reg_d.find_ref(data) == NUM_reg){
-//		// get the address of the compound
-//		resolve_addr(data);
-//		put_str("\t%s\t%s, [%s] ;%s\n",
-//			"lea",
-//			str_reg(PTR, SI),
-//			"FIXME",
-//			"idx()"
-//		);
-//		
-//		reg_d.set_ref(SI, data);
-//	}
-//	
-//	if     (index && data->get_type() == ot_array)
-//		idx_array(si, static_cast<Array*>(data), dynamic_cast<Prime*>(index));
-//	else if(index && data->get_type() == ot_struct_inst)
-//		idx_struct(si, static_cast<Struct_inst*>(data), index);
-//}
 
-//static inline void ret(sym_pt val){
-//	Load_prime(A, val);
-//	put_str(FORM_2, "leave", "");
-//	put_str(FORM_3, "ret", str_num(param_sz), "");
-//}
+static inline void ret(lbl_pt val){
+	Load(A, val);
+	put_str(FORM_2, "leave", "");
+	put_str(FORM_3, "ret", str_num(param_sz), "");
+}
 
-//static inline void shift_l(inst_code op, sym_pt dest, sym_pt count){
-//	
-//	if(count->get_sclass() != sc_const) Load_prime(C, count);
-//	resolve_prime(count);
-//	resolve_prime(dest);
-//	
-//	switch(op){
-//	case r_shl: put_str(FORM_4,
-//		"shl",
-//		"FIXME",
-//		"FIXME",
-//		""
-//	); break;
-//	case r_shr: put_str(FORM_4,
-//		"shr",
-//		"FIXME",
-//		"FIXME",
-//		""
-//	); break;
-//	case r_rol: put_str(FORM_4,
-//		"rol",
-//		"FIXME",
-//		"FIXME",
-//		""
-//	); break;
-//	case r_ror: put_str(FORM_4,
-//		"ror",
-//		"FIXME",
-//		"FIXME",
-//		""
-//	); break;
-//	}
-//}
+static inline void shift_l(inst_code op, lbl_pt dest, lbl_pt count){
+	std::string dest_s, count_s;
+	
+	str_lbl(dest_s, dest);
+	
+	if(count->get_mode() == am_constant)
+		str_lbl(count_s, count);
+	else {
+		Load(C, count);
+		count_s=str_reg(WORD, C);
+	}
+	
+	switch(op){
+	case i_shl: put_str(FORM_4,
+		"shl",
+		dest_s.c_str(),
+		count_s.c_str(),
+		""
+	); break;
+	case i_shr: put_str(FORM_4,
+		"shr",
+		dest_s.c_str(),
+		count_s.c_str(),
+		""
+	); break;
+	case i_rol: put_str(FORM_4,
+		"rol",
+		dest_s.c_str(),
+		count_s.c_str(),
+		""
+	); break;
+	case i_ror: put_str(FORM_4,
+		"ror",
+		dest_s.c_str(),
+		count_s.c_str(),
+		""
+	); break;
+	}
+}
 
-//static inline void
-//shift_r(inst_code op, sym_pt result, sym_pt dest, sym_pt count){
-//	
-//	if(result->get_size() != dest->get_size()) throw;
-//	
-//	if(count->get_sclass() != sc_const) Load_prime(C, count);
-//	resolve_prime(count);
-//	
-//	Load_prime(A, dest);
-//	
-//	switch(op){
-//	case r_shl: put_str(FORM_4,
-//		"shl",
-//		str_reg(dest->get_size(), A),
-//		"FIXME",
-//		""
-//	); break;
-//	case r_shr: put_str(FORM_4,
-//		"shr",
-//		str_reg(dest->get_size(), A),
-//		"FIXME",
-//		""
-//	); break;
-//	case r_rol: put_str(FORM_4,
-//		"rol",
-//		str_reg(dest->get_size(), A),
-//		"FIXME",
-//		""
-//	); break;
-//	case r_ror: put_str(FORM_4,
-//		"ror",
-//		str_reg(dest->get_size(), A),
-//		"FIXME",
-//		""
-//	); break;
-//	}
-//	
-//	reg_d.set_val(A, result);
-//}
+static inline void
+shift_r(inst_code op, lbl_pt dest, lbl_pt source, lbl_pt count){
+	std::string count_s;
+	
+	if(dest->get_size() != source->get_size()){
+		msg_print(NULL, V_ERROR, "Internal: shift_r(): size mismatch");
+		throw;
+	}
+	
+	Stash(A);
+	Load(A, source);
+	
+	if(count->get_mode() == am_constant)
+		str_lbl(count_s, count);
+	else {
+		Load(C, count);
+		count_s=str_reg(WORD, C);
+	}
+	
+	switch(op){
+	case i_shl: put_str(FORM_4,
+		"shl",
+		str_reg(dest->get_size(), A),
+		count_s.c_str(),
+		""
+	); break;
+	case i_shr: put_str(FORM_4,
+		"shr",
+		str_reg(dest->get_size(), A),
+		count_s.c_str(),
+		""
+	); break;
+	case i_rol: put_str(FORM_4,
+		"rol",
+		str_reg(dest->get_size(), A),
+		count_s.c_str(),
+		""
+	); break;
+	case i_ror: put_str(FORM_4,
+		"ror",
+		str_reg(dest->get_size(), A),
+		count_s.c_str(),
+		""
+	); break;
+	}
+	
+	reg_d.set(A, dest);
+}
 
 static inline void sz(lbl_pt size, lbl_pt object){
-	// nothing to load so we just stash
 	Stash(A);
 	put_str(FORM_4,
 		"movzx",
@@ -925,6 +718,17 @@ static void Gen_inst(inst_pt inst){
 		if(inst->right) binary_r(inst->op, inst->dest, inst->left, inst->right);
 		else            binary_l(inst->op, inst->dest, inst->left             );
 		break;
+	
+	case i_shl:
+	case i_shr:
+	case i_rol:
+	case i_ror:
+		if(inst->right) shift_r(inst->op, inst->dest, inst->left, inst->right);
+		else            shift_l(inst->op, inst->dest, inst->left             );
+		break;
+	
+	case i_call: call(inst->dest, inst->left); break;
+	case i_ret : ret (inst->left            ); break;
 	
 	// errors
 	case i_NUM:

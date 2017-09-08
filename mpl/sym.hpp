@@ -145,15 +145,10 @@ typedef enum width_t{
 /* The way signedness is represented is machine dependent so the machine instructions for signed and unsigned arithmetic may be different.
 */
 
-typedef enum{
-	pt_unsign,
-	pt_signed
-} signedness_t;
-
 class Primative: public Definition{
-	width_t      width;
-	signedness_t sign ;
-	umax         value;
+	width_t width;
+	bool    signd;
+	umax    value;
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
@@ -164,6 +159,7 @@ public:
 	
 	umax    get_value(void)const{ return value; }
 	width_t get_width(void)const{ return width; }
+	bool    is_signed(void)const{ return signd; }
 	
 	sym_t        get_type(void)const{ return st_prime; }
 	const char * print(void) const{}
@@ -199,6 +195,7 @@ typedef enum{
 class Label: public Symbol{
 	access_mode mode;
 	def_pt      def;
+	bool        live=false;
 	
 protected:
 	constexpr static const char * str_sclass[am_NUM]= {
