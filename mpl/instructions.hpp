@@ -154,7 +154,7 @@ typedef struct{
 	lbl_pt    left;
 	lbl_pt    right;
 	inst_code op;
-	bool      used_next;
+	bool      used_next=false;
 } Instruction;
 
 /// a pointer to Instruction

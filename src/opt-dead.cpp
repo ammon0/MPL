@@ -29,8 +29,8 @@
 /******************************************************************************/
 
 
-Obj_Index * objects;
-obj_pt arg1, arg2;
+lbl_pt arg1, arg2;
+Sym_index * syms;
 
 
 /******************************************************************************/
@@ -67,74 +67,71 @@ static void Liveness(blk_pt blk){
 			arg2 = NULL;
 			break;
 		
-		// dest & left
-		case i_ass :
-		case i_call:
-			break;
-		
-		// unary
-		case i_neg :
-		case i_not :
-		case i_inv :
-		case i_inc :
-		case i_dec :
-		case i_sz  :
+		// l-r unary
+		case i_neg:
+		case i_not:
 			// if the result is dead remove it
-			if(inst->result->type == st_temp && !inst->result->live){
+			if(inst->dest->get_mode() == am_temp && !inst->dest->live){
 				// remove the temp symbol
-				operands->remove(strings->get(inst->result->label));
+				syms->remove(inst->dest->get_name());
 				// and the instruction
 				blk->remove();
 				break;
 			}
 			
-			// now we know the result is live
-			inst->dest->live = false;
-			inst->left->live = true;
+			// now that we know the destination is live
+			if(inst->left){
+				inst->left->live = true;
+				inst->dest->live = false;
+				arg1 = inst->left;
+			}else{
+				arg1 = inst->dest;
+			}
 			
 			if(inst->dest == arg1 || inst->dest == arg2)
 				inst->used_next = true;
-			else inst->used_next = false;
 			
-			arg1 = inst->left;
 			arg2 = NULL;
 			break;
 		
-		// binary ops
-		case i_mul:
-		case i_div:
-		case i_mod:
+		// l-r binary
+		case i_add:
+		case i_sub:
+		case i_and:
+		case i_or :
+		case i_xor:
 		case i_shl:
 		case i_shr:
 		case i_rol:
 		case i_ror:
-		case i_add:
-		case i_sub:
-		case i_xor:
-		case i_and:
-		case i_or :
-		case i_cpy:
 			// if the result is dead remove it
-			if(inst->result->type == st_temp && !inst->result->live){
+			if(inst->dest->get_mode() == am_temp && !inst->dest->live){
 				// remove the temp symbol
-				operands->remove(strings->get(inst->result->label));
+				syms->remove(inst->dest->get_name());
 				// and the instruction
 				blk->remove();
 				break;
 			}
 			
-			// now we know the result is live
-			inst->dest->live = false;
-			inst->left->live = true;
-			inst->right->live = true;
+			// now that we know the destination is live
+			if(inst->right){
+				inst->left->live = true;
+				inst->right->live = true;
+				inst->dest->live = false;
+				arg1 = inst->left;
+				arg2 = inst->right;
+			}else{
+				inst->left->live = true;
+				arg1 = inst->dest;
+				arg2 = inst->left;
+			}
 			
 			if(inst->dest == arg1 || inst->dest == arg2)
 				inst->used_next = true;
-			else inst->used_next = false;
-			
-			arg1 = inst->left;
-			arg2 = inst->right;
 			break;
+		
+		
+		
 		
 		case i_NUM:
 		default:
@@ -158,6 +155,8 @@ void opt_dead(PPD * prog_data){
 	Routine * routine;
 	
 	msg_print(NULL, V_TRACE, "opt_dead(): start");
+	
+	syms = &prog_data->symbols;
 	
 	sym = prog_data->symbols.first();
 	do{

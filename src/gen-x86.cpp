@@ -132,6 +132,7 @@ public:
 	void set  (reg_t r, lbl_pt l){ reg[r] = l                            ; }
 	void clear(reg_t r          ){ reg[r] = NULL                         ; }
 	void clear(void             ){ memset(reg, 0, sizeof(lbl_pt)*NUM_reg); }
+	// FIXME: if any register is not a temp it must be stored
 };
 
 static Reg_man reg_d;
@@ -374,6 +375,8 @@ static inline void binary_l(inst_code op, lbl_pt dest, lbl_pt source){
 	Resolve(dest_s, dest);
 	Resolve(source_s, source);
 	
+	//FIXME: both cannot be memory locations
+	
 	switch(op){
 	case i_add: put_str(FORM_4,
 		"add",
@@ -450,6 +453,7 @@ binary_r(inst_code op, lbl_pt dest, lbl_pt left, lbl_pt right){
 	}
 	
 	reg_d.set(A, dest);
+	
 }
 
 static inline void call(lbl_pt result, lbl_pt proc){
@@ -487,8 +491,13 @@ div(inst_code op, lbl_pt dest, lbl_pt dividend, lbl_pt divisor){
 		 put_str(FORM_3, "idiv", str_reg(divisor->get_size(), D), "");
 	else put_str(FORM_3, "div" , str_reg(divisor->get_size(), D), "");
 	
-	if(op == i_div) reg_d.set(A, dest);
-	else            reg_d.set(D, dest);
+	if(op == i_div){
+		reg_d.set(A, dest);
+		reg_d.clear(D);
+	}else{
+		reg_d.set(D, dest);
+		reg_d.clear(A);
+	}
 }
 
 static inline void inc(lbl_pt target){
@@ -589,6 +598,8 @@ static inline void shift_l(inst_code op, lbl_pt dest, lbl_pt count){
 		""
 	); break;
 	}
+	
+	reg_d.clear(C);
 }
 
 static inline void
@@ -637,6 +648,7 @@ shift_r(inst_code op, lbl_pt dest, lbl_pt source, lbl_pt count){
 	); break;
 	}
 	
+	reg_d.clear(C);
 	reg_d.set(A, dest);
 }
 
@@ -701,17 +713,20 @@ static void Gen_inst(inst_pt inst){
  */
 static void Gen_blk(blk_pt blk){
 	inst_pt inst;
-
+	
 	msg_print(NULL, V_TRACE, "Gen_blk(): start");
-
+	
+	// Initialize the register descriptor
+	reg_d.clear();
+	
 	if(!( inst=blk->first() )){
 		msg_print(NULL, V_ERROR, "Gen_blk(): received empty block");
 		throw;
 	}
-
+	
 	do Gen_inst(inst);
 	while(( inst=blk->next() ));
-
+	
 	msg_print(NULL, V_TRACE, "Gen_blk(): stop");
 }
 
@@ -775,9 +790,6 @@ static void Gen_routine(lbl_pt lbl, Routine * routine){
 		
 		A `display` is an array of static links. the size of the display is a constant based on the lexical nesting of its definition.
 	*/
-	
-	// Initialize the register descriptor
-	reg_d.clear();
 	
 	// place the label
 	put_str("\n\n");
