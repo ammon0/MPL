@@ -195,6 +195,8 @@ typedef enum{
 class Label: public Symbol{
 	access_mode mode;
 	def_pt      def;
+	
+public:
 	bool        live=false;
 	
 protected:
@@ -329,8 +331,8 @@ public:
 	
 	bool isempty(void) const;
 	
-	blk_pt get_first_blk(void) const;
-	blk_pt get_next_blk (void) const;
+	blk_pt first(void) const;
+	blk_pt next (void) const;
 	
 	sym_t        get_type(void)const{ return st_routine; }
 	const char * print(void) const;
@@ -339,9 +341,6 @@ public:
 	
 	inst_pt add_inst (inst_pt instruction);
 };
-
-
-
 
 
 #endif // _SYM_HPP

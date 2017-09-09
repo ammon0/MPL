@@ -24,15 +24,11 @@
 
 /** This is a container for all the components of the portable program data.
 */
-class PPD{
+struct PPD{
 	// Optimizations applied
-	bool dead;      ///< indicates whether this PPD has passed opt_dead
-	bool constants; ///< indicates whether this PPD has passed opt_const
-	
-public:
+	bool dead     =false; ///< indicates whether this PPD has passed opt_dead
+	bool constants=false; ///< indicates whether this PPD has passed opt_const
 	Sym_index symbols;
-	
-	PPD(void){ dead = constants = false; }
 };
 
 

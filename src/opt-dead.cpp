@@ -21,7 +21,6 @@
 
 
 #include <mpl/opt.hpp>
-#include <mpl/routine.hpp>
 #include <util/msg.h>
 
 
@@ -55,19 +54,12 @@ static void Liveness(blk_pt blk){
 	
 	do {
 		switch (inst->op){
-		// no args
-		case i_nop :
-			break;
-		
-		// no results
+		// no dest
 		case i_lbl :
-		case i_call:
-		case i_parm:
-		case i_proc:
 		case i_jmp :
-		case i_jz  :
-		case i_loop:
-		case i_rtrn:
+		case i_jt  :
+		case i_jf  :
+		case i_ret :
 			inst->left->live = true;
 			inst->used_next = false;
 			
@@ -75,10 +67,12 @@ static void Liveness(blk_pt blk){
 			arg2 = NULL;
 			break;
 		
-		// unary ops
+		// dest & left
 		case i_ass :
-		case i_ref :
-		case i_dref:
+		case i_call:
+			break;
+		
+		// unary
 		case i_neg :
 		case i_not :
 		case i_inv :
@@ -95,10 +89,10 @@ static void Liveness(blk_pt blk){
 			}
 			
 			// now we know the result is live
-			inst->result->live = false;
+			inst->dest->live = false;
 			inst->left->live = true;
 			
-			if(inst->result == arg1 || inst->result == arg2)
+			if(inst->dest == arg1 || inst->dest == arg2)
 				inst->used_next = true;
 			else inst->used_next = false;
 			
@@ -110,22 +104,13 @@ static void Liveness(blk_pt blk){
 		case i_mul:
 		case i_div:
 		case i_mod:
-		case i_exp:
-		case i_lsh:
-		case i_rsh:
+		case i_shl:
+		case i_shr:
 		case i_rol:
 		case i_ror:
-		case i_add :
-		case i_sub :
-		case i_band:
-		case i_bor :
-		case i_xor :
-		case i_eq :
-		case i_neq:
-		case i_lt :
-		case i_gt :
-		case i_lte:
-		case i_gte:
+		case i_add:
+		case i_sub:
+		case i_xor:
 		case i_and:
 		case i_or :
 		case i_cpy:
@@ -139,11 +124,11 @@ static void Liveness(blk_pt blk){
 			}
 			
 			// now we know the result is live
-			inst->result->live = false;
+			inst->dest->live = false;
 			inst->left->live = true;
 			inst->right->live = true;
 			
-			if(inst->result == arg1 || inst->result == arg2)
+			if(inst->dest == arg1 || inst->dest == arg2)
 				inst->used_next = true;
 			else inst->used_next = false;
 			
@@ -168,23 +153,25 @@ static void Liveness(blk_pt blk){
 
 
 void opt_dead(PPD * prog_data){
-	blk_pt  blk;
-	proc_pt proc;
+	blk_pt blk;
+	sym_pt sym;
+	Routine * routine;
 	
 	msg_print(NULL, V_TRACE, "opt_dead(): start");
 	
-	strings  = &prog_data->strings;
-	operands = &prog_data->operands;
-	
-	proc = prog_data->instructions.first();
+	sym = prog_data->symbols.first();
 	do{
-		blk = proc->first();
-		do{
-			Liveness(blk);
-			blk->flush();
-		} while(( blk = proc->next() ));
+		if(sym->get_type() == st_routine){
+			routine = (Routine*) sym;
+			
+			blk = routine->first();
+			do{
+				Liveness(blk);
+				blk->flush(); // save some memory
+			} while(( blk = routine->next() ));
+		}
 		
-	} while(( proc = prog_data->instructions.next() ));
+	} while(( sym = prog_data->symbols.next() ));
 	
 	prog_data->dead = true;
 	

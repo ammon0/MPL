@@ -93,8 +93,8 @@ debug: libmpl.a
 ################################# PRODUCTIONS ##################################
 
 
-libmpl.a: $(ppd_objects) $(gen_objects)
-	ar rcs $@ $(ppd_objects) $(gen_objects)
+libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects)
+	ar rcs $@ $(ppd_objects) $(gen_objects) $(opt_objects)
 
 docs: Doxyfile README.md $(allfiles)
 	doxygen Doxyfile

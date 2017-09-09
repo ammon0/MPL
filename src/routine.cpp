@@ -33,16 +33,15 @@ Routine::Routine(const char * full_name): Definition(full_name){
 Routine::~Routine(void){
 	blk_pt blk;
 	
-	while((blk = get_first_blk())) delete blk;
+	while((blk = first())) delete blk;
 	DS_delete(blocks);
 }
 
 /******************************* ACCESSOR *********************************/
 
-bool Routine::isempty(void) const{ return DS_isempty(blocks); }
-
-blk_pt Routine::get_first_blk(void) const{ return (blk_pt)DS_first(blocks); }
-blk_pt Routine::get_next_blk (void) const{ return (blk_pt)DS_next (blocks); }
+bool   Routine::isempty(void)const{ return         DS_isempty(blocks); }
+blk_pt Routine::first  (void)const{ return (blk_pt)DS_first  (blocks); }
+blk_pt Routine::next   (void)const{ return (blk_pt)DS_next   (blocks); }
 
 const char * Routine::print(void) const{
 	std::string str;
@@ -62,7 +61,7 @@ const char * Routine::print(void) const{
 /******************************* MUTATORS *********************************/
 
 inst_pt Routine::add_inst (inst_pt instruction){
-	blk_pt last_blk;
+	blk_pt  last_blk;
 	inst_pt inst;
 	
 	msg_print(NULL, V_TRACE, "Procedure::add(): start");
@@ -75,8 +74,11 @@ inst_pt Routine::add_inst (inst_pt instruction){
 	inst = last_blk->enqueue(instruction);
 	
 	// if the instruction is a branch the next one is a leader
-	if( instruction->op==i_jmp || instruction->op==i_jt || instruction->op==i_jf )
-		DS_nq(blocks, new Block);
+	if(
+		instruction->op==i_jmp ||
+		instruction->op==i_jt  ||
+		instruction->op==i_jf  )
+			DS_nq(blocks, new Block);
 	
 	
 	msg_print(NULL, V_TRACE, "Procedure::add(): stop");

@@ -191,32 +191,6 @@ static const char * str_reg(size_t width, reg_t reg){
 }
 
 
-
-/******************************************************************************/
-//                            ?????????????????
-/******************************************************************************/
-
-
-//static inline void xchg(reg_t a, reg_t b){
-//	size_t ex_sz;
-//	
-//	// what size
-//	if(reg_d.get_obj(a)->get_size() > (ex_sz=reg_d.get_obj(b)->get_size()))
-//		ex_sz=reg_d.get_obj(a)->get_size();
-//	
-//	// perform the exchange
-//	put_str(FORM_4,
-//		"xchg",
-//		str_reg(ex_sz, a),
-//		str_reg(ex_sz, b),
-//		""
-//	);
-//	
-//	// update the descriptor
-//	reg_d.xchg(a,b);
-//}
-
-
 /******************************************************************************/
 //                            RESOLVE DATA OBJECTS
 /******************************************************************************/
@@ -239,7 +213,7 @@ static inline void op_size(std::string &s, lbl_pt var){
 	}
 }
 
-static void str_lbl(std::string &s, lbl_pt lbl){
+static void Resolve(std::string &s, lbl_pt lbl){
 	switch(lbl->get_mode()){
 	case am_static_priv  :
 	case am_static_pub   :
@@ -263,6 +237,7 @@ static void str_lbl(std::string &s, lbl_pt lbl){
 	
 	case am_temp:
 		s = str_reg(lbl->get_size(),reg_d.find(lbl));
+		// FIXME: what about spilled registers?
 		break;
 	
 	
@@ -284,6 +259,8 @@ static void str_lbl(std::string &s, lbl_pt lbl){
 static void Stash(reg_t reg){
 	// already empty
 	if(!reg_d.get(reg)) return;
+	
+	// should we check for liveness here or not?
 	
 	// already in memory
 	if(reg_d.get(reg)->get_mode() != am_temp) /* store */ ;
@@ -338,49 +315,25 @@ static void Load(reg_t target, lbl_pt source){
 				source->get_name()
 			);
 		}
+		
+		reg_d.set(target, source);
 		return;
 	}
 	
+	// If we're still here then we have to get the symbol from memory.
+	Stash(target);
+	
+	Resolve(source_s, source);
+	
+	put_str(FORM_4,
+		"mov",
+		str_reg(source->get_size(), target),
+		source_s.c_str(),
+		"Loading"
+	);
+	
+	reg_d.set(target, source);
 }
-
-///**	load the r-value of an object into a register making that register
-// *	available if necessary
-// */
-//static void Load_prime(reg_t reg, Primative * source){
-//	
-//	// check if it's already loaded
-//	if(reg_d.get_obj(reg) == source && !reg_d.is_ref(reg)) return;
-//	
-//	// determine if source is already in a register and XCHG reg
-////	if((ex_reg=reg_d.find_val(source)) != NUM_reg){
-////		if(reg_d.get_obj(reg)->get_size() > source->get_size())
-////			ex_sz = reg_d.get_obj(reg)->get_size();
-////		else ex_sz = source->get_size();
-////		
-////		put_str(FORM_4,
-////			"xchg",
-////			str_reg(ex_sz, reg),
-////			str_reg(ex_sz, ex_reg),
-////			source->get_label()
-////		);
-////		return;
-////	}
-////	
-////	Stash(reg);
-////	
-////	// Determine if a ref of source is already in a register dref
-////	if((ex_reg=reg_d.find_ref(source)) != NUM_reg){
-////		put_str(FORM_4,
-////			"mov",
-////			str_reg(source->get_size(), reg),
-////			
-////		);
-////	}
-//	
-//	
-//	// ELSE MOV resolve etc.
-//}
-
 
 
 /******************************************************************************/
@@ -399,8 +352,8 @@ static inline void ass(lbl_pt dest, lbl_pt source){
 	if(dest->get_size() < source->get_size())
 		msg_print(NULL, V_WARN, "Assignment may cause overflow");
 	
-	str_lbl(dest_s, dest);
-	str_lbl(source_s, source);
+	Resolve(dest_s, dest);
+	Resolve(source_s, source);
 	
 	reftoval(dest_s);
 	
@@ -418,8 +371,8 @@ static inline void ass(lbl_pt dest, lbl_pt source){
 static inline void binary_l(inst_code op, lbl_pt dest, lbl_pt source){
 	std::string dest_s, source_s;
 	
-	str_lbl(dest_s, dest);
-	str_lbl(source_s, source);
+	Resolve(dest_s, dest);
+	Resolve(source_s, source);
 	
 	switch(op){
 	case i_add: put_str(FORM_4,
@@ -459,7 +412,7 @@ static inline void
 binary_r(inst_code op, lbl_pt dest, lbl_pt left, lbl_pt right){
 	std::string right_s;
 	
-	str_lbl(right_s, right);
+	Resolve(right_s, right);
 	
 	Load(A, left);
 	
@@ -511,7 +464,7 @@ static inline void cpy(lbl_pt dest, lbl_pt source, lbl_pt cnt){
 static inline void dec(lbl_pt target){
 	std::string target_s;
 	
-	str_lbl(target_s, target);
+	Resolve(target_s, target);
 	
 	reftoval(target_s);
 	
@@ -541,7 +494,7 @@ div(inst_code op, lbl_pt dest, lbl_pt dividend, lbl_pt divisor){
 static inline void inc(lbl_pt target){
 	std::string target_s;
 	
-	str_lbl(target_s, target);
+	Resolve(target_s, target);
 	
 	reftoval(target_s);
 	
@@ -601,10 +554,10 @@ static inline void ret(lbl_pt val){
 static inline void shift_l(inst_code op, lbl_pt dest, lbl_pt count){
 	std::string dest_s, count_s;
 	
-	str_lbl(dest_s, dest);
+	Resolve(dest_s, dest);
 	
 	if(count->get_mode() == am_constant)
-		str_lbl(count_s, count);
+		Resolve(count_s, count);
 	else {
 		Load(C, count);
 		count_s=str_reg(WORD, C);
@@ -651,7 +604,7 @@ shift_r(inst_code op, lbl_pt dest, lbl_pt source, lbl_pt count){
 	Load(A, source);
 	
 	if(count->get_mode() == am_constant)
-		str_lbl(count_s, count);
+		Resolve(count_s, count);
 	else {
 		Load(C, count);
 		count_s=str_reg(WORD, C);
@@ -727,8 +680,16 @@ static void Gen_inst(inst_pt inst){
 		else            shift_l(inst->op, inst->dest, inst->left             );
 		break;
 	
-	case i_call: call(inst->dest, inst->left); break;
-	case i_ret : ret (inst->left            ); break;
+	case i_call: call(inst->dest, inst->left ); break;
+	case i_ret : ret (inst->left             ); break;
+	
+	case i_lbl : put_lbl(inst->left); break;
+	
+//	case i_jmp : jmp (inst->left             ); break;
+//	case i_jf  : jf  (inst->left, inst->right); break;
+//	case i_jt  : jt  (inst->left, inst->right); break;
+	
+	case i_sz: sz(inst->dest, inst->left); break;
 	
 	// errors
 	case i_NUM:
@@ -826,12 +787,12 @@ static void Gen_routine(lbl_pt lbl, Routine * routine){
 	
 	/**************** MAIN LOOP ****************/
 	
-	if(!( blk=routine->get_first_blk() )){
+	if(!( blk=routine->first() )){
 		msg_print(NULL, V_ERROR, "Gen_proc(): Empty Routine");
 		throw;
 	}
 	
-	do Gen_blk(blk); while(( blk=routine->get_next_blk() ));
+	do Gen_blk(blk); while(( blk=routine->next() ));
 	
 	/***************** RETURN *****************/
 	
