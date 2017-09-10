@@ -37,17 +37,6 @@
 #define PTR (mode == xm_long? QWORD:DWORD)
 
 
-//typedef umax index_t;
-
-//typedef struct loc{ // can contain the location of an operand
-//	bool ref;
-//	reg_t reg;
-//	std::string mem;
-//} loc;
-
-
-
-
 /******************************************************************************/
 //                  GLOBAL CONSTANTS IN THE GEN-X86 MODULE
 /******************************************************************************/

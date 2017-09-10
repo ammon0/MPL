@@ -33,6 +33,9 @@ typedef enum{
 	st_routine
 } sym_t;
 
+
+#define COLLISION_CHAR ((char)'#')
+
 /******************************************************************************/
 //                            ALL NAMED OBJECTS
 /******************************************************************************/
@@ -193,8 +196,8 @@ typedef enum{
 
 
 class Label: public Symbol{
-	access_mode mode;
-	def_pt      def;
+	access_mode mode=am_none;
+	def_pt      def=NULL;
 	
 public:
 	bool        live=false;
@@ -215,6 +218,7 @@ protected:
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
+	Label(const char * name): Symbol(name){}
 	
 	/******************************* ACCESSOR *********************************/
 	
@@ -230,6 +234,8 @@ public:
 	
 	/******************************* MUTATORS *********************************/
 	
+	void set_def(def_pt);
+	void set_mode(access_mode);
 	
 };
 

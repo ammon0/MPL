@@ -71,6 +71,8 @@ T1:= structure	+ field
 
 where field would have to be a predefined constant
 
+If any variables are read into registers from memory they must be explicitly stored by front-end instructions. Stash() and Reg_man.clear() have no way to do it.
+
 */
 
 

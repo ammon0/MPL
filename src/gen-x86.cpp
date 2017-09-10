@@ -37,7 +37,7 @@
  *	<PRE>
  *	  Activation Record   Instructions
  *	|___________________|
- *	|    parameters     | PUSH / POP
+ *	|    parameters     |
  *	|___________________|
  *	|         IP        | CALL / RET
  *	|___________________|
@@ -117,6 +117,10 @@ typedef enum{
 class Reg_man{
 	lbl_pt reg[NUM_reg];
 	
+	/* what this really becomes is a label translation from labels in the symbol index to register labels or [spilled temps].
+	
+	*/
+	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
@@ -132,7 +136,6 @@ public:
 	void set  (reg_t r, lbl_pt l){ reg[r] = l                            ; }
 	void clear(reg_t r          ){ reg[r] = NULL                         ; }
 	void clear(void             ){ memset(reg, 0, sizeof(lbl_pt)*NUM_reg); }
-	// FIXME: if any register is not a temp it must be stored
 };
 
 static Reg_man reg_d;
@@ -263,8 +266,6 @@ static void Stash(reg_t reg){
 	
 	// should we check for liveness here or not?
 	
-	// already in memory
-	if(reg_d.get(reg)->get_mode() != am_temp) /* store */ ;
 	
 	#define TREG_P 1  //B
 	#define TREG_L 9  //B, R8-R15
@@ -423,31 +424,31 @@ binary_r(inst_code op, lbl_pt dest, lbl_pt left, lbl_pt right){
 	case i_add: put_str(FORM_4,
 		"add",
 		str_reg(dest->get_size(), A),
-		"FIXME",
+		right_s.c_str(),
 		""
 	); break;
 	case i_sub: put_str(FORM_4,
 		"sub",
 		str_reg(dest->get_size(), A),
-		"FIXME",
+		right_s.c_str(),
 		""
 	); break;
 	case i_and: put_str(FORM_4,
 		"and",
 		str_reg(dest->get_size(), A),
-		"FIXME",
+		right_s.c_str(),
 		""
 	); break;
 	case i_or : put_str(FORM_4,
-		"or",
+		right_s.c_str(),
 		str_reg(dest->get_size(), A),
-		"FIXME",
+		right_s.c_str(),
 		""
 	); break;
 	case i_xor: put_str(FORM_4,
 		"xor",
 		str_reg(dest->get_size(), A),
-		"FIXME",
+		right_s.c_str(),
 		""
 	); break;
 	}
@@ -741,8 +742,10 @@ static void Gen_blk(blk_pt blk){
  *	been pushed.
 */
 static void Gen_routine(lbl_pt lbl, Routine * routine){
-	blk_pt blk;
-	int    stack_temps;
+	blk_pt      blk;
+	int         stack_temps;
+	std::string temp_name;
+	lbl_pt      temp;
 	
 	/************** SANITY CHECKS *************/
 	
@@ -753,14 +756,26 @@ static void Gen_routine(lbl_pt lbl, Routine * routine){
 	
 	/************ SETUP STACK TEMPS ************/
 	
-	stack_temps = routine->concurrent_temps;
+//	stack_temps = routine->concurrent_temps;
+//	
+//	if(mode == xm_protected) stack_temps -= TREG_P;
+//	else stack_temps -= TREG_L;
+//	
+//	while(stack_temps > 0){
+//		//FIXME add stack temps
+//		temp_name =  lbl->get_name();
+//		temp_name += COLLISION_CHAR;
+//		temp_name += stack_temps-1;
+//		
+//		temp = new Label(temp_name.c_str());
+//		temp->set_mode(am_constant);
+//		temp->set_def
+//		
+//		routine->auto_storage->add()
+//	}
 	
-	if(mode == xm_protected) stack_temps -= TREG_P;
-	else stack_temps -= TREG_L;
-	
-	while(stack_temps > 0){
-		//FIXME add stack temps
-	}
+	/* we have to create non-colliding names for stack temps, then they can be added onto the auto struct. They will have to be full width. they may need padding.
+	*/
 	
 	/******** TODO SORT AUTOS AND PARAMETERS ********/
 	
