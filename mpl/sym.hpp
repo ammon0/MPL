@@ -218,7 +218,7 @@ protected:
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Label(const char * name): Symbol(name){}
+	Label(const char * full_name): Symbol(full_name){}
 	
 	/******************************* ACCESSOR *********************************/
 	

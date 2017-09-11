@@ -17,7 +17,7 @@
  *	x86 instructions typically replace the left operand with the result. Since
  *	results will always be temporaries, and temporaries are only ever used once.
  *	In this generator we will try to make the left operand and the result
- *	always be the accumulator. This creates an opportunity for an optimizer that
+ *	always be the accumulator. This creates a need for an optimizer that
  *	algebraically rearranges things.
  *
  *	## Register Allocation
@@ -27,23 +27,27 @@
  *	instruction then it will have to be stored somewhere. Another register
  *	would be ideal.
  *
- *	values assigned to SI and DI contain references to the object
- *	even if the object is prime. This is because the results of the ref
- *	operation stores in these locations and it will often be necessary to store
- *	values at these locations.
+ *	## Parameters
+ *	When the actual parameter structure is allocated its offset from BP is
+ *	noted. Registers can still spill beyond it as long as they are removed
+ *	before the call.
  *
  *	## Activation Record
  *
  *	<PRE>
  *	  Activation Record   Instructions
  *	|___________________|
- *	|    parameters     |
+ *	| Formal parameters |
  *	|___________________|
  *	|         IP        | CALL / RET
  *	|___________________|
  *	|         BP        | ENTER / LEAVE
  *	|___________________| <-BP
  *	|       Autos       |
+ *	|___________________|
+ *	| Spilled Registers |
+ *	|___________________|
+ *	| Actual Parameters |
  *	|_03_|_02_|_01_|_00_| <-SP
  *	</PRE>
  *
@@ -52,9 +56,11 @@
  *
  *	BP is always pointing to the stored BP of the caller
  *
- *	Formal parameters are accessed as [BP+2*stack_width+index*stack_width]
+ *	Formal parameters are accessed as [BP+2*stack_width+label]
  *
- *	Stack variables are accessed as [BP-frame_size+offset]
+ *	Stack variables are accessed as [BP-frame_size+label]
+ *
+ *	Spilled registers are accessed as [BP-frame_size-stack_width*offset]
  *
  *	## Addressing
  *	### Effective Address
@@ -70,10 +76,8 @@
  *
  *	### Linear Address
  *	Linear Address = Segment Base Address + Effective Address
- *	The segment selector is a pointer to an entry in a descriptor table. That
- *	entry contains the segment base address. In the flat memory model the
- *	segment base address is always 0 and linear addresses are equivalent to
- *	effective addresses
+ *	In the flat memory model the segment base address is always 0 and linear
+ *	addresses are equivalent to effective addresses.
  *
  *	### Physical Address
  *	physical addresses are translated from linear addresses through paging.
@@ -84,115 +88,17 @@
 
 
 
-static size_t param_sz;
-static size_t frame_sz;
-
 
 /******************************************************************************/
 //                          REGISTER MANAGEMENT
 /******************************************************************************/
 
 
-/// These are all the x86 "general purpose" registers
-typedef enum{
-	A,   ///< Accumulator
-	B,   ///< General Purpose
-	C,   ///< Counter
-	D,   ///< Data
-	SI,  ///< Source Index
-	DI,  ///< Destination Index
-	BP,  ///< Base Pointer
-	SP,  ///< Stack Pointer
-	R8,  ///< General Purpose
-	R9,  ///< General Purpose
-	R10, ///< General Purpose
-	R11, ///< General Purpose
-	R12, ///< General Purpose
-	R13, ///< General Purpose
-	R14, ///< General Purpose
-	R15, ///< General Purpose
-	NUM_reg
-} reg_t;
 
-class Reg_man{
-	lbl_pt reg[NUM_reg];
-	
-	/* what this really becomes is a label translation from labels in the symbol index to register labels or [spilled temps].
-	
-	*/
-	
-public:
-	/****************************** CONSTRUCTOR *******************************/
-	
-	Reg_man();
-	
-	/******************************* ACCESSOR *********************************/
-	
-	reg_t  find(lbl_pt);
-	lbl_pt get (reg_t r){ return reg[r]; }
-	
-	/******************************* MUTATORS *********************************/
-	
-	void set  (reg_t r, lbl_pt l){ reg[r] = l                            ; }
-	void clear(reg_t r          ){ reg[r] = NULL                         ; }
-	void clear(void             ){ memset(reg, 0, sizeof(lbl_pt)*NUM_reg); }
-};
 
 static Reg_man reg_d;
 
-/** Return the appropriate string to use the given x86 register. */
-static const char * str_reg(size_t width, reg_t reg){
-	static char array[4] = "   ";
 
-	if(mode != xm_long && width == QWORD){
-		msg_print(NULL, V_ERROR,
-			"Internal str_reg(): qword only available in long mode");
-		return "!!Bad width!!";
-	}
-	
-	if(mode != xm_long && reg > SP){
-		msg_print(NULL, V_ERROR,
-			"Internal str_reg(): R8-R15 only available in long mode");
-		return "!!Bad register!!";
-	}
-	
-	switch (width){
-	case BYTE : array[0] = ' '; array[2] = ' '; break;
-	case WORD : array[0] = ' '; array[2] = 'x'; break;
-	case DWORD: array[0] = 'e'; array[2] = 'x'; break;
-	case QWORD: array[0] = 'r'; array[2] = 'x'; break;
-	
-	default:
-		msg_print(NULL, V_ERROR, "str_reg(): got a bad width");
-		return NULL;
-	}
-
-	switch (reg){
-	case A  : array[1] = 'a'; break;
-	case B  : array[1] = 'b'; break;
-	case C  : array[1] = 'c'; break;
-	case D  : array[1] = 'd'; break;
-	case SI : array[1] = 's'; array[2] = 'i'; break;
-	case DI : array[1] = 'd'; array[2] = 'i'; break;
-	case BP : array[1] = 'b'; array[2] = 'p'; break;
-	case SP : array[1] = 's'; array[2] = 'p'; break;
-	case R8 : array[1] = '8'; array[2] = ' '; break;
-	case R9 : array[1] = '9'; array[2] = ' '; break;
-	case R10: array[1] = '1'; array[2] = '0'; break;
-	case R11: array[1] = '1'; array[2] = '1'; break;
-	case R12: array[1] = '1'; array[2] = '2'; break;
-	case R13: array[1] = '1'; array[2] = '3'; break;
-	case R14: array[1] = '1'; array[2] = '4'; break;
-	case R15: array[1] = '1'; array[2] = '5'; break;
-
-	case NUM_reg:
-	default:
-		msg_print(NULL, V_ERROR, "str_reg(): got a bad reg_t");
-		return "!!bad!!";
-	}
-
-	return array;
-}
 
 
 /******************************************************************************/
@@ -240,8 +146,7 @@ static void Resolve(std::string &s, lbl_pt lbl){
 		break;
 	
 	case am_temp:
-		s = str_reg(lbl->get_size(),reg_d.find(lbl));
-		// FIXME: what about spilled registers?
+		reg_d.find(s,lbl);
 		break;
 	
 	
@@ -261,29 +166,25 @@ static void Resolve(std::string &s, lbl_pt lbl){
 
 
 static void Stash(reg_t reg){
+	std::string open_s;
+	
 	// already empty
 	if(!reg_d.get(reg)) return;
 	
-	// should we check for liveness here or not?
+	reg_d.get_open(open_s);
 	
-	
-	#define TREG_P 1  //B
-	#define TREG_L 9  //B, R8-R15
-	
-	
-	if(reg == A);
-	
-	/*	DI -> SI
-		A,SI -> B -> R8-R15 -> C,D -> spill
-	
-	*/
+	put_str(FORM_4,
+		"mov",
+		open_s.c_str(),
+		str_reg(mode==xm_long?QWORD:DWORD, reg),
+		"stashing"
+	);
 }
 
 /** Load(reg_t reg, lbl_pt lbl)
  *	loads a label value into a register first clearing the register.
 */
 static void Load(reg_t target, lbl_pt source){
-	reg_t  ex_reg;
 	size_t ex_sz;
 	std::string source_s;
 	
@@ -292,7 +193,9 @@ static void Load(reg_t target, lbl_pt source){
 	
 	
 	// if lbl is already in a register we can use it
-	if((ex_reg=reg_d.find(source)) != NUM_reg){
+	reg_d.find(source_s,source);
+	
+	if(!source_s.empty()){
 		
 		// if the destination is occupied then we can XCHG
 		if(reg_d.get(target)){
@@ -303,7 +206,7 @@ static void Load(reg_t target, lbl_pt source){
 			put_str(FORM_4,
 				"xchg",
 				str_reg(ex_sz, target),
-				str_reg(ex_sz, ex_reg),
+				source_s.c_str(),
 				source->get_name()
 			);
 		}
@@ -313,7 +216,7 @@ static void Load(reg_t target, lbl_pt source){
 			put_str(FORM_4,
 				"mov",
 				str_reg(source->get_size(), target),
-				str_reg(source->get_size(), ex_reg),
+				source_s.c_str(),
 				source->get_name()
 			);
 		}
@@ -494,10 +397,10 @@ div(inst_code op, lbl_pt dest, lbl_pt dividend, lbl_pt divisor){
 	
 	if(op == i_div){
 		reg_d.set(A, dest);
-		reg_d.clear(D);
+		reg_d.clear(divisor);
 	}else{
 		reg_d.set(D, dest);
-		reg_d.clear(A);
+		reg_d.clear(dividend);
 	}
 }
 
@@ -600,7 +503,7 @@ static inline void shift_l(inst_code op, lbl_pt dest, lbl_pt count){
 	); break;
 	}
 	
-	reg_d.clear(C);
+	if(count->get_mode() != am_constant) reg_d.clear(count);
 }
 
 static inline void
@@ -649,7 +552,7 @@ shift_r(inst_code op, lbl_pt dest, lbl_pt source, lbl_pt count){
 	); break;
 	}
 	
-	reg_d.clear(C);
+	if(count->get_mode() != am_constant) reg_d.clear(count);
 	reg_d.set(A, dest);
 }
 
@@ -743,9 +646,6 @@ static void Gen_blk(blk_pt blk){
 */
 static void Gen_routine(lbl_pt lbl, Routine * routine){
 	blk_pt      blk;
-	int         stack_temps;
-	std::string temp_name;
-	lbl_pt      temp;
 	
 	/************** SANITY CHECKS *************/
 	
@@ -754,30 +654,10 @@ static void Gen_routine(lbl_pt lbl, Routine * routine){
 		throw;
 	}
 	
-	/************ SETUP STACK TEMPS ************/
-	
-//	stack_temps = routine->concurrent_temps;
-//	
-//	if(mode == xm_protected) stack_temps -= TREG_P;
-//	else stack_temps -= TREG_L;
-//	
-//	while(stack_temps > 0){
-//		//FIXME add stack temps
-//		temp_name =  lbl->get_name();
-//		temp_name += COLLISION_CHAR;
-//		temp_name += stack_temps-1;
-//		
-//		temp = new Label(temp_name.c_str());
-//		temp->set_mode(am_constant);
-//		temp->set_def
-//		
-//		routine->auto_storage->add()
-//	}
-	
-	/* we have to create non-colliding names for stack temps, then they can be added onto the auto struct. They will have to be full width. they may need padding.
-	*/
-	
 	/******** TODO SORT AUTOS AND PARAMETERS ********/
+	
+	/* sorting them by size should guarantee memory alignment.
+	*/
 	
 	/************ CALCULATE SIZES ***************/
 	

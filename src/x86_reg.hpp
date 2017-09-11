@@ -13,6 +13,7 @@
 #ifndef _X86_REG_HPP
 #define _X86_REG_HPP
 
+#include <mpl/sym.hpp>
 
 /// These are all the x86 "general purpose" registers
 typedef enum{
@@ -36,43 +37,32 @@ typedef enum{
 } reg_t;
 
 
+typedef struct _root * DS;
+
 class Reg_man{
-	sym_pt reg[NUM_reg];
-	bool   ref[NUM_reg];
+	DS index;
+	
+	
+	/* what this really becomes is a label translation from labels in the symbol index to register labels or [spilled temps].
+	*/
 	
 public:
 	/****************************** CONSTRUCTOR *******************************/
 	
-	Reg_man();
+	Reg_man(void);
+	~Reg_man(void);
 	
 	/******************************* ACCESSOR *********************************/
 	
-	reg_t find_ref(obj_pt);
-	reg_t find_val(obj_pt obj){
-		uint i;
-		
-		for(i=A; i!=NUM_reg; i++){
-			reg_t j = static_cast<reg_t>(i);
-			if(reg[j] == obj) break;
-		}
-		return (reg_t)i;
-	}
-	bool   is_ref(reg_t);
-	bool   is_clear(reg_t);
-	reg_t  check(void);
-	Data * get_obj(reg_t);
+	void  find(std::string &lbl_s, lbl_pt label);
+	lbl_pt get (reg_t registr);
+	void   get_open(std::string &);
 	
 	/******************************* MUTATORS *********************************/
 	
-	void set_ref(reg_t r, obj_pt o){ reg[r] = o; ref[r] = true ; }
-	void set_val(reg_t r, obj_pt o){ reg[r] = o; ref[r] = false; }
-	void clear(void){
-		memset(reg, 0, sizeof(obj_pt)*NUM_reg);
-		memset(ref, 0, sizeof(bool)*NUM_reg);
-	}
-	void clear(reg_t r){ reg[r] = NULL; }
-	void xchg(reg_t a, reg_t b);
-	
+	void set  (reg_t registr, lbl_pt label);
+	void clear(lbl_pt label);
+	void clear(void);
 };
 
 

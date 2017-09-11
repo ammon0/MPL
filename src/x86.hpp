@@ -28,13 +28,26 @@
 /******************************************************************************/
 
 
-/// These are the x86 register sizes
-#define BYTE  ((size_t) 1)
-#define WORD  ((size_t) 2)
-#define DWORD ((size_t) 4)
-#define QWORD ((size_t) 8)
-
-#define PTR (mode == xm_long? QWORD:DWORD)
+/// These are all the x86 "general purpose" registers
+typedef enum{
+	A,   ///< Accumulator
+	B,   ///< General Purpose
+	C,   ///< Counter
+	D,   ///< Data
+	SI,  ///< Source Index
+	DI,  ///< Destination Index
+	BP,  ///< Base Pointer
+	SP,  ///< Stack Pointer
+	R8,  ///< General Purpose
+	R9,  ///< General Purpose
+	R10, ///< General Purpose
+	R11, ///< General Purpose
+	R12, ///< General Purpose
+	R13, ///< General Purpose
+	R14, ///< General Purpose
+	R15, ///< General Purpose
+	NUM_reg
+} reg_t;
 
 
 /******************************************************************************/
@@ -42,6 +55,13 @@
 /******************************************************************************/
 
 
+/// These are the x86 register sizes
+#define BYTE  ((size_t) 1)
+#define WORD  ((size_t) 2)
+#define DWORD ((size_t) 4)
+#define QWORD ((size_t) 8)
+
+#define PTR (mode == xm_long? QWORD:DWORD)
 
 
 /******************************************************************************/
@@ -54,14 +74,8 @@ static FILE       * fd          ; ///< the output file descriptor
 static x86_mode_t   mode        ; ///< the processor mode we are building for
 
 
-
-/**	the register descriptor.
- *	keeps track of what value is in each register at any time
- *
- */
-//static obj_pt reg_d[NUM_reg];
-
-
+static size_t param_sz;
+static size_t frame_sz;
 
 
 /******************************************************************************/
@@ -99,6 +113,43 @@ static inline void put_lbl(lbl_pt op){ put_str(FORM_LBL, op->get_name()); }
 
 void x86_declarations(void);
 void set_struct_size(Structure * structure);
+
+
+
+const char * str_reg(size_t width, reg_t reg);
+
+
+
+typedef struct _root * DS;
+
+class Reg_man{
+	DS index;
+	
+	
+	/* what this really becomes is a label translation from labels in the symbol index to register labels or [spilled temps].
+	*/
+	
+public:
+	/****************************** CONSTRUCTOR *******************************/
+	
+	Reg_man(void);
+	~Reg_man(void);
+	
+	/******************************* ACCESSOR *********************************/
+	
+	void  find(std::string &lbl_s, lbl_pt label);
+	lbl_pt get (reg_t registr);
+	void   get_open(std::string &);
+	
+	/******************************* MUTATORS *********************************/
+	
+	void set  (reg_t registr, lbl_pt label);
+	void clear(lbl_pt label);
+	void clear(void);
+};
+
+
+
 
 #endif // X86_HPP
 
