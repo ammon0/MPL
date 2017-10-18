@@ -1,0 +1,15 @@
+Usage: occ [OPTIONS]... FILE
+An MPL compiler.
+
+
+##Debugging
+  -v   be verbose. -vv produces tons of debuging output.
+  -q   be less verbose supress all warnings. -qq silently fail on errors
+  -d   produce debug file.
+
+##Output Options
+  -p              produce portable executable
+  --x86-long      produce assembler for x86 Long Mode
+  --x86-protected produce assembler for x86 Protected Mode
+  --arm-v7
+  --arm-v8

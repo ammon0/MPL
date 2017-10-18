@@ -14,17 +14,22 @@
 
 
 srcdir    :=./src
-headerdir :=./mpl
+headerdir :=./ppd
 
 # Change these variables to point to the appropriate installation directories
 WORKDIR   :=./work
 INSTALLDIR:=$(HOME)/prg
 LIBDIR    :=$(INSTALLDIR)/lib
 INCDIR    :=$(INSTALLDIR)/include
+BINDIR    :=$(INSTALLDIR)/bin
 
 headers:=$(wildcard $(headerdir)/*.hpp)
 cpp_sources:=$(wildcard $(srcdir)/*.cpp)
 prv_headers:=$(wildcard $(srcdir)/*.hpp)
+
+yuck_source:=$(srcdir)/interface.yuck
+yuck_c     :=$(srcdir)/yuck.c
+yuck_h     :=$(srcdir)/yuck.h
 
 allfiles:= $(headers) $(cpp_sources) $(prv_headers)
 
@@ -38,7 +43,8 @@ opt_objects :=opt-dead.o
 ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
 gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
 pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
-opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects))
+opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects) )
+yuck_o      :=$(addprefix $(WORKDIR)/, $(yuck_o)      )
 
 CPP_OBJECTS:= $(ppd_objects) $(opt_objects) $(gen_objects) $(pexe_objects)
 
@@ -86,18 +92,18 @@ LEX:= flex
 ################################### TARGETS ####################################
 
 
-.PHONEY: docs debug
+.PHONEY:  debug
 
-debug: libmpl.a
+
 
 ################################# PRODUCTIONS ##################################
 
 
-libmpl.a: $(ppd_objects) $(gen_objects) $(opt_objects)
-	ar rcs $@ $(ppd_objects) $(gen_objects) $(opt_objects)
+mpl: $(srcdir)/mpl.cpp libmpl.a $(yuck_h)
+	$(CXX) $(CXXFLAGS) -o $@ $(srcdir)/mpl.cpp $(yuck_o) -lmpl
 
-docs: Doxyfile README.md $(allfiles)
-	doxygen Doxyfile
+$(yuck_c) $(yuck_h): $(yuck_source)
+	yuck gen -H$(yuck_h) -o $(yuck_c) $<
 
 $(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) $(prv_headers) | $(WORKDIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -106,16 +112,14 @@ $(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) $(prv_headers) | $(WO
 $(WORKDIR):
 	mkdir -p $@
 
-install: $(headers) libmpl.a
-	install -d $(LIBDIR) $(INCDIR)/mpl
-	install -C libmpl.a $(LIBDIR)
-	for f in $(headers)  ; do install -C $$f $(INCDIR)/mpl; done
+install: mpl
+	install -C mpl $(BINDIR)
 
 
 ################################## UTILITIES ###################################
 
 
-cleanfiles:=*.a *.o
+cleanfiles:=*.a *.o mpl
 
 .PHONEY: clean todolist count
 
