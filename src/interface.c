@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
-#include "yuck.h"
+#include "interface.h"
 
 #if defined __INTEL_COMPILER
 # pragma warning (push)
@@ -58,7 +58,7 @@ static enum yuck_cmds_e yuck_parse_cmd(const char *cmd)
 		;
 	} else {
 		/* error here? */
-		fprintf(stderr, "occ: invalid command `%s'\n\
+		fprintf(stderr, "mpl: invalid command `%s'\n\
 Try `--help' for a list of commands.\n", cmd);
 	}
 	return (enum yuck_cmds_e)-1;
@@ -138,13 +138,13 @@ Try `--help' for a list of commands.\n", cmd);
 
 		switch (tgt->cmd) {
 		default:
-			goto OCC_CMD_NONE_longopt; back_from_OCC_CMD_NONE_longopt:;
+			goto MPL_CMD_NONE_longopt; back_from_MPL_CMD_NONE_longopt:;
 			break;
 		}
 		goto back_from_longopt;
 
 
-		OCC_CMD_NONE_longopt:
+		MPL_CMD_NONE_longopt:
 		{
 			if (0) {
 				;
@@ -164,21 +164,23 @@ Try `--help' for a list of commands.\n", cmd);
 				tgt->arm_v7_flag++; goto xtra_chk;
 			} else if (yuck_streqp(op, "arm-v8")) {
 				tgt->arm_v8_flag++; goto xtra_chk;
+			} else if (yuck_streqp(op, "output")) {
+				tgt->output_arg = arg ?: argv[++i];
 			} else {
 				/* grml */
-				fprintf(stderr, "occ: unrecognized option `--%s'\n", op);
+				fprintf(stderr, "mpl: unrecognized option `--%s'\n", op);
 				goto failure;
 			xtra_chk:
 				if (arg != NULL) {
-					fprintf(stderr, "occ: option `--%s' doesn't allow an argument\n", op);
+					fprintf(stderr, "mpl: option `--%s' doesn't allow an argument\n", op);
 					goto failure;
 				}
 			}
 			if (i >= argc) {
-				fprintf(stderr, "occ: option `--%s' requires an argument\n", op);
+				fprintf(stderr, "mpl: option `--%s' requires an argument\n", op);
 				goto failure;
 			}
-			goto back_from_OCC_CMD_NONE_longopt;
+			goto back_from_MPL_CMD_NONE_longopt;
 		}
 		
 	}
@@ -189,13 +191,13 @@ Try `--help' for a list of commands.\n", cmd);
 
 		switch (tgt->cmd) {
 		default:
-			goto OCC_CMD_NONE_shortopt; back_from_OCC_CMD_NONE_shortopt:;
+			goto MPL_CMD_NONE_shortopt; back_from_MPL_CMD_NONE_shortopt:;
 			break;
 		}
 		goto back_from_shortopt;
 
 
-		OCC_CMD_NONE_shortopt:
+		MPL_CMD_NONE_shortopt:
 		{
 			switch (*op) {
 			default:
@@ -221,7 +223,7 @@ Try `--help' for a list of commands.\n", cmd);
 				}
 				;
 				;
-				fprintf(stderr, "occ: unrecognized option -%c\n", *op);
+				fprintf(stderr, "mpl: unrecognized option -%c\n", *op);
 				goto failure;
 
 
@@ -249,12 +251,17 @@ Try `--help' for a list of commands.\n", cmd);
 			case 'p':
 				tgt->dashp_flag++;
 				break;
+			case 'o':
+				tgt->output_arg = *arg
+					? (op += strlen(arg), arg)
+					: argv[++i];
+				break;
 			}
 			if (i >= argc) {
-				fprintf(stderr, "occ: option `--%s' requires an argument\n", op);
+				fprintf(stderr, "mpl: option `--%s' requires an argument\n", op);
 				goto failure;
 			}
-			goto back_from_OCC_CMD_NONE_shortopt;
+			goto back_from_MPL_CMD_NONE_shortopt;
 		}
 		
 	}
@@ -294,7 +301,8 @@ Try `--help' for a list of commands.\n", cmd);
 		void *ptr;
 	default:
 		break;
-	case OCC_CMD_NONE:
+	case MPL_CMD_NONE:
+;
 ;
 ;
 ;
@@ -315,9 +323,9 @@ Try `--help' for a list of commands.\n", cmd);
 	switch (src->cmd) {
 	default:
 	YUCK_NOCMD:
-		puts("Usage: occ [OPTION]... FILE\n\
+		puts("Usage: mpl [OPTION]... FILE\n\
 \n\
-An MPL compiler.\n\
+An MPL (Minimum Portable Language) compiler.\n\
 ");
 		break;
 
@@ -341,7 +349,7 @@ An MPL compiler.\n\
 
 	switch (src->cmd) {
 	default:
-	case OCC_CMD_NONE:
+	case MPL_CMD_NONE:
 		puts("\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
@@ -353,6 +361,7 @@ An MPL compiler.\n\
       --x86-protected   produce assembler for x86 Protected Mode\n\
       --arm-v7\n\
       --arm-v8\n\
+  -o, --output=FILE     set the name of the output file\n\
 ");
 		break;
 
@@ -378,15 +387,15 @@ Report bugs to " PACKAGE_BUGREPORT);
 #elif defined package_string
 		puts(package_string);
 #elif defined package_version
-		printf("occ %s\n", package_version);
+		printf("mpl %s\n", package_version);
 #elif defined PACKAGE_STRING
 		puts(PACKAGE_STRING);
 #elif defined PACKAGE_VERSION
-		puts("occ " PACKAGE_VERSION);
+		puts("mpl " PACKAGE_VERSION);
 #elif defined VERSION
-		puts("occ " VERSION);
+		puts("mpl " VERSION);
 #else  /* !PACKAGE_VERSION, !VERSION */
-		puts("occ unknown version");
+		puts("mpl unknown version");
 #endif	/* PACKAGE_VERSION */
 		break;
 	}

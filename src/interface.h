@@ -8,13 +8,13 @@
 
 enum yuck_cmds_e {
 	/* value used when no command was specified */
-	OCC_CMD_NONE = 0U,
+	MPL_CMD_NONE = 0U,
 
 	/* actual commands */
 	
 	/* convenience identifiers */
-	YUCK_NOCMD = OCC_CMD_NONE,
-	YUCK_NCMDS = OCC_CMD_NONE
+	YUCK_NOCMD = MPL_CMD_NONE,
+	YUCK_NCMDS = MPL_CMD_NONE
 };
 
 
@@ -44,6 +44,7 @@ struct yuck_s {
 	unsigned int x86_protected_flag;
 	unsigned int arm_v7_flag;
 	unsigned int arm_v8_flag;
+	char *output_arg;
 };
 
 

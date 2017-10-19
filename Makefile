@@ -28,26 +28,22 @@ cpp_sources:=$(wildcard $(srcdir)/*.cpp)
 prv_headers:=$(wildcard $(srcdir)/*.hpp)
 
 yuck_source:=$(srcdir)/interface.yuck
-yuck_c     :=$(srcdir)/yuck.c
-yuck_h     :=$(srcdir)/yuck.h
+interface_h:=$(srcdir)/interface.h
+interface_c:=$(srcdir)/interface.c 
+
 
 allfiles:= $(headers) $(cpp_sources) $(prv_headers)
 
 # Object files
-ppd_objects :=instructions.o container.o routine.o
-gen_objects :=gen-arm.o x86_declarations.o x86_reg.o gen-x86.o
-pexe_objects:=gen-pexe.o read-pexe.o
-opt_objects :=opt-dead.o
+c_objects  :=interface.o
+cpp_objects:=main.o
 
 # Prefix the object files
-ppd_objects :=$(addprefix $(WORKDIR)/, $(ppd_objects) )
-gen_objects :=$(addprefix $(WORKDIR)/, $(gen_objects) )
-pexe_objects:=$(addprefix $(WORKDIR)/, $(pexe_objects))
-opt_objects :=$(addprefix $(WORKDIR)/, $(opt_objects) )
-yuck_o      :=$(addprefix $(WORKDIR)/, $(yuck_o)      )
+c_objects  :=$(addprefix $(WORKDIR)/, $(c_objects)  )
+cpp_objects:=$(addprefix $(WORKDIR)/, $(cpp_objects))
 
-CPP_OBJECTS:= $(ppd_objects) $(opt_objects) $(gen_objects) $(pexe_objects)
 
+mpl_objects:= $(c_objects) $(cpp_objects)
 
 #################################### FLAGS #####################################
 
@@ -87,6 +83,7 @@ CFLAGS:=  --std=c11   -g $(CWARNINGS)   -I./ -I$(INCDIR) -L$(LIBDIR)
 CXXFLAGS:=--std=c++14 -g $(CXXWARNINGS) -I./ -I$(INCDIR) -L$(LIBDIR)
 LFLAGS:=#-d
 LEX:= flex
+libs:=-lppd -lmsg
 
 
 ################################### TARGETS ####################################
@@ -94,19 +91,22 @@ LEX:= flex
 
 .PHONEY:  debug
 
-
+debug: mpl
 
 ################################# PRODUCTIONS ##################################
 
 
-mpl: $(srcdir)/mpl.cpp libmpl.a $(yuck_h)
-	$(CXX) $(CXXFLAGS) -o $@ $(srcdir)/mpl.cpp $(yuck_o) -lmpl
+mpl: $(mpl_objects)
+	$(CXX) $(CXXFLAGS) -o $@ $(mpl_objects) $(libs)
 
-$(yuck_c) $(yuck_h): $(yuck_source)
-	yuck gen -H$(yuck_h) -o $(yuck_c) $<
+$(interface_c) $(interface_h): $(yuck_source)
+	yuck gen -H$(interface_h) -o $(interface_c) $<
 
-$(CPP_OBJECTS): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) $(prv_headers) | $(WORKDIR)
+$(cpp_objects): $(WORKDIR)/%.o: $(srcdir)/%.cpp $(headers) $(prv_headers) | $(WORKDIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(c_objects): $(WORKDIR)/%.o: $(srcdir)/%.c $(headers) $(prv_headers) | $(WORKDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 # working directory
 $(WORKDIR):
