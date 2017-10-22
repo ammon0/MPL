@@ -361,7 +361,7 @@ An MPL (Minimum Portable Language) compiler.\n\
       --x86-protected   produce assembler for x86 Protected Mode\n\
       --arm-v7\n\
       --arm-v8\n\
-  -o, --output=FILE     set the name of the output file\n\
+  -o, --output=FILE     set the name of the output file name\n\
 ");
 		break;
 

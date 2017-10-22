@@ -1,12 +1,5 @@
 # Compiled Object files
 *.o
-*.so
-*.a
-.cproject
-.project
-.settings
-*.cbp
-*.depend
-*.layout
-*.save
+
+mpl
 

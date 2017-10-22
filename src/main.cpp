@@ -34,9 +34,9 @@ static inline void Set_files(char ** infilename, yuck_t * arg_pt){
 	char * debug_file;
 	
 	// default verbosity
-	msg_set_verbosity((msg_log_lvl)(V_NOTE + arg_pt->dashv_flag - arg_pt->dashq_flag));
-	
-//	verbosity = (verb_t) (DEFAULT_VERBOSITY + arg_pt->dashv_flag - arg_pt->dashq_flag);
+	msg_set_verbosity(
+		(msg_log_lvl)(V_NOTE + arg_pt->dashv_flag - arg_pt->dashq_flag)
+	);
 	
 	if (arg_pt->nargs > 1)
 		msg_print(NULL, V_WARN, "Too many arguments...Ignoring.");
